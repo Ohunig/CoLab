@@ -1,0 +1,57 @@
+# Xcode
+.DS_Store
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.xcworkspace
+xcuserdata/
+*.moved-aside
+*.xcuserstate
+
+# Xcode
+*.xcscmblueprint
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+
+# Carthage
+Carthage/Build/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# macOS
+*.DS_Store
+
+# JetBrains
+.idea/
+
+# Cocoapods archive
+*.xcarchive
+
+# Certificates (don't store private keys)
+*.p12
+*.mobileprovision
+
+# Secrets (if any)
+.env
+.env.*
+
+# User-specific
+*.swp
+*~.nib
+
+# Xcode DerivedData alternate locations
+DerivedData/
