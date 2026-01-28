@@ -15,10 +15,15 @@ extension UIColor {
         
         static let bitsToRed = 16
         static let bitsToGreen = 8
+        
+        static let standardAlpha: Float = 1
     }
     
     // Конструктор из Hex
-    convenience init(hex: String, alpha: Float) {
+    convenience init(
+        hex: String,
+        alpha: Float = Constants.standardAlpha
+    ) {
         let hex_int = Int(hex.suffix(hex.count - 1), radix: Constants.hex) ?? 0
         self.init(
             red: CGFloat(Float(hex_int >> Constants.bitsToRed) / Float(Constants.module)),

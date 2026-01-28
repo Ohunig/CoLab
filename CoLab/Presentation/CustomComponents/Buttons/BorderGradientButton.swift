@@ -7,6 +7,7 @@
 
 import UIKit
 
+// Кнопка с прозрачным центром и градиентной обводкой
 final class BorderGradientButton: UIButton {
     
     private struct Constants {

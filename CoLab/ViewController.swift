@@ -16,31 +16,31 @@ class ViewController: UIViewController {
         let bg = MainBackgroundView(backgroundColor: bgColor, gradientColor: outColor)
         setCustomBackground(backgroundView: bg)
         
-        let logo = UIImage(named: "CoLabScreenIcon")
-        let logoView = UIImageView(image: logo)
-        logoView.contentMode = .scaleAspectFit
-        logoView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(logoView)
-        NSLayoutConstraint.activate(
-            [
-                logoView.leadingAnchor.constraint(
-                    equalTo: view.leadingAnchor,
-                    constant: 112
-                ),
-                logoView.centerXAnchor.constraint(
-                    equalTo: view.centerXAnchor
-                ),
-                logoView.centerYAnchor.constraint(
-                    equalTo: view.centerYAnchor,
-                    constant: -100
-                )
-            ]
-        )
+//        let logo = UIImage(named: "CoLabScreenIcon")
+//        let logoView = UIImageView(image: logo)
+//        logoView.contentMode = .scaleAspectFit
+//        logoView.translatesAutoresizingMaskIntoConstraints = false
+//        view.addSubview(logoView)
+//        NSLayoutConstraint.activate(
+//            [
+//                logoView.leadingAnchor.constraint(
+//                    equalTo: view.leadingAnchor,
+//                    constant: 112
+//                ),
+//                logoView.centerXAnchor.constraint(
+//                    equalTo: view.centerXAnchor
+//                ),
+//                logoView.centerYAnchor.constraint(
+//                    equalTo: view.centerYAnchor,
+//                    constant: -100
+//                )
+//            ]
+//        )
         
         let button = FilledGradientButton()
         button.setTitle("Log in", for: .normal)
-        button.startColor = UIColor(hex: "#D1772D", alpha: 1)
-        button.endColor = UIColor(hex: "#E2A712", alpha: 1)
+        button.startColor = UIColor(hex: "#D1772D")
+        button.endColor = UIColor(hex: "#E2A712")
         button.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(button)
         NSLayoutConstraint.activate(
@@ -58,9 +58,9 @@ class ViewController: UIViewController {
         
         let button2 = BorderGradientButton()
         button2.setTitle("Sign up", for: .normal)
-        button2.startColor = UIColor(hex: "#D1772D", alpha: 1)
-        button2.endColor = UIColor(hex: "#E2A712", alpha: 1)
-        button2.setTitleColor(UIColor(hex: "#E2A712", alpha: 1), for: .normal)
+        button2.startColor = UIColor(hex: "#D1772D")
+        button2.endColor = UIColor(hex: "#E2A712")
+        button2.setTitleColor(UIColor(hex: "#E2A712"), for: .normal)
         button2.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(button2)
         NSLayoutConstraint.activate(
@@ -83,6 +83,43 @@ class ViewController: UIViewController {
                 )
             ]
         )
+        
+        let tf = ImageTextField(image: UIImage(systemName: "envelope") ?? UIImage())
+        tf.tintColor = UIColor(hex: "#7E6C4F", alpha: 0.5)
+        tf.baseColor = UIColor(hex: "#4C4232")
+        tf.placeholder = "Write your email"
+        tf.textColor = UIColor(hex: "#7E6C4F")
+        
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(tf)
+        
+        NSLayoutConstraint.activate(
+            [
+                tf.leadingAnchor.constraint(
+                    equalTo: view.leadingAnchor,
+                    constant: 22
+                ),
+                tf.centerXAnchor.constraint(
+                    equalTo: view.centerXAnchor
+                ),
+                tf.topAnchor.constraint(
+                    equalTo: view.safeAreaLayoutGuide.topAnchor,
+                    constant: 400
+                ),
+                tf.heightAnchor.constraint(
+                    equalToConstant: 65
+                )
+            ]
+        )
+        
+        
+        let back = BackNavBarButton(image: UIImage(systemName: "chevron.backward") ?? UIImage())
+        back.baseColor = UIColor(hex: "#4C4232")
+        back.tintColor = UIColor(hex: "#7E6C4F")
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: back)
+        navigationItem.leftBarButtonItem?.hidesSharedBackground = true
+        
+        
     }
     
 }
