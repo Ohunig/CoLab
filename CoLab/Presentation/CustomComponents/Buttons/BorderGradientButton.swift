@@ -13,7 +13,7 @@ final class BorderGradientButton: UIButton {
     private struct Constants {
         static let fatalError = "init(coder:) has not been implemented"
         
-        static let standardCornerRadius: CGFloat = 30
+        static let standardCornerRadius: CGFloat = 25
         static let standardBorderWidth: CGFloat = 3
         
         static let gradientStartX: CGFloat = 0

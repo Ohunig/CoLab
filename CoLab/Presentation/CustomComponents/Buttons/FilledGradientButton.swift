@@ -13,7 +13,7 @@ final class FilledGradientButton: UIButton {
     private struct Constants {
         static let fatalError = "init(coder:) has not been implemented"
         
-        static let standardCornerRadius: CGFloat = 30
+        static let standardCornerRadius: CGFloat = 25
         
         static let gradientStartX: CGFloat = 0
         static let gradientEndX: CGFloat = 1

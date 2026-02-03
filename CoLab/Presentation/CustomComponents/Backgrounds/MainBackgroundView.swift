@@ -22,18 +22,34 @@ final class MainBackgroundView: UIView {
         static let bottomGlowViewTop: CGFloat = 478
     }
     
-    private let color: UIColor
+    private var color: UIColor
     
-    private let gradientColor: UIColor
+    private var gradColor: UIColor
+    
+    var bgColor: UIColor {
+        get { color }
+        set {
+            color = newValue
+            configureUI()
+        }
+    }
+    
+    var gradientColor: UIColor {
+        get { gradColor }
+        set {
+            gradColor = newValue
+            configureUI()
+        }
+    }
     
     // MARK: Lifecycle
     
     init(
-        backgroundColor: UIColor,
-        gradientColor: UIColor
+        backgroundColor: UIColor = .black,
+        gradientColor: UIColor = .black
     ) {
         self.color = backgroundColor
-        self.gradientColor = gradientColor
+        self.gradColor = gradientColor
         super.init(frame: .zero)
         
         configureUI()
@@ -54,8 +70,8 @@ final class MainBackgroundView: UIView {
     private func configureGlowViews() {
         let topGlowView = GlowView()
         let bottomGlowView = GlowView()
-        topGlowView.centerColor = gradientColor
-        bottomGlowView.centerColor = gradientColor
+        topGlowView.centerColor = gradColor
+        bottomGlowView.centerColor = gradColor
         topGlowView.outerColor = color
         bottomGlowView.outerColor = color
         topGlowView.translatesAutoresizingMaskIntoConstraints = false
