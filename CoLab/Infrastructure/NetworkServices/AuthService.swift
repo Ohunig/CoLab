@@ -31,14 +31,26 @@ final class AuthService: AuthLogic {
     func logIn(
         email: String,
         password: String,
-        completion: @escaping (Result<Void, any Error>) -> Void
+        completion: @escaping (Result<Void, LogInError>) -> Void
     ) {
         Auth.auth().signIn(
             withEmail: email,
             password: password
         ) { _, error in
-            if let error {
-                completion(.failure(error))
+            if let nsError = error as NSError? {
+                let mappedError: LogInError
+                
+                switch nsError.code {
+                case AuthErrorCode.invalidCredential.rawValue:
+                    mappedError = .invalidCredential
+                case AuthErrorCode.invalidEmail.rawValue:
+                    mappedError = .invalidEmail
+                case AuthErrorCode.networkError.rawValue:
+                    mappedError = .network
+                default:
+                    mappedError = .unknown
+                }
+                completion(.failure(mappedError))
                 return
             }
             completion(.success(()))
@@ -67,11 +79,8 @@ final class AuthService: AuthLogic {
             }
             let change = user.createProfileChangeRequest()
             change.displayName = username
-            change.commitChanges() { error in
-                if let error {
-                    completion(.failure(error))
-                    return
-                }
+            change.commitChanges() { _ in
+                // Так как аккаунт уже был создан в любом случае
                 completion(.success(()))
             }
         }

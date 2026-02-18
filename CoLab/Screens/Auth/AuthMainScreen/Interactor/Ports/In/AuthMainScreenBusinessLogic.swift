@@ -11,4 +11,6 @@ protocol AuthMainScreenBusinessLogic: AnyObject {
     typealias Model = AuthMainScreenModels
     
     func loadStart()
+    
+    func loadLogInScreen()
 }

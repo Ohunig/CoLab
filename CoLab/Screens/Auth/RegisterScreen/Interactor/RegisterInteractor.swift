@@ -1,29 +1,33 @@
 //
-//  AuthMainScreenInteractor.swift
+//  RegisterInteractor.swift
 //  CoLab
 //
-//  Created by User on 03.02.2026.
+//  Created by User on 05.02.2026.
 //
 
 import Foundation
 
-final class AuthMainScreenInteractor: AuthMainScreenBusinessLogic {
+final class RegisterInteractor: RegisterBusinessLogic {
     
-    private let presenter: AuthMainScreenPresentationLogic
+    private let presenter: RegisterPresentationLogic
     
     private let colorRepository: ColorStorageLogic
+    
+    private let authService: AuthLogic
     
     private let router: AuthRoutingLogic
     
     // MARK: Lifecycle
     
     init(
-        presenter: AuthMainScreenPresentationLogic,
+        presenter: RegisterPresentationLogic,
         colorRepository: ColorStorageLogic,
+        authService: AuthLogic,
         router: AuthRoutingLogic
     ) {
         self.presenter = presenter
         self.colorRepository = colorRepository
+        self.authService = authService
         self.router = router
     }
     
@@ -35,12 +39,15 @@ final class AuthMainScreenInteractor: AuthMainScreenBusinessLogic {
                 bgColor: colorRepository.backgroundColor,
                 bgGradientColor: colorRepository.backgroundGradientColor,
                 firstGradientColor: colorRepository.firstGradientColor,
-                secondGradientColor: colorRepository.secondGradientColor
+                secondGradientColor: colorRepository.secondGradientColor,
+                elementsBaseColor: colorRepository.elementsBaseColor,
+                tintColor: colorRepository.tintColor,
+                textColor: colorRepository.mainTextColor
             )
         )
     }
     
-    func loadLogInScreen() {
-        router.routeToLogInScreen()
+    func loadAuthMainScreen() {
+        router.routeToAuthMainScreen()
     }
 }

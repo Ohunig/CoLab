@@ -15,7 +15,7 @@ protocol AuthLogic: AnyObject {
     func logIn(
         email: String,
         password: String,
-        completion: @escaping (Result<Void, Error>) -> Void
+        completion: @escaping (Result<Void, LogInError>) -> Void
     )
     
     func logOut() throws

@@ -11,13 +11,15 @@ import Foundation
 final class ColorRepository: ColorStorageLogic {
     
     private struct Constants {
-        static let standardBackgroundColor = "#111111"
+        static let standardBackgroundColor = "#090909"
         static let standardBackgroundGradientColor = "#553D01"
         static let standardFirstGradientColor = "#D1772D"
         static let standardSecondGradientColor = "#E2A712"
         static let standardElementsBaseColor = "#4C4232"
         static let standardMainTextColor = "#FFFFFF"
         static let standardTintColor = "#7E6C4F"
+        
+        static let tintColorAlpha: Float = 0.5
     }
     
     var backgroundColor: ColorModel {
@@ -45,7 +47,7 @@ final class ColorRepository: ColorStorageLogic {
     }
     
     var tintColor: ColorModel {
-        ColorModel(hex: Constants.standardTintColor)
+        ColorModel(hex: Constants.standardTintColor, alpha: Constants.tintColorAlpha)
     }
     
 }

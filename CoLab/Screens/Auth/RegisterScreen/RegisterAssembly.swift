@@ -1,8 +1,8 @@
 //
-//  AuthMainScreenAssembly.swift
+//  RegisterAssembly.swift
 //  CoLab
 //
-//  Created by User on 04.02.2026.
+//  Created by User on 09.02.2026.
 //
 
 import Foundation
@@ -10,14 +10,16 @@ import UIKit
 import Swinject
 
 // Сборщик экрана
-enum AuthMainScreenAssembly {
+enum RegisterAssembly {
     
     private struct Constants {
         static let notAllServicesRegistered = "Not all dependencies registered"
     }
     
     static func build() -> UIViewController {
-        let presenter = AuthMainScreenPresenter()
+        let presenter = RegisterPresenter()
+        
+        // Подтягиваем нужные зависимости
         
         guard let colorRepository = CompositionRoot.container.resolve(
             ColorStorageLogic.self
@@ -26,19 +28,25 @@ enum AuthMainScreenAssembly {
             fatalError(Constants.notAllServicesRegistered)
         }
         
-        guard let authRouter = CompositionRoot.container.resolve(
-            AuthRoutingLogic.self
+        guard let authService = CompositionRoot.container.resolve(
+            AuthLogic.self
         ) else {
-            // Специально сделано чтобы приложение падало с ошибкой так как без всех зарегестрированных зависимостей не может нормально работать
             fatalError(Constants.notAllServicesRegistered)
         }
         
-        let interactor = AuthMainScreenInteractor(
+        guard let router = CompositionRoot.container.resolve(
+            AuthRoutingLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        
+        let interactor = RegisterInteractor(
             presenter: presenter,
             colorRepository: colorRepository,
-            router: authRouter
+            authService: authService,
+            router: router
         )
-        let viewController = AuthMainScreenViewController(
+        let viewController = RegisterViewController(
             interactor: interactor
         )
         presenter.controller = viewController

@@ -1,14 +1,14 @@
 //
-//  AuthMainScreenModels.swift
+//  RegisterModels.swift
 //  CoLab
 //
-//  Created by User on 03.02.2026.
+//  Created by User on 05.02.2026.
 //
 
 import Foundation
 
-// Модели передачи данных между слоями
-struct AuthMainScreenModels {
+// Модели для передачи данных между слоями экрана
+struct RegisterModels {
     
     // Модели для старта экрана
     enum Start {
@@ -17,12 +17,18 @@ struct AuthMainScreenModels {
             let bgGradientColor: ColorModel
             let firstGradientColor: ColorModel
             let secondGradientColor: ColorModel
+            let elementsBaseColor: ColorModel
+            let tintColor: ColorModel
+            let textColor: ColorModel
         }
         struct ViewModel {
             let bgColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
             let bgGradientColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
             let firstGradientColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
             let secondGradientColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
+            let elementsBaseColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
+            let tintColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
+            let textColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
         }
     }
 }

@@ -61,6 +61,15 @@ final class ImageTextField: UIView {
         }
     }
     
+    var text: String? {
+        get {
+            textField.text
+        }
+        set {
+            textField.text = newValue
+        }
+    }
+    
     // MARK: Lifecycle
     
     init(image: UIImage) {
@@ -158,6 +167,12 @@ final class ImageTextField: UIView {
         image.tintColor = tintColor
         textField.tintColor = tintColor
         updatePlaceholderColor()
+    }
+    
+    // MARK: Target
+    
+    func addTarget(_ target: Any?, action: Selector, for controlEvents: UIControl.Event) {
+        textField.addTarget(target, action: action, for: controlEvents)
     }
 }
 

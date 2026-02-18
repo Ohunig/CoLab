@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		CECBE06F2F2C08A200E7749C /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CECBE06E2F2C08A200E7749C /* FirebaseAnalytics */; };
 		CECBE0712F2C08A200E7749C /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = CECBE0702F2C08A200E7749C /* FirebaseAuth */; };
+		CECBE0A52F34CCB900E7749C /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = CECBE0A42F34CCB900E7749C /* Swinject */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 			files = (
 				CECBE06F2F2C08A200E7749C /* FirebaseAnalytics in Frameworks */,
 				CECBE0712F2C08A200E7749C /* FirebaseAuth in Frameworks */,
+				CECBE0A52F34CCB900E7749C /* Swinject in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,6 +89,7 @@
 			packageProductDependencies = (
 				CECBE06E2F2C08A200E7749C /* FirebaseAnalytics */,
 				CECBE0702F2C08A200E7749C /* FirebaseAuth */,
+				CECBE0A42F34CCB900E7749C /* Swinject */,
 			);
 			productName = CoLab;
 			productReference = CECBE01F2F210FC000E7749C /* CoLab.app */;
@@ -118,6 +121,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				CECBE06D2F2C08A200E7749C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				CECBE0A32F34CCB900E7749C /* XCRemoteSwiftPackageReference "Swinject" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CECBE0202F210FC000E7749C /* Products */;
@@ -365,6 +369,14 @@
 				minimumVersion = 12.8.0;
 			};
 		};
+		CECBE0A32F34CCB900E7749C /* XCRemoteSwiftPackageReference "Swinject" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Swinject/Swinject.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.10.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -377,6 +389,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CECBE06D2F2C08A200E7749C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
+		};
+		CECBE0A42F34CCB900E7749C /* Swinject */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CECBE0A32F34CCB900E7749C /* XCRemoteSwiftPackageReference "Swinject" */;
+			productName = Swinject;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

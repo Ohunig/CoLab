@@ -13,7 +13,7 @@ final class AuthMainScreenViewController: UIViewController {
         static let fatalError = "init(coder:) has not been implemented"
         static let horisontalInset: CGFloat = 22
         
-        // Logo
+        // Логотип
         static let logoName = "CoLabScreenIcon"
         static let logoHorisontalInset: CGFloat = 100
         static let logoTop: CGFloat = 250
@@ -21,7 +21,7 @@ final class AuthMainScreenViewController: UIViewController {
         static let logoTitleFontSize: CGFloat = 48
         static let logoTitleTop: CGFloat = 16
         
-        // Buttons
+        // Кнопки
         static let buttonsHeight: CGFloat = 55
         static let loginButtonTitle = "Log in"
         static let signUpButtonTitle = "Sign up"
@@ -66,7 +66,7 @@ final class AuthMainScreenViewController: UIViewController {
     }
     
     private func configureLogo() {
-        // Logo
+        // Логотип
         let logo = UIImage(named: Constants.logoName)
         let logoView = UIImageView(image: logo)
         logoView.contentMode = .scaleAspectFit
@@ -88,7 +88,7 @@ final class AuthMainScreenViewController: UIViewController {
             ]
         )
         
-        // Logo title
+        // Заголовок логотипа
         logoTitle.text = Constants.logoTitle
         logoTitle.font = .systemFont(
             ofSize: Constants.logoTitleFontSize,
@@ -111,6 +111,7 @@ final class AuthMainScreenViewController: UIViewController {
     
     private func configureLogInButton() {
         loginButton.setTitle(Constants.loginButtonTitle, for: .normal)
+        loginButton.addTarget(self, action: #selector(logInTapped), for: .touchUpInside)
         loginButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(loginButton)
         NSLayoutConstraint.activate(
@@ -151,6 +152,13 @@ final class AuthMainScreenViewController: UIViewController {
                 )
             ]
         )
+    }
+    
+    // MARK: Buttons targets
+    
+    @objc
+    private func logInTapped() {
+        interactor.loadLogInScreen()
     }
 }
 

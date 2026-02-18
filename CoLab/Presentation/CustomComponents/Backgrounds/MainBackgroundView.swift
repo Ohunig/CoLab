@@ -22,6 +22,10 @@ final class MainBackgroundView: UIView {
         static let bottomGlowViewTop: CGFloat = 478
     }
     
+    private let topGlowView = GlowView()
+    
+    private let bottomGlowView = GlowView()
+    
     private var color: UIColor
     
     private var gradColor: UIColor
@@ -30,7 +34,9 @@ final class MainBackgroundView: UIView {
         get { color }
         set {
             color = newValue
-            configureUI()
+            backgroundColor = color
+            topGlowView.outerColor = color
+            bottomGlowView.outerColor = color
         }
     }
     
@@ -38,7 +44,8 @@ final class MainBackgroundView: UIView {
         get { gradColor }
         set {
             gradColor = newValue
-            configureUI()
+            topGlowView.centerColor = gradColor
+            bottomGlowView.centerColor = gradColor
         }
     }
     
@@ -63,13 +70,11 @@ final class MainBackgroundView: UIView {
     // MARK: Configure UI
     
     private func configureUI() {
-        self.backgroundColor = color
+        backgroundColor = color
         configureGlowViews()
     }
     
     private func configureGlowViews() {
-        let topGlowView = GlowView()
-        let bottomGlowView = GlowView()
         topGlowView.centerColor = gradColor
         bottomGlowView.centerColor = gradColor
         topGlowView.outerColor = color
