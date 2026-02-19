@@ -43,4 +43,8 @@ final class AuthMainScreenInteractor: AuthMainScreenBusinessLogic {
     func loadLogInScreen() {
         router.routeToLogInScreen()
     }
+    
+    func loadRegisterScreen() {
+        router.routeToSignUpScreen()
+    }
 }

@@ -47,6 +47,29 @@ final class RegisterInteractor: RegisterBusinessLogic {
         )
     }
     
+    func loadRegister(request: Model.SignUp.Request) {
+        authService.signUp(
+            email: request.email,
+            username: request.username,
+            password: request.password
+        ) { [weak self] result in
+            // Так как не знаем на каком потоке будет исполняться
+            DispatchQueue.main.async {
+                switch result {
+                case .success(_):
+                    self?.presenter.presentRegisterResult(
+                        Model.SignUp.Response(error: nil)
+                    )
+                    self?.loadAuthMainScreen()
+                case .failure(let error):
+                    self?.presenter.presentRegisterResult(
+                        Model.SignUp.Response(error: error)
+                    )
+                }
+            }
+        }
+    }
+    
     func loadAuthMainScreen() {
         router.routeToAuthMainScreen()
     }

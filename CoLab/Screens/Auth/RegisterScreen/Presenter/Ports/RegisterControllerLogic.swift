@@ -11,4 +11,6 @@ protocol RegisterControllerLogic: AnyObject {
     typealias Model = RegisterModels
     
     func displayStart(_ viewModel: Model.Start.ViewModel)
+    
+    func displayRegisterResult(_ viewModel: Model.SignUp.ViewModel)
 }

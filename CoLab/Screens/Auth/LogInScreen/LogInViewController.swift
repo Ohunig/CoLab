@@ -14,7 +14,7 @@ final class LogInViewController: UIViewController {
         static let horisontalInset: CGFloat = 22
         
         // Заголовок
-        static let title = "Log in"
+        static let title = "Вход"
         static let titleFontSize: CGFloat = 40
         
         // Кнопки
@@ -24,7 +24,7 @@ final class LogInViewController: UIViewController {
         static let backButtonImage = "chevron.backward"
         
         static let nextButtonBottom: CGFloat = 60
-        static let nextButtonText = "Next"
+        static let nextButtonText = "Далее"
         static let enabledAlpha: CGFloat = 1
         
         // Текстовые поля
@@ -34,8 +34,8 @@ final class LogInViewController: UIViewController {
         static let emailFieldImage = "envelope.fill"
         static let passwordFieldImage = "key.fill"
         
-        static let emailFieldPlaceholder = "Write your email"
-        static let passwordFieldPlaceholder = "Write your password"
+        static let emailFieldPlaceholder = "Email"
+        static let passwordFieldPlaceholder = "Пароль (>5 символов)"
         
         // Параметры введённых значений
         static let minPasswordSymbols = 6
@@ -118,6 +118,7 @@ final class LogInViewController: UIViewController {
         emailField.heightAnchor.constraint(equalToConstant: Constants.fieldsHeight).isActive = true
         
         passwordField.placeholder = Constants.passwordFieldPlaceholder
+        passwordField.isSecureTextEntry = true
         passwordField.heightAnchor.constraint(equalToConstant: Constants.fieldsHeight).isActive = true
         
         emailField.addTarget(self, action: #selector(textDidChange), for: .editingChanged)

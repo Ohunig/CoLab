@@ -23,8 +23,8 @@ final class AuthMainScreenViewController: UIViewController {
         
         // Кнопки
         static let buttonsHeight: CGFloat = 55
-        static let loginButtonTitle = "Log in"
-        static let signUpButtonTitle = "Sign up"
+        static let loginButtonTitle = "Вход"
+        static let signUpButtonTitle = "Регистрация"
         static let buttonsInset: CGFloat = 20
         static let buttonsBottom: CGFloat = 60
         
@@ -130,6 +130,7 @@ final class AuthMainScreenViewController: UIViewController {
     
     private func configureSignUpButton() {
         signUpButton.setTitle(Constants.signUpButtonTitle, for: .normal)
+        signUpButton.addTarget(self, action: #selector(signUpTapped), for: .touchUpInside)
         signUpButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(signUpButton)
         NSLayoutConstraint.activate(
@@ -159,6 +160,11 @@ final class AuthMainScreenViewController: UIViewController {
     @objc
     private func logInTapped() {
         interactor.loadLogInScreen()
+    }
+    
+    @objc
+    private func signUpTapped() {
+        interactor.loadRegisterScreen()
     }
 }
 

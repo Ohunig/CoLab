@@ -31,4 +31,20 @@ struct RegisterModels {
             let textColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
         }
     }
+    
+    // Модели для создания аккаунта
+    enum SignUp {
+        struct Request {
+            let email: String
+            let password: String
+            let username: String
+        }
+        struct Response {
+            let error: Error?
+        }
+        struct ViewModel {
+            let title: String?
+            let errorDescription: String?
+        }
+    }
 }

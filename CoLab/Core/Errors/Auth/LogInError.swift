@@ -24,13 +24,13 @@ enum LogInError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidCredential:
-            return Constants.invalidCredentialDesc
+            Constants.invalidCredentialDesc
         case .invalidEmail:
-            return Constants.invalidEmailDesc
+            Constants.invalidEmailDesc
         case .network:
-            return Constants.networkDesc
+            Constants.networkDesc
         case .unknown:
-            return Constants.unknownDesc
+            Constants.unknownDesc
         }
     }
 }

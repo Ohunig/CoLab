@@ -13,4 +13,6 @@ protocol AuthMainScreenBusinessLogic: AnyObject {
     func loadStart()
     
     func loadLogInScreen()
+    
+    func loadRegisterScreen()
 }

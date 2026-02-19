@@ -38,6 +38,7 @@ final class AuthService: AuthLogic {
             password: password
         ) { _, error in
             if let nsError = error as NSError? {
+                // Получаем ошибку нужного типа
                 let mappedError: LogInError
                 
                 switch nsError.code {
@@ -65,11 +66,24 @@ final class AuthService: AuthLogic {
         email: String,
         username: String,
         password: String,
-        completion: @escaping (Result<Void, any Error>) -> Void
+        completion: @escaping (Result<Void, RegisterError>) -> Void
     ) {
         Auth.auth().createUser(withEmail: email, password: password) { result, error in
-            if let error {
-                completion(.failure(error))
+            if let nsError = error as NSError? {
+                // Получаем ошибку нужного типа
+                let mappedError: RegisterError
+                
+                switch nsError.code {
+                case AuthErrorCode.emailAlreadyInUse.rawValue:
+                    mappedError = .emailAlreadyInUse
+                case AuthErrorCode.invalidEmail.rawValue:
+                    mappedError = .invalidEmail
+                case AuthErrorCode.networkError.rawValue:
+                    mappedError = .networkError
+                default:
+                    mappedError = .unknown
+                }
+                completion(.failure(mappedError))
                 return
             }
             guard let user = result?.user else {

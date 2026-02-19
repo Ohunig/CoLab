@@ -70,6 +70,15 @@ final class ImageTextField: UIView {
         }
     }
     
+    var isSecureTextEntry: Bool {
+        get {
+            textField.isSecureTextEntry
+        }
+        set {
+            textField.isSecureTextEntry = newValue
+        }
+    }
+    
     // MARK: Lifecycle
     
     init(image: UIImage) {

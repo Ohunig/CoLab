@@ -14,8 +14,8 @@ final class RegisterViewController: UIViewController {
         static let horisontalInset: CGFloat = 22
         
         // Заголовок
-        static let title = "Register"
-        static let titleFontSize: CGFloat = 40
+        static let title = "Регистрация"
+        static let titleFontSize: CGFloat = 36
         
         // Кнопки
         static let buttonsHeight: CGFloat = 55
@@ -24,25 +24,32 @@ final class RegisterViewController: UIViewController {
         static let backButtonImage = "chevron.backward"
         
         static let nextButtonBottom: CGFloat = 60
-        static let nextButtonText = "Next"
+        static let nextButtonText = "Далее"
         static let enabledAlpha: CGFloat = 1
         
         // Текстовые поля
         static let fieldsHeight: CGFloat = 65
         static let fieldsSpacing: CGFloat = 21
         
+        static let usernameFieldImage = "person.fill"
         static let emailFieldImage = "envelope.fill"
         static let passwordFieldImage = "key.fill"
         
-        static let emailFieldPlaceholder = "Write your email"
-        static let passwordFieldPlaceholder = "Write your password"
+        static let emailFieldPlaceholder = "Email"
+        static let passwordFieldPlaceholder = "Пароль (>5 символов)"
+        static let usernameFieldPlaceholder = "Имя аккаунта"
         
         // Параметры введённых значений
         static let minPasswordSymbols = 6
         static let minUsernameSymbols = 4
+        
+        // Объявления
+        static let alertOk = "Ok"
     }
     
     private let interactor: RegisterBusinessLogic
+    
+    lazy private var overlay = LoadingOverlay()
     
     private let backgroundView = MainBackgroundView()
     
@@ -51,6 +58,7 @@ final class RegisterViewController: UIViewController {
     private let backButton = BackNavBarButton(image: UIImage(systemName: Constants.backButtonImage) ?? UIImage())
     private let nextButton = FilledGradientButton()
     
+    private let usernameField = ImageTextField(image: UIImage(systemName: Constants.usernameFieldImage) ?? UIImage())
     private let emailField = ImageTextField(image: UIImage(systemName: Constants.emailFieldImage) ?? UIImage())
     private let passwordField = ImageTextField(image: UIImage(systemName: Constants.passwordFieldImage) ?? UIImage())
     
@@ -115,13 +123,19 @@ final class RegisterViewController: UIViewController {
         
         passwordField.placeholder = Constants.passwordFieldPlaceholder
         passwordField.heightAnchor.constraint(equalToConstant: Constants.fieldsHeight).isActive = true
+        passwordField.isSecureTextEntry = true
+        
+        usernameField.placeholder = Constants.usernameFieldPlaceholder
+        usernameField.heightAnchor.constraint(equalToConstant: Constants.fieldsHeight).isActive = true
         
         emailField.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
         passwordField.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
+        usernameField.addTarget(self, action: #selector(textDidChange), for: .editingChanged)
         
         // конфигурируем стек
         let stack = UIStackView()
         stack.axis = .vertical
+        stack.addArrangedSubview(usernameField)
         stack.addArrangedSubview(emailField)
         stack.addArrangedSubview(passwordField)
         stack.spacing = Constants.fieldsSpacing
@@ -151,9 +165,10 @@ final class RegisterViewController: UIViewController {
     private func updateNextButtonState() {
         let actualEmail = emailField.text ?? ""
         let actualPassword = passwordField.text ?? ""
+        let actualUsername = usernameField.text ?? ""
         
         // Первичная проверка валидности введённых данных
-        let valid = actualEmail.contains("@") && actualPassword.count >= Constants.minPasswordSymbols
+        let valid = actualEmail.contains("@") && actualPassword.count >= Constants.minPasswordSymbols && actualUsername.count >= Constants.minUsernameSymbols
         
         // Изменяем состояние кнопки в зависимости от корректности данных
         nextButton.isEnabled = valid
@@ -173,7 +188,29 @@ final class RegisterViewController: UIViewController {
     
     @objc
     private func nextButtonTapped() {
+        guard let email = emailField.text,
+              let password = passwordField.text,
+              let username = usernameField.text
+        else {
+            // Вызывать интерактор бессмысленно
+            return
+        }
         
+        // Очищаем поле с паролем
+        passwordField.text = ""
+        textDidChange()
+        // Накладываем поверх эффект загрузки
+        if let window = UIApplication.shared.currentKeyWindow {
+            overlay.show(over: window)
+        }
+        
+        interactor.loadRegister(
+            request: Model.SignUp.Request(
+                email: email,
+                password: password,
+                username: username
+            )
+        )
     }
 }
 
@@ -221,5 +258,25 @@ extension RegisterViewController: RegisterControllerLogic {
         passwordField.tintColor = tintColor
         passwordField.baseColor = elementsBaseColor
         passwordField.textColor = textColor
+        
+        usernameField.tintColor = tintColor
+        usernameField.baseColor = elementsBaseColor
+        usernameField.textColor = textColor
+    }
+    
+    func displayRegisterResult(_ viewModel: Model.SignUp.ViewModel) {
+        // Убираем эффект загрузки
+        overlay.hide()
+        
+        // Если есть title или errorDescription => показываем alert с ошибкой
+        if viewModel.title != nil && viewModel.errorDescription != nil {
+            let alert = UIAlertController(
+                title: viewModel.title,
+                message: viewModel.errorDescription,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: Constants.alertOk, style: .default))
+            present(alert, animated: true)
+        }
     }
 }

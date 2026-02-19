@@ -12,5 +12,7 @@ protocol RegisterBusinessLogic: AnyObject {
     
     func loadStart()
     
+    func loadRegister(request: Model.SignUp.Request)
+    
     func loadAuthMainScreen()
 }

@@ -9,6 +9,10 @@ import Foundation
 
 final class RegisterPresenter: RegisterPresentationLogic {
     
+    private struct Constants {
+        static let RegisterErrorTitle = "Регистрация не удалась"
+    }
+    
     weak var controller: RegisterControllerLogic?
     
     // MARK: Present
@@ -44,5 +48,24 @@ final class RegisterPresenter: RegisterPresentationLogic {
                 textColor: textColor
             )
         )
+    }
+    
+    func presentRegisterResult(_ response: Model.SignUp.Response) {
+        if let error = response.error {
+            controller?.displayRegisterResult(
+                Model.SignUp.ViewModel(
+                    title: Constants.RegisterErrorTitle,
+                    errorDescription: error.localizedDescription
+                )
+            )
+        } else {
+            // Нет описания и заголовка так как ошибка == nil
+            controller?.displayRegisterResult(
+                Model.SignUp.ViewModel(
+                    title: nil,
+                    errorDescription: nil
+                )
+            )
+        }
     }
 }

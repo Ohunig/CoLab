@@ -24,6 +24,6 @@ protocol AuthLogic: AnyObject {
         email: String,
         username: String,
         password: String,
-        completion: @escaping (Result<Void, Error>) -> Void
+        completion: @escaping (Result<Void, RegisterError>) -> Void
     )
 }
