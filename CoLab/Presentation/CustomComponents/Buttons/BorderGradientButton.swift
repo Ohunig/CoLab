@@ -13,7 +13,7 @@ final class BorderGradientButton: UIButton {
     private struct Constants {
         static let fatalError = "init(coder:) has not been implemented"
         
-        static let standardCornerRadius: CGFloat = 30
+        static let standardCornerRadius: CGFloat = 25
         static let standardBorderWidth: CGFloat = 3
         
         static let gradientStartX: CGFloat = 0
@@ -23,6 +23,7 @@ final class BorderGradientButton: UIButton {
         static let animateDuration: CGFloat = 0.06
         static let standardAlpha: CGFloat = 1
         static let tappedAlpha: CGFloat = 0.5
+        static let disabledAlpha: CGFloat = 0.3
         
         static let standardFontSize: CGFloat = 24
     }
@@ -48,14 +49,24 @@ final class BorderGradientButton: UIButton {
         }
     }
     
+    override var isEnabled: Bool {
+        didSet {
+            UIView.animate(withDuration: Constants.animateDuration) {
+                self.alpha = self.isEnabled ? Constants.standardAlpha : Constants.disabledAlpha
+            }
+        }
+    }
+    
     override var isHighlighted: Bool {
         didSet {
+            guard isEnabled else { return }
             // Определяем изменение при нажатии
             UIView.animate(withDuration: Constants.animateDuration) {
                 self.alpha = self.isHighlighted ? Constants.tappedAlpha : Constants.standardAlpha
             }
         }
     }
+    
     
     // MARK: Lifecycle
 

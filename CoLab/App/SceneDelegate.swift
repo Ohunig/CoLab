@@ -6,8 +6,13 @@
 //
 
 import UIKit
+import Swinject
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    
+    private struct Constants {
+        static let notAllServicesRegistered = "Not all dependencies registered"
+    }
 
     var window: UIWindow?
 
@@ -15,9 +20,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = UINavigationController(
-            rootViewController: ViewController()
+        let navController = UINavigationController(
+            rootViewController: AuthMainScreenAssembly.build()
         )
+        window?.rootViewController = navController
+        
+        // Настраиваем роутер экранов аутентификации
+        guard let authRouter = CompositionRoot.container.resolve(
+            AuthRoutingLogic.self
+        ) else {
+            // Специально сделано чтобы приложение падало с ошибкой так как без всех зарегестрированных зависимостей не может нормально работать
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        authRouter.navigationController = navController
+        
         window?.makeKeyAndVisible()
     }
 
