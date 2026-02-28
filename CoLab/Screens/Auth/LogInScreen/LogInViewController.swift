@@ -37,9 +37,6 @@ final class LogInViewController: UIViewController {
         static let emailFieldPlaceholder = "Email"
         static let passwordFieldPlaceholder = "Пароль (>5 символов)"
         
-        // Параметры введённых значений
-        static let minPasswordSymbols = 6
-        
         // Объявления
         static let alertOk = "Ok"
     }
@@ -90,7 +87,7 @@ final class LogInViewController: UIViewController {
         nextButton.setTitle(Constants.nextButtonText, for: .normal)
         nextButton.addTarget(self, action: #selector(nextButtonTapped), for: .touchUpInside)
         // Обновляем состояние кнопки чтобы отображалась корректно
-        updateNextButtonState()
+        validate()
         
         nextButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(nextButton)
@@ -153,22 +150,22 @@ final class LogInViewController: UIViewController {
     
     // MARK: Button state
     
-    private func updateNextButtonState() {
+    private func validate() {
         let actualEmail = emailField.text ?? ""
         let actualPassword = passwordField.text ?? ""
-        
-        // Первичная проверка валидности введённых данных
-        let valid = actualEmail.contains("@") && actualPassword.count >= Constants.minPasswordSymbols
-        
-        // Изменяем состояние кнопки в зависимости от корректности данных
-        nextButton.isEnabled = valid
+        interactor.loadDataValidation(
+            Model.Validation.Request(
+                email: actualEmail,
+                password: actualPassword
+            )
+        )
     }
     
     // MARK: Actions
     
     @objc
     private func textDidChange() {
-        updateNextButtonState()
+        validate()
     }
     
     @objc
@@ -179,18 +176,13 @@ final class LogInViewController: UIViewController {
     @objc
     private func nextButtonTapped() {
         guard let email = emailField.text, let password = passwordField.text
-        else {
-            // Если email или password - null то вызывать интерактор бессмысленно
+        else { // Если email или password - null то вызывать интерактор бессмысленно
             return
         }
-        // Очищаем поле с паролем
-        passwordField.text = ""
-        textDidChange()
         // Накладываем поверх эффект загрузки
         if let window = UIApplication.shared.currentKeyWindow {
             overlay.show(over: window)
         }
-        
         interactor.loadLogIn(Model.LogIn.Request(email: email, password: password))
     }
 }
@@ -200,22 +192,14 @@ final class LogInViewController: UIViewController {
 extension LogInViewController: LogInControllerLogic {
     
     func displayStart(_ viewModel: Model.Start.ViewModel) {
-        // Получаем нужные цвета в виде UIColor
-        let bg = viewModel.bgColor
-        let bgGrad = viewModel.bgGradientColor
-        let fGrad = viewModel.firstGradientColor
-        let sGrad = viewModel.secondGradientColor
-        let bsColor = viewModel.elementsBaseColor
-        let tColor = viewModel.tintColor
-        let txtColor = viewModel.textColor
-        
-        let bgColor = UIColor(red: bg.r, green: bg.g, blue: bg.b, alpha: bg.a)
-        let bgGradientColor = UIColor(red: bgGrad.r, green: bgGrad.g, blue: bgGrad.b, alpha: bgGrad.a)
-        let firstGradientColor = UIColor(red: fGrad.r, green: fGrad.g, blue: fGrad.b, alpha: fGrad.a)
-        let secondGradientColor = UIColor(red: sGrad.r, green: sGrad.g, blue: sGrad.b, alpha: sGrad.a)
-        let elementsBaseColor = UIColor(red: bsColor.r, green: bsColor.g, blue: bsColor.b, alpha: bsColor.a)
-        let tintColor = UIColor(red: tColor.r, green: tColor.g, blue: tColor.b, alpha: tColor.a)
-        let textColor = UIColor(red: txtColor.r, green: txtColor.g, blue: txtColor.b, alpha: txtColor.a)
+        // Извлекаем цвета
+        let bgColor = UIColor(hex: viewModel.bg.hex, alpha: viewModel.bg.a)
+        let bgGradientColor = UIColor(hex: viewModel.bgGradient.hex, alpha: viewModel.bgGradient.a)
+        let firstGradientColor = UIColor(hex: viewModel.firstGradient.hex, alpha: viewModel.firstGradient.a)
+        let secondGradientColor = UIColor(hex: viewModel.secondGradient.hex, alpha: viewModel.secondGradient.a)
+        let elementsBaseColor = UIColor(hex: viewModel.elementsBase.hex, alpha: viewModel.elementsBase.a)
+        let tintColor = UIColor(hex: viewModel.tint.hex, alpha: viewModel.tint.a)
+        let textColor = UIColor(hex: viewModel.textColor.hex, alpha: viewModel.textColor.a)
         
         // Фон
         backgroundView.bgColor = bgColor
@@ -241,12 +225,20 @@ extension LogInViewController: LogInControllerLogic {
         passwordField.textColor = textColor
     }
     
+    func displayDataValidation(_ viewModel: Model.Validation.ViewModel) {
+        nextButton.isEnabled = viewModel.isValid
+    }
+    
     func displayLogInResult(_ viewModel: Model.LogIn.ViewModel) {
         // Убираем эффект загрузки
         overlay.hide()
         
         // Если есть title или errorDescription => показываем alert с ошибкой
         if viewModel.title != nil && viewModel.errorDescription != nil {
+            // Настраиваем поля корректно после обновления
+            passwordField.text = ""
+            validate()
+            // Показываем alert
             let alert = UIAlertController(
                 title: viewModel.title,
                 message: viewModel.errorDescription,

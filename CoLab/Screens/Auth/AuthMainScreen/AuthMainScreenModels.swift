@@ -19,10 +19,10 @@ struct AuthMainScreenModels {
             let secondGradientColor: ColorModel
         }
         struct ViewModel {
-            let bgColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
-            let bgGradientColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
-            let firstGradientColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
-            let secondGradientColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
+            let bgColor: (hex: String, a: CGFloat)
+            let bgGradientColor: (hex: String, a: CGFloat)
+            let firstGradientColor: (hex: String, a: CGFloat)
+            let secondGradientColor: (hex: String, a: CGFloat)
         }
     }
 }

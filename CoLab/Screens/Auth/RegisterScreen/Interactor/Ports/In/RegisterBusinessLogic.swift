@@ -12,6 +12,8 @@ protocol RegisterBusinessLogic: AnyObject {
     
     func loadStart()
     
+    func loadDataValidation(_ request: Model.Validation.Request)
+    
     func loadRegister(request: Model.SignUp.Request)
     
     func loadAuthMainScreen()

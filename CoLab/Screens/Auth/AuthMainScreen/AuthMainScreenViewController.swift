@@ -173,16 +173,11 @@ final class AuthMainScreenViewController: UIViewController {
 extension AuthMainScreenViewController: AuthMainScreenControllerLogic {
     
     func displayStart(_ viewModel: Model.Start.ViewModel) {
-        // Получаем нужные цвета в виде UIColor
-        let bg = viewModel.bgColor
-        let bgGrad = viewModel.bgGradientColor
-        let fGrad = viewModel.firstGradientColor
-        let sGrad = viewModel.secondGradientColor
-        
-        let bgColor = UIColor(red: bg.r, green: bg.g, blue: bg.b, alpha: bg.a)
-        let bgGradientColor = UIColor(red: bgGrad.r, green: bgGrad.g, blue: bgGrad.b, alpha: bgGrad.a)
-        let firstGradientColor = UIColor(red: fGrad.r, green: fGrad.g, blue: fGrad.b, alpha: fGrad.a)
-        let secondGradientColor = UIColor(red: sGrad.r, green: sGrad.g, blue: sGrad.b, alpha: sGrad.a)
+        // Извлекаем цвета
+        let bgColor = UIColor(hex: viewModel.bgColor.hex, alpha: viewModel.bgColor.a)
+        let bgGradientColor = UIColor(hex: viewModel.bgGradientColor.hex, alpha: viewModel.firstGradientColor.a)
+        let firstGradientColor = UIColor(hex: viewModel.firstGradientColor.hex, alpha: viewModel.firstGradientColor.a)
+        let secondGradientColor = UIColor(hex: viewModel.secondGradientColor.hex, alpha: viewModel.secondGradientColor.a)
         
         // Фон
         backgroundView.bgColor = bgColor
