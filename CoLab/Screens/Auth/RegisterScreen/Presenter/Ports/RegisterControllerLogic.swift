@@ -12,5 +12,7 @@ protocol RegisterControllerLogic: AnyObject {
     
     func displayStart(_ viewModel: Model.Start.ViewModel)
     
+    func displayDataValidation(_ viewModel: Model.Validation.ViewModel)
+    
     func displayRegisterResult(_ viewModel: Model.SignUp.ViewModel)
 }

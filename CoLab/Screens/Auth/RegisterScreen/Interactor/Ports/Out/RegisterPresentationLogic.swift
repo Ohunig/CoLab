@@ -12,5 +12,7 @@ protocol RegisterPresentationLogic: AnyObject {
 
     func presentStart(_ response: Model.Start.Response)
     
+    func presentDataValidation(_ response: Model.Validation.Response)
+    
     func presentRegisterResult(_ response: Model.SignUp.Response)
 }

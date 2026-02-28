@@ -12,6 +12,8 @@ protocol LogInBusinessLogic: AnyObject {
     
     func loadStart()
     
+    func loadDataValidation(_ request: Model.Validation.Request)
+    
     func loadLogIn(_ request: Model.LogIn.Request)
     
     func loadAuthMainScreen()

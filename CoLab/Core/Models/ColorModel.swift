@@ -28,6 +28,15 @@ struct ColorModel {
     let blue: CGFloat
     let alpha: CGFloat
     
+    var hex: String {
+        String(
+            format: "#%02X%02X%02X",
+            Int(red * CGFloat(Constants.maxIntColor)),
+            Int(green * CGFloat(Constants.maxIntColor)),
+            Int(blue * CGFloat(Constants.maxIntColor))
+        )
+    }
+    
     // MARK: Lifecycle
     
     init(

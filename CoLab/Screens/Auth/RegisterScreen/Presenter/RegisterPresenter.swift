@@ -18,35 +18,23 @@ final class RegisterPresenter: RegisterPresentationLogic {
     // MARK: Present
     
     func presentStart(_ response: Model.Start.Response) {
-        
-        let bg = response.bgColor
-        let bgGrad = response.bgGradientColor
-        let fGrad = response.firstGradientColor
-        let sGrad = response.secondGradientColor
-        let bsColor = response.elementsBaseColor
-        let tColor = response.tintColor
-        let txtColor = response.textColor
-        
-        // Подготовка цветов для передачи
-        let bgColor = (r: bg.red, g: bg.green, b: bg.blue, a: bg.alpha)
-        let bgGradient = (r: bgGrad.red, g: bgGrad.green, b: bgGrad.blue, a: bgGrad.alpha)
-        let firstGradient = (r: fGrad.red, g: fGrad.green, b: fGrad.blue, a: fGrad.alpha)
-        let secondGradient = (r: sGrad.red, g: sGrad.green, b: sGrad.blue, a: sGrad.alpha)
-        let elementsBaseColor = (r: bsColor.red, g: bsColor.green, b: bsColor.blue, a: bsColor.alpha)
-        let tintColor = (r: tColor.red, g: tColor.green, b: tColor.blue, a: tColor.alpha)
-        let textColor = (r: txtColor.red, g: txtColor.green, b: txtColor.blue, a: txtColor.alpha)
-        
         // Запрос к контроллеру
         controller?.displayStart(
             Model.Start.ViewModel(
-                bgColor: bgColor,
-                bgGradientColor: bgGradient,
-                firstGradientColor: firstGradient,
-                secondGradientColor: secondGradient,
-                elementsBaseColor: elementsBaseColor,
-                tintColor: tintColor,
-                textColor: textColor
+                bg: (hex: response.bg.hex, a: response.bg.alpha),
+                bgGradient: (hex: response.bgGradient.hex, a: response.bgGradient.alpha),
+                firstGradient: (hex: response.firstGradient.hex, a: response.firstGradient.alpha),
+                secondGradient: (hex: response.secondGradient.hex, a: response.secondGradient.alpha),
+                elementsBase: (hex: response.elementsBase.hex, a: response.elementsBase.alpha),
+                tint: (hex: response.tint.hex, a: response.tint.alpha),
+                textColor: (hex: response.textColor.hex, a: response.textColor.alpha)
             )
+        )
+    }
+    
+    func presentDataValidation(_ response: Model.Validation.Response) {
+        controller?.displayDataValidation(
+            Model.Validation.ViewModel(isValid: response.isValid)
         )
     }
     

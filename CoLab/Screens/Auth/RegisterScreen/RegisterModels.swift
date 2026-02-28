@@ -13,22 +13,37 @@ struct RegisterModels {
     // Модели для старта экрана
     enum Start {
         struct Response {
-            let bgColor: ColorModel
-            let bgGradientColor: ColorModel
-            let firstGradientColor: ColorModel
-            let secondGradientColor: ColorModel
-            let elementsBaseColor: ColorModel
-            let tintColor: ColorModel
+            let bg: ColorModel
+            let bgGradient: ColorModel
+            let firstGradient: ColorModel
+            let secondGradient: ColorModel
+            let elementsBase: ColorModel
+            let tint: ColorModel
             let textColor: ColorModel
         }
         struct ViewModel {
-            let bgColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
-            let bgGradientColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
-            let firstGradientColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
-            let secondGradientColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
-            let elementsBaseColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
-            let tintColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
-            let textColor: (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
+            let bg: (hex: String, a: CGFloat)
+            let bgGradient: (hex: String, a: CGFloat)
+            let firstGradient: (hex: String, a: CGFloat)
+            let secondGradient: (hex: String, a: CGFloat)
+            let elementsBase: (hex: String, a: CGFloat)
+            let tint: (hex: String, a: CGFloat)
+            let textColor: (hex: String, a: CGFloat)
+        }
+    }
+    
+    // Модели для валидации
+    enum Validation {
+        struct Request {
+            let username: String
+            let email: String
+            let password: String
+        }
+        struct Response {
+            let isValid: Bool
+        }
+        struct ViewModel {
+            let isValid: Bool
         }
     }
     
@@ -48,3 +63,4 @@ struct RegisterModels {
         }
     }
 }
+

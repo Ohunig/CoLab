@@ -12,5 +12,7 @@ protocol LogInControllerLogic: AnyObject {
     
     func displayStart(_ viewModel: Model.Start.ViewModel)
     
+    func displayDataValidation(_ viewModel: Model.Validation.ViewModel)
+    
     func displayLogInResult(_ viewModel: Model.LogIn.ViewModel)
 }
