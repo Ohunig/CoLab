@@ -1,14 +1,13 @@
 //
-//  FilledGradientButton.swift
+//  TabBarGradientButton.swift
 //  CoLab
 //
-//  Created by User on 22.01.2026.
+//  Created by User on 07.03.2026.
 //
 
 import UIKit
 
-// Заполненная кнопка с градиентом
-final class FilledGradientButton: UIButton {
+final class TabBarGradientButton: UIButton {
     
     private struct Constants {
         static let fatalError = "init(coder:) has not been implemented"
@@ -29,6 +28,13 @@ final class FilledGradientButton: UIButton {
     
     private let gradient = CAGradientLayer()
     
+    // Выбрана в данный момент кнопка в таб баре или нет
+    var choosedNow: Bool = false {
+        didSet {
+            updateColors()
+        }
+    }
+    
     var startColor: UIColor = .clear {
         didSet {
             updateColors()
@@ -41,11 +47,10 @@ final class FilledGradientButton: UIButton {
         }
     }
     
-    override var isEnabled: Bool {
+    // Цвет когда кнопка не выбрана в таб баре
+    var notChoosedColor: UIColor = .clear {
         didSet {
-            UIView.animate(withDuration: Constants.animateDuration) {
-                self.alpha = self.isEnabled ? Constants.standardAlpha : Constants.disabledAlpha
-            }
+            updateColors()
         }
     }
     
@@ -104,7 +109,10 @@ final class FilledGradientButton: UIButton {
     }
     
     private func updateColors() {
-        gradient.colors = [startColor.cgColor, endColor.cgColor]
+        // Выбирает какие обновлённые цвета ставить в зависимости от того, выбрана кнопка или нет
+        gradient.colors = choosedNow ? [startColor.cgColor, endColor.cgColor] : [notChoosedColor.cgColor, notChoosedColor.cgColor]
+        // Строго заданы цвета надписей на кнопке, при внешнем изменении tintColor он не будет далее меняться в зависимости от того выбрана кнопка или нет
+        tintColor = choosedNow ? .black : .white
     }
     
     // MARK: Layout subviews

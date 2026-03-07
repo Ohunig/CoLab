@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CE51ADBF2F55E4620017C5F8 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = CE51ADBE2F55E4620017C5F8 /* FirebaseFirestore */; };
+		CE51ADC12F55E4C50017C5F8 /* FirebaseFirestoreCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = CE51ADC02F55E4C50017C5F8 /* FirebaseFirestoreCombine-Community */; };
 		CECBE06F2F2C08A200E7749C /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CECBE06E2F2C08A200E7749C /* FirebaseAnalytics */; };
 		CECBE0712F2C08A200E7749C /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = CECBE0702F2C08A200E7749C /* FirebaseAuth */; };
 		CECBE0A52F34CCB900E7749C /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = CECBE0A42F34CCB900E7749C /* Swinject */; };
@@ -43,7 +45,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				CECBE06F2F2C08A200E7749C /* FirebaseAnalytics in Frameworks */,
+				CE51ADBF2F55E4620017C5F8 /* FirebaseFirestore in Frameworks */,
 				CECBE0712F2C08A200E7749C /* FirebaseAuth in Frameworks */,
+				CE51ADC12F55E4C50017C5F8 /* FirebaseFirestoreCombine-Community in Frameworks */,
 				CECBE0A52F34CCB900E7749C /* Swinject in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -51,10 +55,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CE51ADBD2F55E4620017C5F8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		CECBE0162F210FC000E7749C = {
 			isa = PBXGroup;
 			children = (
 				CECBE0212F210FC000E7749C /* CoLab */,
+				CE51ADBD2F55E4620017C5F8 /* Frameworks */,
 				CECBE0202F210FC000E7749C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +102,8 @@
 				CECBE06E2F2C08A200E7749C /* FirebaseAnalytics */,
 				CECBE0702F2C08A200E7749C /* FirebaseAuth */,
 				CECBE0A42F34CCB900E7749C /* Swinject */,
+				CE51ADBE2F55E4620017C5F8 /* FirebaseFirestore */,
+				CE51ADC02F55E4C50017C5F8 /* FirebaseFirestoreCombine-Community */,
 			);
 			productName = CoLab;
 			productReference = CECBE01F2F210FC000E7749C /* CoLab.app */;
@@ -166,8 +180,8 @@
 				INFOPLIST_FILE = CoLab/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -197,8 +211,8 @@
 				INFOPLIST_FILE = CoLab/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -380,6 +394,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		CE51ADBE2F55E4620017C5F8 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CECBE06D2F2C08A200E7749C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		CE51ADC02F55E4C50017C5F8 /* FirebaseFirestoreCombine-Community */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CECBE06D2F2C08A200E7749C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = "FirebaseFirestoreCombine-Community";
+		};
 		CECBE06E2F2C08A200E7749C /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CECBE06D2F2C08A200E7749C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

@@ -18,4 +18,6 @@ protocol AuthRoutingLogic: AnyObject {
     func routeToAuthMainScreen()
     
     func routeToSignUpScreen()
+    
+    func routeToMainScreens()
 }

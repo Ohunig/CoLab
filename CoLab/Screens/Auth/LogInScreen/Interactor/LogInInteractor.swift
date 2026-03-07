@@ -65,7 +65,7 @@ final class LogInInteractor: LogInBusinessLogic {
                 switch result {
                 case .success(_):
                     self?.presenter.presentLogInResult(Model.LogIn.Response(error: nil))
-                    self?.loadAuthMainScreen()
+                    self?.router.routeToMainScreens()
                 case .failure(let error):
                     self?.presenter.presentLogInResult(Model.LogIn.Response(error: error))
                 }

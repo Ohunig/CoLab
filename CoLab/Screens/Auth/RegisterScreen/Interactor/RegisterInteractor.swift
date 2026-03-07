@@ -71,7 +71,7 @@ final class RegisterInteractor: RegisterBusinessLogic {
                     self?.presenter.presentRegisterResult(
                         Model.SignUp.Response(error: nil)
                     )
-                    self?.loadAuthMainScreen()
+                    self?.router.routeToMainScreens()
                 case .failure(let error):
                     self?.presenter.presentRegisterResult(
                         Model.SignUp.Response(error: error)

@@ -18,8 +18,11 @@ final class ColorRepository: ColorStorageLogic {
         static let standardElementsBaseColor = "#4C4232"
         static let standardMainTextColor = "#FFFFFF"
         static let standardTintColor = "#7E6C4F"
+        static let standardTabBarWrapperColor = "#2A2826"
+        static let standardTabBarButtonsColor = "#34322F"
         
         static let tintColorAlpha: Float = 0.5
+        static let tabBarWrapperAlpha: Float = 0.8
     }
     
     var backgroundColor: ColorModel {
@@ -48,6 +51,14 @@ final class ColorRepository: ColorStorageLogic {
     
     var tintColor: ColorModel {
         ColorModel(hex: Constants.standardTintColor, alpha: Constants.tintColorAlpha)
+    }
+    
+    var tabBarWrapperColor: ColorModel {
+        ColorModel(hex: Constants.standardTabBarWrapperColor, alpha: Constants.tabBarWrapperAlpha)
+    }
+    
+    var tabBarButtonsColor: ColorModel {
+        ColorModel(hex: Constants.standardTabBarButtonsColor)
     }
     
 }

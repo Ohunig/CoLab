@@ -33,4 +33,9 @@ final class AuthRouter: AuthRoutingLogic {
     func routeToSignUpScreen() {
         navController?.pushViewController(RegisterAssembly.build(), animated: true)
     }
+    
+    // Вход в приложение
+    func routeToMainScreens() {
+        navController?.setViewControllers([TabBarScreenAssembly.build()], animated: true)
+    }
 }

@@ -7,6 +7,7 @@
 
 import UIKit
 import Swinject
+import FirebaseAuth
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
@@ -16,13 +17,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
-
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
-        let navController = UINavigationController(
-            rootViewController: AuthMainScreenAssembly.build()
-        )
+        
+        var navController: UINavigationController
+        // Проверяем, залогинен ли пользователь при старте
+        if Auth.auth().currentUser != nil {
+            navController = UINavigationController(
+                rootViewController: TabBarScreenAssembly.build()
+            )
+        } else {
+            navController = UINavigationController(
+                rootViewController: AuthMainScreenAssembly.build()
+            )
+        }
         window?.rootViewController = navController
         
         // Настраиваем роутер экранов аутентификации

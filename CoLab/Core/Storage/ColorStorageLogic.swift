@@ -23,4 +23,8 @@ protocol ColorStorageLogic: AnyObject {
     var mainTextColor: ColorModel { get }
     
     var tintColor: ColorModel { get }
+    
+    var tabBarWrapperColor: ColorModel { get }
+    
+    var tabBarButtonsColor: ColorModel { get }
 }
