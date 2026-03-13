@@ -10,8 +10,6 @@ import Foundation
 // Логика сервиса для аутентификации пользователя
 protocol AuthLogic: AnyObject {
     
-    var currentUser: UserModel? { get }
-    
     func logIn(
         email: String,
         password: String,

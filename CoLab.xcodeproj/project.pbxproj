@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		CE51ADBF2F55E4620017C5F8 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = CE51ADBE2F55E4620017C5F8 /* FirebaseFirestore */; };
 		CE51ADC12F55E4C50017C5F8 /* FirebaseFirestoreCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = CE51ADC02F55E4C50017C5F8 /* FirebaseFirestoreCombine-Community */; };
+		CE51AFE42F60EB630017C5F8 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = CE51AFE32F60EB630017C5F8 /* Supabase */; };
 		CECBE06F2F2C08A200E7749C /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CECBE06E2F2C08A200E7749C /* FirebaseAnalytics */; };
 		CECBE0712F2C08A200E7749C /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = CECBE0702F2C08A200E7749C /* FirebaseAuth */; };
 		CECBE0A52F34CCB900E7749C /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = CECBE0A42F34CCB900E7749C /* Swinject */; };
@@ -46,6 +47,7 @@
 			files = (
 				CECBE06F2F2C08A200E7749C /* FirebaseAnalytics in Frameworks */,
 				CE51ADBF2F55E4620017C5F8 /* FirebaseFirestore in Frameworks */,
+				CE51AFE42F60EB630017C5F8 /* Supabase in Frameworks */,
 				CECBE0712F2C08A200E7749C /* FirebaseAuth in Frameworks */,
 				CE51ADC12F55E4C50017C5F8 /* FirebaseFirestoreCombine-Community in Frameworks */,
 				CECBE0A52F34CCB900E7749C /* Swinject in Frameworks */,
@@ -104,6 +106,7 @@
 				CECBE0A42F34CCB900E7749C /* Swinject */,
 				CE51ADBE2F55E4620017C5F8 /* FirebaseFirestore */,
 				CE51ADC02F55E4C50017C5F8 /* FirebaseFirestoreCombine-Community */,
+				CE51AFE32F60EB630017C5F8 /* Supabase */,
 			);
 			productName = CoLab;
 			productReference = CECBE01F2F210FC000E7749C /* CoLab.app */;
@@ -136,6 +139,7 @@
 			packageReferences = (
 				CECBE06D2F2C08A200E7749C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				CECBE0A32F34CCB900E7749C /* XCRemoteSwiftPackageReference "Swinject" */,
+				CE51AFE22F60E9E60017C5F8 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CECBE0202F210FC000E7749C /* Products */;
@@ -375,6 +379,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		CE51AFE22F60E9E60017C5F8 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
 		CECBE06D2F2C08A200E7749C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -403,6 +415,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CECBE06D2F2C08A200E7749C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = "FirebaseFirestoreCombine-Community";
+		};
+		CE51AFE32F60EB630017C5F8 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CE51AFE22F60E9E60017C5F8 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
 		};
 		CECBE06E2F2C08A200E7749C /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;

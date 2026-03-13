@@ -7,8 +7,9 @@
 
 import Foundation
 
-struct UserModel {
-    let uid: String
+// Модель юзера
+struct UserModel: Codable {
+    let id: String
     let username: String
     let photoURL: String?
 }

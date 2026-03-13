@@ -60,13 +60,6 @@ final class TabBarController: UITabBarController {
     // MARK: Configure UI
     
     private func configureTabBar() {
-        // Все нужные экраны прокидываем в свойство таб бара
-        let v1 = UINavigationController(rootViewController: DemoVC(text: "Home", color: .systemGray6))
-        let v2 = UINavigationController(rootViewController: DemoVC(text: "Search", color: .black))
-        let v3 = UINavigationController(rootViewController: DemoVC(text: "Profile", color: .systemGreen))
-        let v4 = UINavigationController(rootViewController: DemoVC(text: "Settings", color: .systemPurple))
-        viewControllers = [v1, v2, v3, v4]
-        
         tabBar.isHidden = true
         selectedIndex = Constants.startSelectedButton
         customBar.selectButton(at: Constants.startSelectedButton)
@@ -110,33 +103,6 @@ extension TabBarController: TabBarDisplayLogic {
         )
         customBar.standardButtonColor = UIColor(hex: viewModel.buttonsColor.hex, alpha: viewModel.buttonsColor.a)
         customBar.wrapperColor = UIColor(hex: viewModel.wrapperColor.hex, alpha: viewModel.wrapperColor.a)
-    }
-}
-
-
-// -----------------------------
-// MARK: - Simple demo view controllers
-// -----------------------------
-class DemoVC: UIViewController {
-    private let labelText: String
-    init(text: String, color: UIColor) {
-        self.labelText = text
-        super.init(nibName: nil, bundle: nil)
-        view.backgroundColor = color
-    }
-    required init?(coder: NSCoder) { fatalError() }
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        let lbl = UILabel()
-        lbl.text = labelText
-        lbl.font = .systemFont(ofSize: 28, weight: .bold)
-        lbl.textColor = .white
-        lbl.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(lbl)
-        NSLayoutConstraint.activate([
-            lbl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            lbl.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
     }
 }
 

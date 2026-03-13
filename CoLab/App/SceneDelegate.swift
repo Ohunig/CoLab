@@ -22,6 +22,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         
         var navController: UINavigationController
+        try! Auth.auth().signOut()
         // Проверяем, залогинен ли пользователь при старте
         if Auth.auth().currentUser != nil {
             navController = UINavigationController(

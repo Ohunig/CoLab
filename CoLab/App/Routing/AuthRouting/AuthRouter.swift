@@ -14,12 +14,8 @@ final class AuthRouter: AuthRoutingLogic {
     private weak var navController: UINavigationController?
     
     var navigationController: UINavigationController? {
-        get {
-            navController
-        }
-        set {
-            navController = newValue
-        }
+        get { navController }
+        set { navController = newValue }
     }
     
     func routeToAuthMainScreen() {

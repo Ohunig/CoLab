@@ -1,22 +1,22 @@
 //
-//  TabBarScreenAssembly.swift
+//  UserSettingsAssembly.swift
 //  CoLab
 //
-//  Created by User on 07.03.2026.
+//  Created by User on 13.03.2026.
 //
 
 import UIKit
 import Swinject
 
 // Сборка экрана
-enum TabBarScreenAssembly {
+enum UserSettingsAssembly {
     
     private struct Constants {
         static let notAllServicesRegistered = "Not all dependencies registered"
     }
     
     static func build() -> UIViewController {
-        let presenter = TabBarPresenter()
+        let presenter = UserSettingsPresenter()
         
         guard let colorRepository = CompositionRoot.container.resolve(
             ColorStorageLogic.self
@@ -25,15 +25,12 @@ enum TabBarScreenAssembly {
             fatalError(Constants.notAllServicesRegistered)
         }
         
-        let interactor = TabBarInteractor(
+        let interactor = UserSettingsInteractor(
             presenter: presenter,
             colorRepository: colorRepository
         )
-        // Так как оказалось, что ViewDidLoad контроллера запускается раньше чем presenter.controller = viewController срабатывает по неопределённой причине, вынужден запускать loadStart насильно сразу после полной сборки экрана
-        defer {
-            interactor.loadStart()
-        }
-        let viewController = TabBarController(
+        
+        let viewController = UserSettingsController(
             interactor: interactor
         )
         presenter.controller = viewController

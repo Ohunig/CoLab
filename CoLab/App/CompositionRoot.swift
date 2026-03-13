@@ -23,7 +23,9 @@ final class CompositionRoot {
             .inObjectScope(.container)
         
         // Routers
-        container.register(AuthRoutingLogic.self) { _ in AuthRouter()}
+        container.register(AuthRoutingLogic.self) { _ in AuthRouter() }
+            .inObjectScope(.container)
+        container.register(SettingsRoutingLogic.self) { _ in SettingsRouter() }
             .inObjectScope(.container)
         
         return container

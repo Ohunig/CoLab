@@ -12,6 +12,9 @@ final class CustomTabBar: UIView {
     private struct Constants {
         static let fatalError = "init(coder:) has not been implemented"
         
+        static let standardBorderWidth: CGFloat = 1
+        static let borderColorAlphaComponent: CGFloat = 1
+        
         static let widthToButtonSizeMultiplier: CGFloat = 0.18
         static let topBottomWrapperInset: CGFloat = 10
         static let buttonsSpacing: CGFloat = 4
@@ -45,6 +48,9 @@ final class CustomTabBar: UIView {
     var wrapperColor: UIColor = .clear {
         didSet {
             wrapper.backgroundColor = wrapperColor
+            wrapper.layer.borderColor = wrapperColor.withAlphaComponent(
+                Constants.borderColorAlphaComponent
+            ).cgColor
         }
     }
 
@@ -78,6 +84,8 @@ final class CustomTabBar: UIView {
     // MARK: Configure view
     
     private func configureWrapper() {
+        wrapper.layer.borderWidth = Constants.standardBorderWidth
+        wrapper.translatesAutoresizingMaskIntoConstraints = false
         addSubview(wrapper)
     }
     
@@ -89,6 +97,7 @@ final class CustomTabBar: UIView {
                 selectButton(at: index)
             }
             button.addAction(action, for: .touchUpInside)
+            button.translatesAutoresizingMaskIntoConstraints = false
             addSubview(button)
         }
     }
@@ -101,6 +110,7 @@ final class CustomTabBar: UIView {
             self.delegate?.customTabBarDidTapActionButton(self)
         }
         actionButton.addAction(action, for: .touchUpInside)
+        actionButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(actionButton)
     }
     

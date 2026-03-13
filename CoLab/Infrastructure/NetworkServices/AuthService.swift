@@ -6,25 +6,18 @@
 //
 
 import Foundation
+import FirebaseFirestore
 import FirebaseAuth
 
 // Сервис авторизации в приложении
 final class AuthService: AuthLogic {
     
     private struct Constants {
-        static let standardUsername = "UnknownUser"
+        static let standardAvatarURL = "pepeAvatar.png"
     }
     
-    var currentUser: UserModel? {
-        get {
-            guard let user = Auth.auth().currentUser else { return nil }
-            return UserModel(
-                uid: user.uid,
-                username: user.displayName ?? Constants.standardUsername,
-                photoURL: user.photoURL?.absoluteString
-            )
-        }
-    }
+    lazy private var auth = Auth.auth()
+    lazy private var db = Firestore.firestore()
     
     // MARK: Use-cases
     
@@ -33,7 +26,7 @@ final class AuthService: AuthLogic {
         password: String,
         completion: @escaping (Result<Void, LogInError>) -> Void
     ) {
-        Auth.auth().signIn(
+        auth.signIn(
             withEmail: email,
             password: password
         ) { _, error in
@@ -59,7 +52,7 @@ final class AuthService: AuthLogic {
     }
     
     func logOut() throws {
-        try Auth.auth().signOut()
+        try auth.signOut()
     }
     
     func signUp(
@@ -68,7 +61,11 @@ final class AuthService: AuthLogic {
         password: String,
         completion: @escaping (Result<Void, RegisterError>) -> Void
     ) {
-        Auth.auth().createUser(withEmail: email, password: password) { result, error in
+        auth.createUser(withEmail: email, password: password) { [weak self] result, error in
+            guard let self else {
+                completion(.failure(.unknown))
+                return
+            }
             if let nsError = error as NSError? {
                 // Получаем ошибку нужного типа
                 let mappedError: RegisterError
@@ -87,17 +84,51 @@ final class AuthService: AuthLogic {
                 return
             }
             guard let user = result?.user else {
-                // Так как если error == nil, то аккаунт уже был создан, хоть мы и получили nil в качестве user
-                completion(.success(()))
+                // Так как не можем создать аккаунт если не получили юзера обратно. На самом же деле firebase гарантирует что такая ситуация невозможна, поэтому нет нужды удалять здесь созданный аккаунт
+                completion(.failure(.unknown))
                 return
             }
-            let change = user.createProfileChangeRequest()
-            change.displayName = username
-            change.commitChanges() { _ in
-                // Так как аккаунт уже был создан в любом случае
-                completion(.success(()))
+            
+            // Создаём аккаунт в firestore
+            self.createAccount(userID: user.uid, username: username) { result in
+                if case let .failure(error) = result {
+                    // Пытаемся удалить аккаунт так как не удалось создать полностью
+                    self.auth.currentUser?.delete()
+                    completion(.failure(error))
+                } else {
+                    // Изменяем данные юзера в Authentification
+                    let change = user.createProfileChangeRequest()
+                    change.displayName = username
+                    change.commitChanges() { _ in
+                        // Так как аккаунт уже был создан в любом случае
+                        completion(.success(()))
+                    }
+                }
             }
         }
     }
     
+    // MARK: Create account
+    
+    // Метод для создания аккаунта в firestore
+    private func createAccount(
+        userID: String,
+        username: String,
+        completion: @escaping (Result<Void, RegisterError>) -> Void
+    ) {
+        typealias Users = FirebasePaths.Users
+        
+        db.collection(Users.root)
+            .document(userID)
+            .setData([
+                Users.username.path: username,
+                Users.photoURL.path: Constants.standardAvatarURL
+            ], merge: true) { error in
+                if error != nil {
+                    completion(.failure(.unknown))
+                    return
+                }
+                completion(.success(()))
+            }
+    }
 }

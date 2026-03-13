@@ -26,7 +26,6 @@ final class TabBarInteractor: TabBarBusinessLogic {
     // MARK: Use-cases
     
     func loadStart() {
-        print("Load start")
         presenter.presentStart(
             Model.Start.Response(
                 firstGradient: colorRepository.firstGradientColor,
