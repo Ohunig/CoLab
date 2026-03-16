@@ -21,8 +21,6 @@ final class LogInViewController: UIViewController {
         static let buttonsHeight: CGFloat = 55
         static let buttonsBottom: CGFloat = 60
         
-        static let backButtonImage = "chevron.backward"
-        
         static let nextButtonBottom: CGFloat = 60
         static let nextButtonText = "Далее"
         static let enabledAlpha: CGFloat = 1
@@ -49,11 +47,11 @@ final class LogInViewController: UIViewController {
     
     private let titleLabel = UILabel()
     
-    private let backButton = BackNavBarButton(image: UIImage(systemName: Constants.backButtonImage) ?? UIImage())
+    private let backButton = BackNavBarButton()
     private let nextButton = FilledGradientButton()
     
-    private let emailField = ImageTextField(image: UIImage(systemName: Constants.emailFieldImage) ?? UIImage())
-    private let passwordField = ImageTextField(image: UIImage(systemName: Constants.passwordFieldImage) ?? UIImage())
+    private let emailField = ImageTextField(image: UIImage(systemName: Constants.emailFieldImage))
+    private let passwordField = ImageTextField(image: UIImage(systemName: Constants.passwordFieldImage))
     
     // MARK: Lifecycle
     

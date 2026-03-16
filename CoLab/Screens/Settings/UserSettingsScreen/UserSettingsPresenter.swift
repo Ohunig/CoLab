@@ -9,6 +9,11 @@ import Foundation
 
 final class UserSettingsPresenter: UserSettingsPresentationLogic {
     
+    private struct Constants {
+        static let errorTitle = "Что-то пошло не так"
+        static let alertOk = "Ok"
+    }
+    
     weak var controller: UserSettingsDisplayLogic?
     
     // MARK: Present
@@ -21,6 +26,25 @@ final class UserSettingsPresenter: UserSettingsPresentationLogic {
                 elementsBase: (hex: response.elementsBase.hex, a: response.elementsBase.alpha),
                 tint: (hex: response.tint.hex, a: response.tint.alpha),
                 textColor: (hex: response.textColor.hex, a: response.textColor.alpha)
+            )
+        )
+    }
+    
+    func presentUserChanges(_ response: Model.GetUserData.Response) {
+        controller?.displayUserChanges(
+            Model.GetUserData.ViewModel(
+                avatarData: response.avatarData,
+                username: response.userData.username
+            )
+        )
+    }
+    
+    func presentError(_ response: Model.ShowError.Response) {
+        controller?.displayError(
+            Model.ShowError.ViewModel(
+                errorTitle: Constants.errorTitle,
+                errorDescription: response.error.localizedDescription,
+                buttonText: Constants.alertOk
             )
         )
     }

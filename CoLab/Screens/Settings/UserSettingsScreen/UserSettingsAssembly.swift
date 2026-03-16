@@ -25,9 +25,36 @@ enum UserSettingsAssembly {
             fatalError(Constants.notAllServicesRegistered)
         }
         
+        guard let router = CompositionRoot.container.resolve(
+            SettingsRoutingLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        
+        // Получаем нужные сервисы
+        guard let authService = CompositionRoot.container.resolve(
+            AuthLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        guard let userService = CompositionRoot.container.resolve(
+            UserServiceLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        guard let avatarService = CompositionRoot.container.resolve(
+            AvatarServiceLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        
         let interactor = UserSettingsInteractor(
             presenter: presenter,
-            colorRepository: colorRepository
+            router: router,
+            colorRepository: colorRepository,
+            authService: authService,
+            userService: userService,
+            avatarService: avatarService
         )
         
         let viewController = UserSettingsController(

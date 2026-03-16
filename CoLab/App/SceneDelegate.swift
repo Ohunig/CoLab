@@ -22,7 +22,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         
         var navController: UINavigationController
-        try! Auth.auth().signOut()
         // Проверяем, залогинен ли пользователь при старте
         if Auth.auth().currentUser != nil {
             navController = UINavigationController(
@@ -33,17 +32,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 rootViewController: AuthMainScreenAssembly.build()
             )
         }
+        AuthBranchAssembly.build(on: navController)
+        
         window?.rootViewController = navController
-        
-        // Настраиваем роутер экранов аутентификации
-        guard let authRouter = CompositionRoot.container.resolve(
-            AuthRoutingLogic.self
-        ) else {
-            // Специально сделано чтобы приложение падало с ошибкой так как без всех зарегестрированных зависимостей не может нормально работать
-            fatalError(Constants.notAllServicesRegistered)
-        }
-        authRouter.navigationController = navController
-        
         window?.makeKeyAndVisible()
     }
 

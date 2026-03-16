@@ -12,11 +12,11 @@ import Combine
 protocol AvatarServiceLogic: AnyObject {
     
     // Возвращает паблишера необходимого для получения данных аватара
-    func avatarDataPublisher(for profile: UserModel) -> AnyPublisher<Data?, Never>
+    func avatarDataPublisher(photoURL: String) -> AnyPublisher<Data?, Never>
     
     // Возвращает паблишера с путём до опубликованного аватара или же с ошибкой
-    func uploadAvatarData(
+    func uploadUserAvatarData(
         data: Data,
-        for profile: UserModel
+        for userId: String
     ) -> AnyPublisher<String, Error>
 }

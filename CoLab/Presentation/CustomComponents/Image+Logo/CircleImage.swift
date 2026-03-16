@@ -1,0 +1,72 @@
+//
+//  CircleImage.swift
+//  CoLab
+//
+//  Created by User on 13.03.2026.
+//
+
+import UIKit
+
+// Основной фон экранов приложения
+final class CircleImage: UIView {
+    
+    private struct Constants {
+        static let fatalError = "init(coder:) has not been implemented"
+        
+        static let borderWidth: CGFloat = 1
+    }
+    
+    private var imageView: UIImageView
+    
+    private var base: UIColor?
+    
+    // MARK: Computed properties
+    
+    var image: UIImage? {
+        get { imageView.image }
+        set {
+            imageView.image = newValue
+        }
+    }
+    
+    var baseColor: UIColor? {
+        get { base }
+        set {
+            base = newValue
+            layer.borderColor = newValue?.cgColor
+        }
+    }
+    
+    // MARK: Lifecycle
+    
+    init(_ image: UIImage?) {
+        self.imageView = UIImageView(image: image)
+        super.init(frame: .zero)
+        
+        configureUI()
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError(Constants.fatalError)
+    }
+    
+    // MARK: Configure UI
+    
+    private func configureUI() {
+        layer.borderWidth = Constants.borderWidth
+        clipsToBounds = true
+        
+        imageView.contentMode = .scaleAspectFill
+        addSubview(imageView)
+    }
+    
+    // MARK: Layout subviews
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layer.cornerRadius = frame.width / 2
+        
+        imageView.frame = bounds
+    }
+}

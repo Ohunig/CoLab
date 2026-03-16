@@ -81,8 +81,8 @@ final class ImageTextField: UIView {
     
     // MARK: Lifecycle
     
-    init(image: UIImage) {
-        self.image = UIImageView(image: image.withRenderingMode(.alwaysTemplate))
+    init(image: UIImage?) {
+        self.image = UIImageView(image: image?.withRenderingMode(.alwaysTemplate))
         super.init(frame: .zero)
         
         configureUI()

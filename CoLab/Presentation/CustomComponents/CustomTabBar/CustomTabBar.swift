@@ -57,8 +57,8 @@ final class CustomTabBar: UIView {
     // MARK: Lifecycle
     
     init(
-        itemImages: [UIImage],
-        actionImage: UIImage
+        itemImages: [UIImage?],
+        actionImage: UIImage?
     ) {
         super.init(frame: .zero)
         for image in itemImages {
@@ -67,7 +67,7 @@ final class CustomTabBar: UIView {
             buttons.append(button)
         }
         actionButton.setImage(
-            actionImage.withRenderingMode(.alwaysTemplate),
+            actionImage?.withRenderingMode(.alwaysTemplate),
             for: .normal
         )
         
@@ -85,7 +85,6 @@ final class CustomTabBar: UIView {
     
     private func configureWrapper() {
         wrapper.layer.borderWidth = Constants.standardBorderWidth
-        wrapper.translatesAutoresizingMaskIntoConstraints = false
         addSubview(wrapper)
     }
     
@@ -97,7 +96,6 @@ final class CustomTabBar: UIView {
                 selectButton(at: index)
             }
             button.addAction(action, for: .touchUpInside)
-            button.translatesAutoresizingMaskIntoConstraints = false
             addSubview(button)
         }
     }
@@ -110,7 +108,6 @@ final class CustomTabBar: UIView {
             self.delegate?.customTabBarDidTapActionButton(self)
         }
         actionButton.addAction(action, for: .touchUpInside)
-        actionButton.translatesAutoresizingMaskIntoConstraints = false
         addSubview(actionButton)
     }
     

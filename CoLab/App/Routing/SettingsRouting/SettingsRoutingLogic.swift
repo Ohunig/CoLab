@@ -12,4 +12,6 @@ import UIKit
 protocol SettingsRoutingLogic: AnyObject {
     
     var navigationController: UINavigationController? { get set }
+    
+    func routeToAuth()
 }

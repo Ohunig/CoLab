@@ -1,44 +1,70 @@
 //
-//  BackNavBarButton.swift
+//  ItemCell.swift
 //  CoLab
 //
-//  Created by User on 27.01.2026.
+//  Created by User on 13.03.2026.
 //
 
 import UIKit
 
-final class BackNavBarButton: UIButton {
+// Ячейка с текстом и картинкой в правой части
+final class ItemCell: UIButton {
     
     private struct Constants {
         static let fatalError = "init(coder:) has not been implemented"
         
-        static let backButtonImage = "chevron.backward"
+        static let standardImage = "chevron.right"
         
         static let animateDuration: CGFloat = 0.06
         static let standardAlpha: CGFloat = 1
         static let tappedAlpha: CGFloat = 0.5
         static let disabledAlpha: CGFloat = 0.3
-        
-        static let standardImageSize: CGFloat = 24
-        static let standardCornerRadius: CGFloat = 22
-        static let standardBorderWidth: CGFloat = 1
-        static let standardButtonSize: CGFloat = 44
-        
         static let backgroundColorStandardAlpha: CGFloat = 0.5
+        
+        static let horisontalInset: CGFloat = 16
+        
+        static let standardImageSize: CGFloat = 30
+        static let standardCornerRadius: CGFloat = 25
+        static let standardBorderWidth: CGFloat = 1
+        
+        static let numberOfLines = 1
+        static let fontSize: CGFloat = 20
     }
     
     private let image: UIImageView
+    private let label = UILabel()
+    
+    private var base: UIColor?
+    private var labelColor: UIColor?
+    private var labelText = String()
+    
+    // MARK: Computed properties
     
     var baseColor: UIColor? {
-        get {
-            self.backgroundColor
-        }
+        get { base }
         // устанавливается цвет с изменённой альфой так как не заявлется что это именно backgroundColor
         set {
+            base = newValue
             self.backgroundColor = newValue?.withAlphaComponent(
                 Constants.backgroundColorStandardAlpha
             )
             self.layer.borderColor = newValue?.cgColor
+        }
+    }
+    
+    var textColor: UIColor? {
+        get { labelColor }
+        set {
+            labelColor = newValue
+            label.textColor = newValue
+        }
+    }
+    
+    var text: String {
+        get { labelText }
+        set {
+            labelText = newValue
+            label.text = newValue
         }
     }
     
@@ -60,16 +86,9 @@ final class BackNavBarButton: UIButton {
         }
     }
     
-    override var intrinsicContentSize: CGSize {
-        return CGSize(
-            width: Constants.standardButtonSize,
-            height: Constants.standardButtonSize
-        )
-    }
-    
     // MARK: Lifecycle
     
-    init(image: UIImage? = UIImage(systemName: Constants.backButtonImage)) {
+    init(image: UIImage? = UIImage(systemName: Constants.standardImage)) {
         self.image = UIImageView(image: image?.withRenderingMode(.alwaysTemplate))
         super.init(frame: .zero)
         
@@ -89,6 +108,7 @@ final class BackNavBarButton: UIButton {
         clipsToBounds = true
         
         configureImage()
+        configureText()
     }
     
     private func configureImage() {
@@ -101,9 +121,24 @@ final class BackNavBarButton: UIButton {
                 image.heightAnchor.constraint(
                     equalToConstant: Constants.standardImageSize
                 ),
-                image.widthAnchor.constraint(equalTo: heightAnchor),
-                image.centerXAnchor.constraint(equalTo: centerXAnchor),
-                image.centerYAnchor.constraint(equalTo: centerYAnchor)
+                image.widthAnchor.constraint(equalTo: image.heightAnchor),
+                image.centerYAnchor.constraint(equalTo: centerYAnchor),
+                image.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -Constants.horisontalInset)
+            ]
+        )
+    }
+    
+    private func configureText() {
+        label.numberOfLines = Constants.numberOfLines
+        label.font = .systemFont(ofSize: Constants.fontSize, weight: .medium)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(label)
+        
+        NSLayoutConstraint.activate(
+            [
+                label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: Constants.horisontalInset),
+                label.centerYAnchor.constraint(equalTo: centerYAnchor),
+                label.trailingAnchor.constraint(equalTo: image.leadingAnchor)
             ]
         )
     }

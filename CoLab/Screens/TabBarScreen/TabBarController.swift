@@ -33,12 +33,12 @@ final class TabBarController: UITabBarController {
         self.interactor = interactor
         // Создаём customBar
         let imgs = [
-            UIImage(systemName: Constants.houseImage) ?? UIImage(),
-            UIImage(systemName: Constants.searchImage) ?? UIImage(),
-            UIImage(systemName: Constants.personImage) ?? UIImage(),
-            UIImage(systemName: Constants.gearImage) ?? UIImage()
+            UIImage(systemName: Constants.houseImage),
+            UIImage(systemName: Constants.searchImage),
+            UIImage(systemName: Constants.personImage),
+            UIImage(systemName: Constants.gearImage)
         ]
-        let actionImage = UIImage(systemName: Constants.plusImage) ?? UIImage()
+        let actionImage = UIImage(systemName: Constants.plusImage)
         customBar = CustomTabBar(
             itemImages: imgs,
             actionImage: actionImage

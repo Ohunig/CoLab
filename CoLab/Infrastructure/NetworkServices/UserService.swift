@@ -13,16 +13,9 @@ import FirebaseFirestore
 final class UserService: UserServiceLogic {
     typealias Users = FirebasePaths.Users
     
-    private struct Constants {
-        // Значение нужно чтобы не посылать первое значение nil в userSubject. Данное значение никогда не будет послано так как подразумевается что startListening будет вызван до обращения к userSubject
-        static let firstValue = UserModel(id: "", username: "", photoURL: nil)
-    }
-    
     private let db = Firestore.firestore()
     
-    private var userSubject = CurrentValueSubject<UserModel, Never>(
-        Constants.firstValue
-    )
+    private var userSubject = CurrentValueSubject<UserModel?, Never>(nil)
     
     private var listener: ListenerRegistration?
     
@@ -69,6 +62,8 @@ final class UserService: UserServiceLogic {
     
     func currentUserDataPublisher() -> AnyPublisher<UserModel, Never> {
         return userSubject.eraseToAnyPublisher()
+            .compactMap({ $0 })
+            .eraseToAnyPublisher()
     }
     
     // MARK: Listen

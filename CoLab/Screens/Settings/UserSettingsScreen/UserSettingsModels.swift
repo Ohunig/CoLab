@@ -27,4 +27,29 @@ struct UserSettingsModels {
             let textColor: (hex: String, a: CGFloat)
         }
     }
+    
+    // Модели для обновления данных о юзере
+    enum GetUserData {
+        struct Response {
+            // nil -> аватар не менялся либо реально не пришёл
+            let avatarData: Data?
+            let userData: UserModel
+        }
+        struct ViewModel {
+            let avatarData: Data?
+            let username: String
+        }
+    }
+    
+    // Модели для отображения ошибок
+    enum ShowError {
+        struct Response {
+            let error: Error
+        }
+        struct ViewModel {
+            let errorTitle: String
+            let errorDescription: String
+            let buttonText: String
+        }
+    }
 }

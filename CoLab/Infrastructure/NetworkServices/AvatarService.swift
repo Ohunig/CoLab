@@ -25,15 +25,17 @@ final class AvatarService: AvatarServiceLogic {
         }
         return SupabaseClient(
             supabaseURL: url,
-            supabaseKey: Constants.supabaseKey
+            supabaseKey: Constants.supabaseKey,
+            options: .init(
+                auth: .init(
+                    emitLocalSessionAsInitialSession: true
+                )
+            )
         )
     }()
     
-    func avatarDataPublisher(for profile: UserModel) -> AnyPublisher<Data?, Never> {
-        guard let stringURL = profile.photoURL else {
-            return Just(nil).eraseToAnyPublisher()
-        }
-        guard let url = URL(string: SupabasePath.avatar(path: stringURL).path)
+    func avatarDataPublisher(photoURL: String) -> AnyPublisher<Data?, Never> {
+        guard let url = URL(string: SupabasePath.avatar(path: photoURL).path)
         else {
             return Just(nil).eraseToAnyPublisher()
         }
@@ -45,12 +47,12 @@ final class AvatarService: AvatarServiceLogic {
             .eraseToAnyPublisher()
     }
     
-    func uploadAvatarData(
+    func uploadUserAvatarData(
         data: Data,
-        for profile: UserModel
+        for userId: String
     ) -> AnyPublisher<String, Error> {
         
-        let fileName = "\(profile.id)-\(Int(Date().timeIntervalSince1970)).jpg"
+        let fileName = "\(userId)-\(Int(Date().timeIntervalSince1970)).jpg"
         
         return Future { promise in
             // Используется async/await так как supabase работает с таким api. Это никак не мешает использовать GCD в остальном коде

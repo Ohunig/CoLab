@@ -6,21 +6,40 @@
 //
 
 import Foundation
+import Combine
 
 final class UserSettingsInteractor: UserSettingsBusinessLogic {
     
     private let presenter: UserSettingsPresentationLogic
     
+    private let router: SettingsRoutingLogic
+    
     private let colorRepository: ColorStorageLogic
+    
+    private let authService: AuthLogic
+    private let userService: UserServiceLogic
+    private let avatarService: AvatarServiceLogic
+    
+    private var currentUserData: UserModel? = nil
+    
+    private var userSubscription: AnyCancellable? = nil
     
     // MARK: Lifecycle
     
     init(
         presenter: UserSettingsPresentationLogic,
-        colorRepository: ColorStorageLogic
+        router: SettingsRoutingLogic,
+        colorRepository: ColorStorageLogic,
+        authService: AuthLogic,
+        userService: UserServiceLogic,
+        avatarService: AvatarServiceLogic
     ) {
         self.presenter = presenter
+        self.router = router
         self.colorRepository = colorRepository
+        self.authService = authService
+        self.userService = userService
+        self.avatarService = avatarService
     }
     
     // MARK: Use-cases
@@ -35,5 +54,49 @@ final class UserSettingsInteractor: UserSettingsBusinessLogic {
                 textColor: colorRepository.mainTextColor
             )
         )
+    }
+    
+    func listenUserData() {
+        userService.startListeningChanges()
+        userSubscription = userService.currentUserDataPublisher()
+            .flatMap { [weak self] user -> AnyPublisher<(UserModel, Data?), Never> in
+                guard let self else {
+                    return Empty().eraseToAnyPublisher()
+                }
+                if user.photoURL == currentUserData?.photoURL {
+                    return Just((user, nil)).eraseToAnyPublisher()
+                }
+                currentUserData = user
+                return avatarService.avatarDataPublisher(photoURL: user.photoURL ?? "")
+                    .map { (user, $0) }
+                    .eraseToAnyPublisher()
+            }
+            .receive(on: DispatchQueue.main)
+            .sink(
+                receiveValue: { [weak self] (user, avatarData) in
+                    self?.presenter.presentUserChanges(
+                        Model.GetUserData.Response(
+                            avatarData: avatarData,
+                            userData: user
+                        )
+                    )
+            })
+    }
+    
+    func stopListeningUserData() {
+        userService.stopListeningChanges()
+        userSubscription?.cancel()
+        userSubscription = nil
+    }
+    
+    // MARK: Route
+    
+    func logOut() {
+        do {
+            try authService.logOut()
+            router.routeToAuth()
+        } catch let error  {
+            presenter.presentError(Model.ShowError.Response(error: error))
+        }
     }
 }

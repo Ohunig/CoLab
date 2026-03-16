@@ -22,6 +22,13 @@ final class AuthRouter: AuthRoutingLogic {
         navController?.popToRootViewController(animated: true)
     }
     
+    func routeToAuthBranch() {
+        navController?.setViewControllers(
+            [AuthMainScreenAssembly.build()],
+            animated: true
+        )
+    }
+    
     func routeToLogInScreen() {
         navController?.pushViewController(LogInAssembly.build(), animated: true)
     }
