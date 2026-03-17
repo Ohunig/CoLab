@@ -21,7 +21,6 @@ final class LogInViewController: UIViewController {
         static let buttonsHeight: CGFloat = 55
         static let buttonsBottom: CGFloat = 60
         
-        static let nextButtonBottom: CGFloat = 60
         static let nextButtonText = "Далее"
         static let enabledAlpha: CGFloat = 1
         

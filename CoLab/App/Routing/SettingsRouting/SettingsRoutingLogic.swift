@@ -14,4 +14,8 @@ protocol SettingsRoutingLogic: AnyObject {
     var navigationController: UINavigationController? { get set }
     
     func routeToAuth()
+    
+    func routeToChangeSettings()
+    
+    func routeToUserSettings()
 }

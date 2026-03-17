@@ -19,4 +19,7 @@ protocol AvatarServiceLogic: AnyObject {
         data: Data,
         for userId: String
     ) -> AnyPublisher<String, Error>
+    
+    // Очищает сохранённые в памяти аватары
+    func clearAvatarsCache()
 }

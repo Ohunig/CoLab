@@ -25,9 +25,9 @@ final class CompositionRoot {
         // Network сервисы
         container.register(AuthLogic.self) { _ in AuthService() }
             .inObjectScope(.container)
-        container.register(UserServiceLogic.self) { _ in UserService() }
-            .inObjectScope(.container)
-        container.register(AvatarServiceLogic.self) { _ in AvatarService() }
+        container.register(UserServiceLogic.self) { _ in UserService(userCache: UserCacheStorage()) }
+            .inObjectScope(.transient)
+        container.register(AvatarServiceLogic.self) { _ in AvatarService(avatarsCache: AvatarCacheStorage()) }
             .inObjectScope(.transient)
         
         // Роутеры

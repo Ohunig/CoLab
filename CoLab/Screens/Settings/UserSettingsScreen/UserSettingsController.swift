@@ -15,10 +15,11 @@ final class UserSettingsController: UIViewController {
         
         static let horisontalInset: CGFloat = 22
         
-        static let logoTop: CGFloat = 70
+        // Распологаем элементы навигации выше
+        static let backToUnsafe: CGFloat = 40
         
         static let avatarSize: CGFloat = 170
-        static let avatarTop: CGFloat = 10
+        static let avatarTop: CGFloat = 40
         static let avatarGap: CGFloat = 10
         static let avatarLabelFontSize: CGFloat = 40
         static let avatarLabelLines = 1
@@ -28,8 +29,8 @@ final class UserSettingsController: UIViewController {
         
         static let cellsHeight: CGFloat = 80
         static let stackTop: CGFloat = 55
-        static let changeInfoText = "Change account info"
-        static let logOutText = "Log out"
+        static let changeInfoText = "Изменить информацию"
+        static let logOutText = "Выйти из аккаунта"
         
         static let stackGap: CGFloat = 20
     }
@@ -74,7 +75,6 @@ final class UserSettingsController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        // Отписываемся перед переключением экрана чтобы не нагружать сеть
         interactor.stopListeningUserData()
     }
     
@@ -94,8 +94,7 @@ final class UserSettingsController: UIViewController {
         NSLayoutConstraint.activate(
             [
                 logo.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.horisontalInset),
-                // Хардкод отступа прямо от верха экрана так как NavigationBar писали нелюди. Никакой способ поместить logo в NavBar не ставит его в нужное положение
-                logo.topAnchor.constraint(equalTo: view.topAnchor, constant: Constants.logoTop)
+                logo.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: -Constants.backToUnsafe)
             ]
         )
     }
@@ -127,12 +126,20 @@ final class UserSettingsController: UIViewController {
     
     private func configureCells() {
         // Настройка ячеек
+        
+        changeInfoCell.addAction(
+            UIAction { [weak self] _ in
+                self?.interactor.loadChangeDataScreen()
+            },
+            for: .touchUpInside)
         changeInfoCell.text = Constants.changeInfoText
         changeInfoCell.translatesAutoresizingMaskIntoConstraints = false
         
-        logoutCell.addAction(UIAction { [weak self] _ in
-            self?.interactor.logOut()
-        }, for: .touchUpInside)
+        logoutCell.addAction(
+            UIAction { [weak self] _ in
+                self?.interactor.logOut()
+            },
+            for: .touchUpInside)
         logoutCell.text = Constants.logOutText
         logoutCell.textColor = .red
         logoutCell.tintColor = .red

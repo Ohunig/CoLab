@@ -39,10 +39,13 @@ enum TabBarScreenAssembly {
         )
         // Все нужные экраны прокидываем в свойство таб бара
         let v1 = SettingsBranchAssembly.build()
+        let v2 = UINavigationController(rootViewController: UIViewController())
+        let v3 = UINavigationController(rootViewController: UIViewController())
+        let v4 = UINavigationController(rootViewController: UIViewController())
 //        let v2 = UINavigationController(rootViewController: DemoVC(text: "Search", color: .black))
 //        let v3 = UINavigationController(rootViewController: DemoVC(text: "Profile", color: .systemGreen))
 //        let v4 = UINavigationController(rootViewController: DemoVC(text: "Settings", color: .systemPurple))
-        viewController.viewControllers = [v1, v1, v1, v1]
+        viewController.viewControllers = [v2, v3, v4, v1]
         
         presenter.controller = viewController
         return viewController

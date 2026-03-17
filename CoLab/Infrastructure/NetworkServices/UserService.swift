@@ -19,6 +19,14 @@ final class UserService: UserServiceLogic {
     
     private var listener: ListenerRegistration?
     
+    private let userCache: UserCacheLogic
+    
+    // MARK: Lifecycle
+    
+    init(userCache: UserCacheLogic) {
+        self.userCache = userCache
+    }
+    
     // MARK: Use-cases
     
     func currentUserId() -> String? {
@@ -53,6 +61,7 @@ final class UserService: UserServiceLogic {
                     if let error {
                         promise(.failure(self.decodeError(error)))
                     } else {
+                        // Не обновляем кэш здесь так как придёт уведомление на currentUserPublisher.
                         promise(.success(()))
                     }
                 }
@@ -66,21 +75,69 @@ final class UserService: UserServiceLogic {
             .eraseToAnyPublisher()
     }
     
+    func fetchCurrentUserOnce() -> AnyPublisher<UserModel, FetchUserError> {
+        guard let id = currentUserId() else {
+            return Fail(error: .permissionDenied).eraseToAnyPublisher()
+        }
+        
+        if let cacheData = userCache.getUser(with: id) {
+            return Just(cacheData)
+                .setFailureType(to: FetchUserError.self)
+                .eraseToAnyPublisher()
+        }
+        
+        return Future<UserModel, FetchUserError> { [weak self] promise in
+            guard let self else {
+                promise(.failure(.unknown))
+                return
+            }
+            
+            self.db.collection(Users.root)
+                .document(id)
+                .getDocument { snapshot, error in
+                    if error != nil {
+                        promise(.failure(.unknown))
+                        return
+                    }
+                    
+                    guard let user = try? snapshot?.decoded(UserModel.self) else {
+                        promise(.failure(.decoding))
+                        return
+                    }
+                    
+                    self.userCache.update(user: user, for: id)
+                    
+                    promise(.success(user))
+                }
+        }
+        .eraseToAnyPublisher()
+    }
+    
     // MARK: Listen
     
     func startListeningChanges() {
         guard let id = currentUserId() else {
             return
         }
+        
+        // Пытаемся сначала загрузить кэш
+        if let cachedUser = userCache.getUser(with: id) {
+            userSubject.send(cachedUser)
+        }
+        
         listener = db.collection(Users.root)
             .document(id)
             .addSnapshotListener { [weak self] snapshot, error in
                 // Если получаем ошибку, считаем что данные не менялись и ничего не делаем
                 guard error == nil else { return }
-                
                 guard let user = try? snapshot?.decoded(UserModel.self) else {
                     return
                 }
+                // Если данные не изменились то ничего не отправляем
+                guard user != self?.userSubject.value else { return }
+                // Обновляем кэш
+                self?.userCache.update(user: user, for: id)
+                
                 self?.userSubject.send(user)
             }
     }
@@ -88,6 +145,12 @@ final class UserService: UserServiceLogic {
     func stopListeningChanges() {
         listener?.remove()
         listener = nil
+    }
+    
+    // MARK: Clear data
+    
+    func clearUserCache() {
+        userCache.clear()
     }
     
     // MARK: Decode error

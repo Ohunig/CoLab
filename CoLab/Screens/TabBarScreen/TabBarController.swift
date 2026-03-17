@@ -21,16 +21,33 @@ final class TabBarController: UITabBarController {
         static let horisontalInset: CGFloat = 22
         static let tabBarHeight: CGFloat = 90
         static let startSelectedButton = 0
+        
+        static let notHiddenTabBarTrailing: CGFloat = 0
+        static let hiddenTabBarTrailing: CGFloat = 200
+        static let hideTabBarDuration: CGFloat = 0.25
+        
+        static let maxScreensCountWithTabBar = 1
     }
     
     private let interactor: TabBarBusinessLogic
 
     private let customBar: CustomTabBar
     
+    lazy private var bottomConstraint: NSLayoutConstraint = customBar.bottomAnchor.constraint(
+        equalTo: view.safeAreaLayoutGuide.bottomAnchor
+    )
+    
+    override var viewControllers: [UIViewController]? {
+        didSet {
+            assignNavDelegates()
+        }
+    }
+    
     // MARK: Lifecycle
     
     init(interactor: TabBarBusinessLogic) {
         self.interactor = interactor
+        
         // Создаём customBar
         let imgs = [
             UIImage(systemName: Constants.houseImage),
@@ -43,6 +60,7 @@ final class TabBarController: UITabBarController {
             itemImages: imgs,
             actionImage: actionImage
         )
+        
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -67,12 +85,39 @@ final class TabBarController: UITabBarController {
         customBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(customBar)
         
+        bottomConstraint = customBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        
         NSLayoutConstraint.activate([
             customBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.horisontalInset),
             customBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Constants.horisontalInset),
-            customBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            customBar.heightAnchor.constraint(equalToConstant: Constants.tabBarHeight)
+            customBar.heightAnchor.constraint(equalToConstant: Constants.tabBarHeight),
+            // Выставляем нижний констрейнт
+            bottomConstraint
         ])
+    }
+    
+    // MARK: Set tab bar state
+    
+    func setTabBar(hidden: Bool, animated: Bool = true) {
+        bottomConstraint.constant = hidden ? Constants.hiddenTabBarTrailing : Constants.notHiddenTabBarTrailing
+        if animated {
+            UIView.animate(withDuration: Constants.hideTabBarDuration) {
+                self.view.layoutIfNeeded()
+            }
+        } else {
+            view.layoutIfNeeded()
+        }
+    }
+    
+    // MARK: Assign nav delegates
+    
+    private func assignNavDelegates() {
+        guard let vcs = viewControllers else { return }
+        for vc in vcs {
+            if let nav = vc as? UINavigationController {
+                nav.delegate = self
+            }
+        }
     }
 }
 
@@ -103,6 +148,20 @@ extension TabBarController: TabBarDisplayLogic {
         )
         customBar.standardButtonColor = UIColor(hex: viewModel.buttonsColor.hex, alpha: viewModel.buttonsColor.a)
         customBar.wrapperColor = UIColor(hex: viewModel.wrapperColor.hex, alpha: viewModel.wrapperColor.a)
+    }
+}
+
+// MARK: - Navigation controller delegate
+
+extension TabBarController: UINavigationControllerDelegate {
+    
+    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        // Если количество экранов в контроллере больше одного, скрываем таб бар всегда
+        if navigationController.viewControllers.count > Constants.maxScreensCountWithTabBar {
+            setTabBar(hidden: true)
+        } else {
+            setTabBar(hidden: false)
+        }
     }
 }
 

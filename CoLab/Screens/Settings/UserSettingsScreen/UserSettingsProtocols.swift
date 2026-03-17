@@ -22,6 +22,9 @@ protocol UserSettingsBusinessLogic: AnyObject {
     
     // Выход из аккаунта и переход к входу/регистрации
     func logOut()
+    
+    // Переход на экран изменения данных
+    func loadChangeDataScreen()
 }
 
 // Описывает логику презентации

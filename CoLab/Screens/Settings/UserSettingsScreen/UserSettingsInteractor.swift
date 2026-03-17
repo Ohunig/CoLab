@@ -58,35 +58,36 @@ final class UserSettingsInteractor: UserSettingsBusinessLogic {
     
     func listenUserData() {
         userService.startListeningChanges()
-        userSubscription = userService.currentUserDataPublisher()
-            .flatMap { [weak self] user -> AnyPublisher<(UserModel, Data?), Never> in
-                guard let self else {
-                    return Empty().eraseToAnyPublisher()
+        // Нет смысла переназначать
+        if userSubscription == nil {
+            userSubscription = userService.currentUserDataPublisher()
+                .flatMap { [weak self] user -> AnyPublisher<(UserModel, Data?), Never> in
+                    guard let self else {
+                        return Empty().eraseToAnyPublisher()
+                    }
+                    if user.photoURL == currentUserData?.photoURL {
+                        return Just((user, nil)).eraseToAnyPublisher()
+                    }
+                    currentUserData = user
+                    return avatarService.avatarDataPublisher(photoURL: user.photoURL ?? "")
+                        .map { (user, $0) }
+                        .eraseToAnyPublisher()
                 }
-                if user.photoURL == currentUserData?.photoURL {
-                    return Just((user, nil)).eraseToAnyPublisher()
-                }
-                currentUserData = user
-                return avatarService.avatarDataPublisher(photoURL: user.photoURL ?? "")
-                    .map { (user, $0) }
-                    .eraseToAnyPublisher()
-            }
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveValue: { [weak self] (user, avatarData) in
-                    self?.presenter.presentUserChanges(
-                        Model.GetUserData.Response(
-                            avatarData: avatarData,
-                            userData: user
+                .receive(on: DispatchQueue.main)
+                .sink(
+                    receiveValue: { [weak self] (user, avatarData) in
+                        self?.presenter.presentUserChanges(
+                            Model.GetUserData.Response(
+                                avatarData: avatarData,
+                                userData: user
+                            )
                         )
-                    )
-            })
+                    })
+        }
     }
     
     func stopListeningUserData() {
         userService.stopListeningChanges()
-        userSubscription?.cancel()
-        userSubscription = nil
     }
     
     // MARK: Route
@@ -94,9 +95,16 @@ final class UserSettingsInteractor: UserSettingsBusinessLogic {
     func logOut() {
         do {
             try authService.logOut()
+            // Очищаем кэш юзера при выходе из аккаунта
+            userService.clearUserCache()
+            avatarService.clearAvatarsCache()
             router.routeToAuth()
         } catch let error  {
             presenter.presentError(Model.ShowError.Response(error: error))
         }
+    }
+    
+    func loadChangeDataScreen() {
+        router.routeToChangeSettings()
     }
 }

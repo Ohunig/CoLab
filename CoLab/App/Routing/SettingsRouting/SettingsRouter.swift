@@ -34,4 +34,15 @@ final class SettingsRouter: SettingsRoutingLogic {
     func routeToAuth() {
         authRouter.routeToAuthBranch()
     }
+    
+    func routeToChangeSettings() {
+        navigationController?.pushViewController(
+            ChangeSettingsAssembly.build(),
+            animated: true
+        )
+    }
+    
+    func routeToUserSettings() {
+        navigationController?.popViewController(animated: true)
+    }
 }

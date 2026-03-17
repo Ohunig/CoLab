@@ -21,6 +21,8 @@ enum SettingsBranchAssembly {
             rootViewController: UserSettingsAssembly.build()
         )
         
+        navController.navigationBar.isHidden = true
+        
         // Настраиваем корневой контроллер у роутера
         guard let router = CompositionRoot.container.resolve(
             SettingsRoutingLogic.self
