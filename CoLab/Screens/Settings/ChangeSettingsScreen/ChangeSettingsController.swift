@@ -20,7 +20,7 @@ final class ChangeSettingsController: UIViewController {
         
         static let avatarSize: CGFloat = 170
         static let avatarTop: CGFloat = 40
-        static let avatarGap: CGFloat = 20
+        static let avatarGap: CGFloat = 40
         static let userDuration = 0.25
         
         static let usernameFieldImage = "person.fill"
@@ -32,9 +32,15 @@ final class ChangeSettingsController: UIViewController {
         static let buttonsHeight: CGFloat = 55
         static let buttonsBottom: CGFloat = 60
         
-        static let photoCompressionQuality: CGFloat = 0.2
+        static let photoCompressionQuality: CGFloat = 0.1
         
         static let alertOk = "Ok"
+        
+        static let avatarHintText = "Нажмите на аватар, чтобы изменить"
+        static let avatarHintTop: CGFloat = 10
+        static let avatarHintLines = 1
+        static let avatarHintFontSize: CGFloat = 13
+        static let avatarHintAlpha: CGFloat = 0.3
     }
     
     private let interactor: ChangeSettingsBusinessLogic
@@ -50,10 +56,25 @@ final class ChangeSettingsController: UIViewController {
     // Если пользователь не менял аватар на экране — не загружаем его заново
     private var isAvatarChanged = false
     
+    private lazy var avatarPicker = ImagePicker(
+        presentingViewController: self,
+        onImagePicked: { [weak self] image in
+            self?.applySelectedAvatar(image)
+        }
+    )
+    
+    private let avatarHintLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .center
+        label.numberOfLines = Constants.avatarHintLines
+        label.text = Constants.avatarHintText
+        label.font = .systemFont(ofSize: Constants.avatarHintFontSize, weight: .medium)
+        label.alpha = Constants.avatarHintAlpha
+        return label
+    }()
+    
     private let usernameField = ImageTextField(
-        image: UIImage(
-            systemName: Constants.usernameFieldImage
-        )
+        image: UIImage(systemName: Constants.usernameFieldImage)
     )
     
     private let nextButton = FilledGradientButton()
@@ -80,7 +101,6 @@ final class ChangeSettingsController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        avatarOverlay.hide()
         overlay.hide()
     }
     
@@ -114,16 +134,30 @@ final class ChangeSettingsController: UIViewController {
     
     private func configureAvatar() {
         avatarOverlay.show(over: avatar)
-        
+        avatar.isUserInteractionEnabled = true
+        avatar.addGestureRecognizer(
+            UITapGestureRecognizer(
+                target: self,
+                action: #selector(avatarTapped)
+            )
+        )
         avatar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(avatar)
+        
+        // Подсказка под аватаром
+        avatarHintLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(avatarHintLabel)
         
         NSLayoutConstraint.activate(
             [
                 avatar.heightAnchor.constraint(equalToConstant: Constants.avatarSize),
                 avatar.widthAnchor.constraint(equalToConstant: Constants.avatarSize),
                 avatar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: Constants.avatarTop),
-                avatar.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+                avatar.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                
+                avatarHintLabel.topAnchor.constraint(equalTo: avatar.bottomAnchor, constant: Constants.avatarHintTop),
+                avatarHintLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.horisontalInset),
+                avatarHintLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
             ]
         )
     }
@@ -137,7 +171,7 @@ final class ChangeSettingsController: UIViewController {
         
         NSLayoutConstraint.activate(
             [
-                usernameField.topAnchor.constraint(equalTo: avatar.bottomAnchor, constant: Constants.avatarGap),
+                usernameField.topAnchor.constraint(equalTo: avatarHintLabel.bottomAnchor, constant: Constants.avatarGap),
                 usernameField.heightAnchor.constraint(equalToConstant: Constants.usernameFieldHeight),
                 usernameField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.horisontalInset),
                 usernameField.centerXAnchor.constraint(equalTo: view.centerXAnchor)
@@ -191,9 +225,9 @@ final class ChangeSettingsController: UIViewController {
     private func nextButtonTapped() {
         guard let username = usernameField.text else { return }
         
-        let imageData = isAvatarChanged
-        ? avatar.image?.jpegData(compressionQuality: Constants.photoCompressionQuality)
-        : nil
+        let imageData = isAvatarChanged ? avatar.image?.jpegData(
+            compressionQuality: Constants.photoCompressionQuality
+        ) : nil
         
         // Накладываем поверх эффект загрузки
         if let window = UIApplication.shared.currentKeyWindow {
@@ -211,6 +245,28 @@ final class ChangeSettingsController: UIViewController {
     @objc
     private func textDidChange() {
         validate()
+    }
+    
+    @objc
+    private func avatarTapped() {
+        avatarPicker.present()
+    }
+    
+    private func applySelectedAvatar(_ image: UIImage) {
+        avatarOverlay.hide()
+        isAvatarChanged = true
+        
+        if avatar.window != nil {
+            UIView.transition(
+                with: avatar,
+                duration: Constants.userDuration,
+                options: .transitionCrossDissolve
+            ) {
+                self.avatar.image = image
+            }
+        } else {
+            avatar.image = image
+        }
     }
 }
 
@@ -234,6 +290,7 @@ extension ChangeSettingsController: ChangeSettingsDisplayLogic {
         
         // Аватар
         avatar.baseColor = elementsBaseColor
+        avatarHintLabel.textColor = textColor
         
         // Юзернейм
         usernameField.baseColor = elementsBaseColor
