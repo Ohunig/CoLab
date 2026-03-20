@@ -29,6 +29,8 @@ final class CompositionRoot {
             .inObjectScope(.transient)
         container.register(AvatarServiceLogic.self) { _ in AvatarService(avatarsCache: AvatarCacheStorage()) }
             .inObjectScope(.transient)
+        container.register(UserChatListLogic.self) { _ in UserChatListService() }
+            .inObjectScope(.transient)
         
         // Роутеры
         container.register(AuthRoutingLogic.self) { _ in AuthRouter() }

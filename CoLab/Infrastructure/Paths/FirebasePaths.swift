@@ -26,4 +26,33 @@ enum FirebasePaths {
             }
         }
     }
+    
+    // Обозначения для таблицы чатов
+    enum Chats {
+        static let root = "chats"
+        
+        case memberIds
+        case lastMessageDate
+        case title
+        case lastMessageText
+        case avatarURL
+        case categories
+        
+        var path: String {
+            switch self {
+            case .memberIds:
+                "memberIds"
+            case .lastMessageDate:
+                "lastMessageDate"
+            case .title:
+                "title"
+            case .lastMessageText:
+                "lastMessageText"
+            case .avatarURL:
+                "avatarURL"
+            case .categories:
+                "categories"
+            }
+        }
+    }
 }

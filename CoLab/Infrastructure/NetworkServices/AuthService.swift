@@ -13,7 +13,7 @@ import FirebaseAuth
 final class AuthService: AuthLogic {
     
     private struct Constants {
-        static let standardAvatarURL = "pepeAvatar.png"
+        static let standardAvatarURL = "avatar.jpg"
     }
     
     lazy private var auth = Auth.auth()

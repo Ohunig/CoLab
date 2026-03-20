@@ -13,16 +13,22 @@ final class AuthRouter: AuthRoutingLogic {
     
     private weak var navController: UINavigationController?
     
+    private func dismissKeyboard() {
+        navController?.view.endEditing(true)
+    }
+    
     var navigationController: UINavigationController? {
         get { navController }
         set { navController = newValue }
     }
     
     func routeToAuthMainScreen() {
+        dismissKeyboard()
         navController?.popToRootViewController(animated: true)
     }
     
     func routeToAuthBranch() {
+        dismissKeyboard()
         navController?.setViewControllers(
             [AuthMainScreenAssembly.build()],
             animated: true
@@ -39,6 +45,7 @@ final class AuthRouter: AuthRoutingLogic {
     
     // Вход в приложение
     func routeToMainScreens() {
+        dismissKeyboard()
         navController?.setViewControllers([TabBarScreenAssembly.build()], animated: true)
     }
 }
