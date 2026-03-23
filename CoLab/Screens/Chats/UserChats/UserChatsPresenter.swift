@@ -40,8 +40,15 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
                 bg: (hex: response.bg.hex, a: response.bg.alpha),
                 bgGradient: (hex: response.bgGradient.hex, a: response.bgGradient.alpha),
                 elementsBase: (hex: response.elementsBase.hex, a: response.elementsBase.alpha),
-                tint: (hex: response.tint.hex, a: response.tint.alpha),
                 textColor: (hex: response.textColor.hex, a: response.textColor.alpha)
+            )
+        )
+    }
+    
+    func presentCurrentUserAvatar(_ response: Model.CurrentUserAvatar.Response) {
+        controller?.displayCurrentUserAvatar(
+            Model.CurrentUserAvatar.ViewModel(
+                avatarData: response.avatarData
             )
         )
     }

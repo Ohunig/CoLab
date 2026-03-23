@@ -35,10 +35,17 @@ enum UserChatsAssembly {
             fatalError(Constants.notAllServicesRegistered)
         }
         
+        guard let userService = CompositionRoot.container.resolve(
+            UserServiceLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        
         let interactor = UserChatsInteractor(
             presenter: presenter,
             colorRepository: colorRepository,
             chatListService: chatListService,
+            userService: userService,
             avatarService: avatarService
         )
         

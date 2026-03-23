@@ -16,7 +16,7 @@ final class UserSettingsController: UIViewController {
         static let horisontalInset: CGFloat = 22
         
         // Распологаем элементы навигации выше
-        static let backToUnsafe: CGFloat = 40
+        static let backToUnsafe: CGFloat = 30
         
         static let avatarSize: CGFloat = 170
         static let avatarTop: CGFloat = 40
@@ -67,9 +67,9 @@ final class UserSettingsController: UIViewController {
         interactor.loadStart()
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        // Подписываемся при появлении экрана
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Стартуем слушатель до показа экрана, чтобы аватар начал подтягиваться раньше
         interactor.listenUserData()
     }
     
@@ -211,9 +211,9 @@ extension UserSettingsController: UserSettingsDisplayLogic {
             username.text = viewModel.username
         }
         
-        // Нет смысла менять аватар если он пустой или не менялся. Также не отключаем оверлей
-        guard let avatarData = viewModel.avatarData else { return }
         avatarOverlay.hide()
+        // Нет смысла менять аватар если он пустой или не менялся
+        guard let avatarData = viewModel.avatarData else { return }
         // Так как если window == nil то при transition могут быть видны артефакты
         if avatar.window != nil {
             UIView.transition(

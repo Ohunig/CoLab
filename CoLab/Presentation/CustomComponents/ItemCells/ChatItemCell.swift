@@ -12,7 +12,6 @@ final class ChatItemCell: UITableViewCell {
         static let reuseIdentifier = "ChatItemCell"
         static let fatalError = "init(coder:) has not been implemented"
         
-        static let horizontalInset: CGFloat = 16
         static let verticalInset: CGFloat = 6
         static let innerInset: CGFloat = 14
         static let contentSpacing: CGFloat = 12
@@ -30,10 +29,9 @@ final class ChatItemCell: UITableViewCell {
         static let titleFontSize: CGFloat = 18
         static let subtitleFontSize: CGFloat = 14
         static let metaFontSize: CGFloat = 12
-        static let subtitleLines = 2
+        static let subtitleLines = 1
         static let textStackSpacing: CGFloat = 4
         static let titleRowSpacing: CGFloat = 8
-        static let titleCompressionResistance: Float = 749
     }
     
     static let reuseIdentifier = Constants.reuseIdentifier
@@ -212,14 +210,8 @@ final class ChatItemCell: UITableViewCell {
                 equalTo: contentView.topAnchor,
                 constant: Constants.verticalInset
             ),
-            containerView.leadingAnchor.constraint(
-                equalTo: contentView.leadingAnchor,
-                constant: Constants.horizontalInset
-            ),
-            containerView.trailingAnchor.constraint(
-                equalTo: contentView.trailingAnchor,
-                constant: -Constants.horizontalInset
-            ),
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             containerView.bottomAnchor.constraint(
                 equalTo: contentView.bottomAnchor,
                 constant: -Constants.verticalInset

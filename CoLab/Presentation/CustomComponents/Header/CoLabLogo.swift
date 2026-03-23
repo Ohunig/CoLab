@@ -13,18 +13,16 @@ final class CoLabLogo: UIView {
         static let fatalError = "init(coder:) has not been implemented"
         
         static let logoImage = UIImage(named: "CoLabScreenIcon")
-        static let imageInset: CGFloat = 7
-        
         static let standardBorderWidth: CGFloat = 1
-        static let standardWrapperSize: CGFloat = 44
-        
-        static let gap: CGFloat = 10
-        
         static let numberOfLines = 1
-        static let fontSize: CGFloat = 24
         static let labelText = "Co:lab"
         
         static let backgroundColorStandardAlpha: CGFloat = 0.5
+        static let referenceHeight: CGFloat = 44
+        static let referenceWidth: CGFloat = 176
+        static let imageInsetRatio: CGFloat = 7 / 44
+        static let gapRatio: CGFloat = 10 / 44
+        static let fontSizeRatio: CGFloat = 24 / 44
     }
     
     private let image = UIImageView(image: Constants.logoImage)
@@ -69,6 +67,13 @@ final class CoLabLogo: UIView {
         fatalError(Constants.fatalError)
     }
     
+    override var intrinsicContentSize: CGSize {
+        CGSize(
+            width: Constants.referenceWidth,
+            height: Constants.referenceHeight
+        )
+    }
+    
     // MARK: Configure UI
     
     private func configureUI() {
@@ -91,7 +96,10 @@ final class CoLabLogo: UIView {
     private func configureLabel() {
         label.text = Constants.labelText
         label.numberOfLines = Constants.numberOfLines
-        label.font = .systemFont(ofSize: Constants.fontSize, weight: .medium)
+        label.font = .systemFont(
+            ofSize: Constants.referenceHeight * Constants.fontSizeRatio,
+            weight: .medium
+        )
         addSubview(label)
     }
     
@@ -100,25 +108,31 @@ final class CoLabLogo: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         
+        let wrapperSize = min(bounds.height, bounds.width)
+        let imageInset = wrapperSize * Constants.imageInsetRatio
+        let gap = wrapperSize * Constants.gapRatio
+        let fontSize = wrapperSize * Constants.fontSizeRatio
+        
         wrapper.frame = CGRect(
             x: 0,
             y: 0,
-            width: Constants.standardWrapperSize,
-            height: Constants.standardWrapperSize
+            width: wrapperSize,
+            height: wrapperSize
         )
-        wrapper.layer.cornerRadius = Constants.standardWrapperSize / 2
+        wrapper.layer.cornerRadius = wrapperSize / 2
         
         image.frame = CGRect(
-            x: Constants.imageInset,
-            y: Constants.imageInset,
-            width: Constants.standardWrapperSize - Constants.imageInset * 2,
-            height: Constants.standardWrapperSize - Constants.imageInset * 2
+            x: imageInset,
+            y: imageInset,
+            width: wrapperSize - imageInset * 2,
+            height: wrapperSize - imageInset * 2
         )
         
+        label.font = .systemFont(ofSize: fontSize, weight: .medium)
         let labelSize = label.intrinsicContentSize
         label.frame = CGRect(
-            x: wrapper.frame.width + Constants.gap,
-            y: (Constants.standardWrapperSize - labelSize.height) / 2,
+            x: wrapper.frame.width + gap,
+            y: (wrapperSize - labelSize.height) / 2,
             width: labelSize.width,
             height: labelSize.height
         )
