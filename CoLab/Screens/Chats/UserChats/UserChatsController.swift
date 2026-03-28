@@ -84,12 +84,14 @@ final class UserChatsController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
         headerView.showAvatarLoading()
         interactor.listenCurrentUserAvatar()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        syncChatsStateFromProviderIfNeeded()
         interactor.loadInitialChats()
     }
     
@@ -305,6 +307,21 @@ extension UserChatsController: UserChatsDisplayLogic {
 // MARK: - UITableView
 
 extension UserChatsController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let chatId = dataSource.itemIdentifier(for: indexPath),
+              let item = tableDataProvider.item(for: chatId) else {
+            return
+        }
+        
+        tableView.deselectRow(at: indexPath, animated: false)
+        
+        interactor.loadChatMessagesScreen(
+            chatId: chatId,
+            chatTitle: item.title,
+            chatAvatarURL: item.avatarURL
+        )
+    }
+    
     // Отслеживание скролла для пагинации
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateHeaderAndContainerForScroll()
@@ -353,6 +370,33 @@ extension UserChatsController: UITableViewDelegate {
     
     // MARK: Chats state
     
+    // Пока экран скрыт за ChatMessages, presenter продолжает обновляться,
+    // а сама таблица эти апдейты пропускает. При возврате синхронизируемся
+    // из уже готового состояния presenter без нового запроса.
+    private func syncChatsStateFromProviderIfNeeded() {
+        let chatIds = tableDataProvider.chatIds()
+        emptyStateLabel.isHidden = !chatIds.isEmpty
+        
+        let currentChatIds = dataSource.snapshot().itemIdentifiers
+        if currentChatIds != chatIds {
+            dataSource.apply(
+                makeSnapshot(chatIds: chatIds),
+                animatingDifferences: false
+            )
+        }
+        
+        guard !chatIds.isEmpty else { return }
+        
+        var snapshot = dataSource.snapshot()
+        let reloadableChatIds = chatIds.filter {
+            snapshot.indexOfItem($0) != nil
+        }
+        guard !reloadableChatIds.isEmpty else { return }
+        
+        snapshot.reloadItems(reloadableChatIds)
+        dataSource.apply(snapshot, animatingDifferences: false)
+    }
+
     // Назначение нового состояния ячейкам
     private func applyChatsState(
         chatIds: [String],

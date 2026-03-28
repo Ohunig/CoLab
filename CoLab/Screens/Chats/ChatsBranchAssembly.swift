@@ -23,14 +23,14 @@ enum ChatsBranchAssembly {
         
         navController.navigationBar.isHidden = true
         
-//        // Настраиваем корневой контроллер у роутера
-//        guard let router = CompositionRoot.container.resolve(
-//            SettingsRoutingLogic.self
-//        ) else {
-//            // Специально сделано чтобы приложение падало с ошибкой так как без всех зарегестрированных зависимостей не может нормально работать
-//            fatalError(Constants.notAllServicesRegistered)
-//        }
-//        router.navigationController = navController
+        // Настраиваем корневой контроллер у роутера
+        guard let router = CompositionRoot.container.resolve(
+            ChatsRoutingLogic.self
+        ) else {
+            // Специально сделано чтобы приложение падало с ошибкой так как без всех зарегестрированных зависимостей не может нормально работать
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        router.navigationController = navController
         
         return navController
     }

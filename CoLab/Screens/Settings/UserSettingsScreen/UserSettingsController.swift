@@ -105,6 +105,7 @@ final class UserSettingsController: UIViewController {
         username.numberOfLines = Constants.avatarLabelLines
         username.font = .systemFont(ofSize: Constants.avatarLabelFontSize, weight: .medium)
         username.text = Constants.unknownUsername
+        username.textAlignment = .center
         
         avatar.translatesAutoresizingMaskIntoConstraints = false
         username.translatesAutoresizingMaskIntoConstraints = false
@@ -119,6 +120,7 @@ final class UserSettingsController: UIViewController {
                 avatar.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 
                 username.topAnchor.constraint(equalTo: avatar.bottomAnchor, constant: Constants.avatarGap),
+                username.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.horisontalInset),
                 username.centerXAnchor.constraint(equalTo: view.centerXAnchor)
             ]
         )

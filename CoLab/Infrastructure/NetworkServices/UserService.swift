@@ -18,6 +18,8 @@ final class UserService: UserServiceLogic {
     private var userSubject = CurrentValueSubject<UserModel?, Never>(nil)
     
     private var listener: ListenerRegistration?
+    private var foreignUserListeners: [String: ListenerRegistration] = [:]
+    private var foreignUserSubjects: [String: PassthroughSubject<Result<UserModel, FetchUserError>, Never>] = [:]
     
     private let userCache: UserCacheLogic
     
@@ -75,11 +77,7 @@ final class UserService: UserServiceLogic {
             .eraseToAnyPublisher()
     }
     
-    func fetchCurrentUserOnce() -> AnyPublisher<UserModel, FetchUserError> {
-        guard let id = currentUserId() else {
-            return Fail(error: .permissionDenied).eraseToAnyPublisher()
-        }
-        
+    func fetchUserOnce(id: String) -> AnyPublisher<UserModel, FetchUserError> {
         if let cacheData = userCache.getUser(with: id) {
             return Just(cacheData)
                 .setFailureType(to: FetchUserError.self)
@@ -95,8 +93,8 @@ final class UserService: UserServiceLogic {
             self.db.collection(Users.root)
                 .document(id)
                 .getDocument { snapshot, error in
-                    if error != nil {
-                        promise(.failure(.unknown))
+                    if let error {
+                        promise(.failure(self.decodeFetchError(error)))
                         return
                     }
                     
@@ -106,14 +104,58 @@ final class UserService: UserServiceLogic {
                     }
                     
                     self.userCache.update(user: user, for: id)
-                    
                     promise(.success(user))
                 }
         }
         .eraseToAnyPublisher()
     }
     
+    func fetchCurrentUserOnce() -> AnyPublisher<UserModel, FetchUserError> {
+        guard let id = currentUserId() else {
+            return Fail(error: .permissionDenied).eraseToAnyPublisher()
+        }
+        return fetchUserOnce(id: id)
+    }
+    
+    func userUpdatesPublisher(id: String) -> AnyPublisher<Result<UserModel, FetchUserError>, Never> {
+        foreignUserSubject(for: id).eraseToAnyPublisher()
+    }
+    
     // MARK: Listen
+    
+    func startListeningUser(id: String) {
+        guard foreignUserListeners[id] == nil else { return }
+        
+        let subject = foreignUserSubject(for: id)
+        if let cachedUser = userCache.getUser(with: id) {
+            subject.send(.success(cachedUser))
+        }
+        
+        foreignUserListeners[id] = db.collection(Users.root)
+            .document(id)
+            .addSnapshotListener { [weak self] snapshot, error in
+                guard let self else { return }
+                
+                if let error {
+                    subject.send(.failure(self.decodeFetchError(error)))
+                    return
+                }
+                
+                guard let user = try? snapshot?.decoded(UserModel.self) else {
+                    subject.send(.failure(.decoding))
+                    return
+                }
+                
+                self.userCache.update(user: user, for: id)
+                subject.send(.success(user))
+            }
+    }
+    
+    func stopListeningUser(id: String) {
+        foreignUserListeners[id]?.remove()
+        foreignUserListeners.removeValue(forKey: id)
+        foreignUserSubjects.removeValue(forKey: id)
+    }
     
     func startListeningChanges() {
         guard let id = currentUserId() else {
@@ -153,11 +195,40 @@ final class UserService: UserServiceLogic {
         userCache.clear()
     }
     
+    // MARK: Subject
+    
+    private func foreignUserSubject(
+        for id: String
+    ) -> PassthroughSubject<Result<UserModel, FetchUserError>, Never> {
+        if let subject = foreignUserSubjects[id] {
+            return subject
+        }
+        
+        let subject = PassthroughSubject<Result<UserModel, FetchUserError>, Never>()
+        foreignUserSubjects[id] = subject
+        return subject
+    }
+    
     // MARK: Decode error
     
     private func decodeError(_ error: Error) -> UpdateUserDataError {
         guard let ns = error as NSError? else { return .unknown }
         // Попытка распознать код Firestore
+        if let fsCode = FirestoreErrorCode.Code(rawValue: ns.code) {
+            switch fsCode {
+            case .permissionDenied:
+                return .permissionDenied
+            case .unavailable:
+                return .network
+            default:
+                return .unknown
+            }
+        }
+        return .unknown
+    }
+    
+    private func decodeFetchError(_ error: Error) -> FetchUserError {
+        guard let ns = error as NSError? else { return .unknown }
         if let fsCode = FirestoreErrorCode.Code(rawValue: ns.code) {
             switch fsCode {
             case .permissionDenied:

@@ -11,6 +11,9 @@ final class ChatItemCell: UITableViewCell {
     private struct Constants {
         static let reuseIdentifier = "ChatItemCell"
         static let fatalError = "init(coder:) has not been implemented"
+        static let animateDuration: CGFloat = 0.06
+        static let standardAlpha: CGFloat = 1
+        static let tappedAlpha: CGFloat = 0.5
         
         static let verticalInset: CGFloat = 6
         static let innerInset: CGFloat = 14
@@ -136,6 +139,7 @@ final class ChatItemCell: UITableViewCell {
         subtitle = ""
         time = ""
         avatarImage = nil
+        updatePressedState(isPressed: false, animated: false)
     }
     
     // MARK: Configure UI
@@ -144,11 +148,36 @@ final class ChatItemCell: UITableViewCell {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
         selectionStyle = .none
+        updatePressedState(isPressed: false, animated: false)
         
         configureContainer()
         configureAvatar()
         configureLabels()
         configureLayout()
+    }
+
+    // MARK: Highlight
+
+    override func setHighlighted(_ highlighted: Bool, animated: Bool) {
+        super.setHighlighted(highlighted, animated: animated)
+        updatePressedState(isPressed: highlighted, animated: animated)
+    }
+
+    private func updatePressedState(isPressed: Bool, animated: Bool) {
+        let changes = {
+            self.containerView.alpha = isPressed
+                ? Constants.tappedAlpha
+                : Constants.standardAlpha
+        }
+        
+        guard animated else {
+            changes()
+            return
+        }
+        
+        UIView.animate(withDuration: Constants.animateDuration) {
+            changes()
+        }
     }
     
     private func configureContainer() {

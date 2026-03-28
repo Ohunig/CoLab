@@ -35,6 +35,12 @@ enum UserChatsAssembly {
             fatalError(Constants.notAllServicesRegistered)
         }
         
+        guard let router = CompositionRoot.container.resolve(
+            ChatsRoutingLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        
         guard let userService = CompositionRoot.container.resolve(
             UserServiceLogic.self
         ) else {
@@ -45,6 +51,7 @@ enum UserChatsAssembly {
             presenter: presenter,
             colorRepository: colorRepository,
             chatListService: chatListService,
+            router: router,
             userService: userService,
             avatarService: avatarService
         )

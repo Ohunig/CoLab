@@ -35,6 +35,7 @@ final class UserChatsInteractor: UserChatsBusinessLogic {
     
     private let colorRepository: ColorStorageLogic
     private let chatListService: UserChatListLogic
+    private let router: ChatsRoutingLogic
     private let userService: UserServiceLogic
     private let avatarService: AvatarServiceLogic
     
@@ -52,12 +53,14 @@ final class UserChatsInteractor: UserChatsBusinessLogic {
         presenter: UserChatsPresentationLogic,
         colorRepository: ColorStorageLogic,
         chatListService: UserChatListLogic,
+        router: ChatsRoutingLogic,
         userService: UserServiceLogic,
         avatarService: AvatarServiceLogic
     ) {
         self.presenter = presenter
         self.colorRepository = colorRepository
         self.chatListService = chatListService
+        self.router = router
         self.userService = userService
         self.avatarService = avatarService
     }
@@ -193,6 +196,18 @@ final class UserChatsInteractor: UserChatsBusinessLogic {
         // Расширяем окно live-обновлений
         desiredLiveLimit += Constants.pageLimit
         chatListService.setLiveUpdatesLimit(desiredLiveLimit)
+    }
+    
+    func loadChatMessagesScreen(
+        chatId: String,
+        chatTitle: String,
+        chatAvatarURL: String?
+    ) {
+        router.routeToChatMessages(
+            chatId: chatId,
+            chatTitle: chatTitle,
+            chatAvatarURL: chatAvatarURL
+        )
     }
     
     // MARK: Factory methods

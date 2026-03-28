@@ -21,6 +21,12 @@ protocol UserChatsBusinessLogic: AnyObject {
     
     /// Загрузка следующей страницы (если есть что грузить)
     func loadNextPage()
+    
+    func loadChatMessagesScreen(
+        chatId: String,
+        chatTitle: String,
+        chatAvatarURL: String?
+    )
 }
 
 protocol UserChatsTableDataLogic: AnyObject {
