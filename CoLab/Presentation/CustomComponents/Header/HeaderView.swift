@@ -2,7 +2,7 @@
 //  UserChatsHeaderView.swift
 //  CoLab
 //
-//  Created by OpenAI on 22.03.2026.
+//  Created by User on 22.03.2026.
 //
 
 import UIKit

@@ -23,9 +23,7 @@ final class ChatMessagesController: UIViewController {
     private let interactor: ChatMessagesBusinessLogic
     
     private let backgroundView = MainBackgroundView()
-    private let topBarBackgroundView = UIView()
-    private let topBarBorderView = UIView()
-    private lazy var topBarView = ChatMessagesNavigationBarView(title: chatTitle)
+    private let topBarView = ChatMessagesNavigationBarView()
     
     private let messagesListView: ChatMessagesListView
     private let inputViewContainer = ChatMessageInputView()
@@ -59,6 +57,7 @@ final class ChatMessagesController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         configureUI()
         configureKeyboardObservers()
         interactor.loadStart()
@@ -112,48 +111,30 @@ final class ChatMessagesController: UIViewController {
     }
     
     private func configureTopBar() {
-        topBarBackgroundView.translatesAutoresizingMaskIntoConstraints = false
-        topBarBackgroundView.backgroundColor = .clear
-        
-        topBarBorderView.translatesAutoresizingMaskIntoConstraints = false
-        topBarBorderView.backgroundColor = .clear
-        
         topBarView.translatesAutoresizingMaskIntoConstraints = false
+        topBarView.title = chatTitle
         topBarView.onBackTap = { [weak self] in
             self?.navigationController?.popViewController(animated: true)
         }
+        // Пока с аватаром ничего не делаем, но компонент уже умеет принимать действие.
+        topBarView.onAvatarTap = { }
         
-        view.addSubview(topBarBackgroundView)
-        topBarBackgroundView.addSubview(topBarBorderView)
-        topBarBackgroundView.addSubview(topBarView)
+        view.addSubview(topBarView)
         
         NSLayoutConstraint.activate([
-            topBarBackgroundView.topAnchor.constraint(equalTo: view.topAnchor),
-            topBarBackgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            topBarBackgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            
             topBarView.topAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.topAnchor,
                 constant: Constants.topBarTopInset
             ),
             topBarView.leadingAnchor.constraint(
-                equalTo: topBarBackgroundView.leadingAnchor,
+                equalTo: view.leadingAnchor,
                 constant: Constants.topBarHorizontalInset
             ),
             topBarView.trailingAnchor.constraint(
-                equalTo: topBarBackgroundView.trailingAnchor,
+                equalTo: view.trailingAnchor,
                 constant: -Constants.topBarHorizontalInset
             ),
-            topBarView.heightAnchor.constraint(equalToConstant: Constants.topBarHeight),
-            topBarView.bottomAnchor.constraint(
-                equalTo: topBarBackgroundView.bottomAnchor,
-                constant: -Constants.topBarBottomInset
-            ),
-            
-            topBarBorderView.leadingAnchor.constraint(equalTo: topBarBackgroundView.leadingAnchor),
-            topBarBorderView.trailingAnchor.constraint(equalTo: topBarBackgroundView.trailingAnchor),
-            topBarBorderView.bottomAnchor.constraint(equalTo: topBarBackgroundView.bottomAnchor),
-            topBarBorderView.heightAnchor.constraint(equalToConstant: 1)
+            topBarView.heightAnchor.constraint(equalToConstant: Constants.topBarHeight)
         ])
     }
     
@@ -163,12 +144,10 @@ final class ChatMessagesController: UIViewController {
             self?.interactor.loadPreviousMessages()
         }
         
-        view.addSubview(messagesListView)
+        view.insertSubview(messagesListView, aboveSubview: backgroundView)
         
         NSLayoutConstraint.activate([
-            messagesListView.topAnchor.constraint(
-                equalTo: topBarBackgroundView.bottomAnchor
-            ),
+            messagesListView.topAnchor.constraint(equalTo: view.topAnchor),
             messagesListView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             messagesListView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             messagesListView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -231,14 +210,17 @@ final class ChatMessagesController: UIViewController {
         )
     }
     
-    // Так как input bar лежит поверх списка, передаём в messages view
-    // реальную перекрытую высоту, чтобы нижний inset считался от неё.
     private func updateMessagesViewportInsets() {
+        let coveredTopHeight = max(
+            0,
+            topBarView.frame.maxY + Constants.topBarBottomInset
+        )
         let coveredBottomHeight = max(
             0,
             view.bounds.maxY - inputViewContainer.frame.minY
         )
         messagesListView.updateViewportInsets(
+            coveredTopHeight: coveredTopHeight,
             coveredBottomHeight: coveredBottomHeight
         )
     }
@@ -329,15 +311,15 @@ extension ChatMessagesController: ChatMessagesDisplayLogic {
             alpha: viewModel.incomingTextColor.a
         )
         
-        let topBarSurfaceColor = incomingBaseColor
+        let titleIslandFillColor = incomingBaseColor.withAlphaComponent(0.5)
         let inputSurfaceColor = incomingBaseColor
         
         backgroundView.bgColor = bgColor
         backgroundView.gradientColor = bgGradientColor
         
-        topBarBackgroundView.backgroundColor = topBarSurfaceColor
-        topBarBorderView.backgroundColor = incomingBorderColor
-        topBarView.baseColor = topBarSurfaceColor
+        topBarView.controlsBaseColor = incomingBaseColor
+        topBarView.titleIslandFillColor = titleIslandFillColor
+        topBarView.titleIslandBorderColor = incomingBorderColor
         topBarView.textColor = incomingTextColor
         
         inputViewContainer.baseColor = inputSurfaceColor

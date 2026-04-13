@@ -2,7 +2,7 @@
 //  ChatMessageInputView.swift
 //  CoLab
 //
-//  Created by OpenAI on 26.03.2026.
+//  Created by User on 26.03.2026.
 //
 
 import UIKit

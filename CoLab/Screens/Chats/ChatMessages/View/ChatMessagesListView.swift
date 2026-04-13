@@ -50,6 +50,7 @@ final class ChatMessagesListView: UIView {
     private var isShowingInitialLoading = false
     private var isAdjustingForKeyboard = false
     private var shouldForceLatestOnNextAppend = false
+    private var coveredTopHeight: CGFloat = 0
     private var coveredBottomHeight: CGFloat = 0
     
     private let messagesContentView = UIView()
@@ -112,6 +113,7 @@ final class ChatMessagesListView: UIView {
         collectionView.contentInsetAdjustmentBehavior = .never
         collectionView.showsVerticalScrollIndicator = false
         collectionView.keyboardDismissMode = .interactive
+        configureScrollEdgeEffects()
         collectionView.register(
             MessageCell.self,
             forCellWithReuseIdentifier: MessageCell.reuseIdentifier
@@ -141,6 +143,18 @@ final class ChatMessagesListView: UIView {
             emptyStateLabel.centerXAnchor.constraint(equalTo: messagesContentView.centerXAnchor),
             emptyStateLabel.centerYAnchor.constraint(equalTo: messagesContentView.centerYAnchor)
         ])
+    }
+    
+    private func configureScrollEdgeEffects() {
+        guard #available(iOS 26.0, *) else { return }
+        
+        // iOS 26 добавляет системный scroll edge effect к UIScrollView.
+        // Для inverted collection этот эффект визуально "переезжает" на
+        // противоположный край, поэтому отключаем его явно.
+        collectionView.topEdgeEffect.isHidden = true
+        collectionView.bottomEdgeEffect.isHidden = true
+        collectionView.leftEdgeEffect.isHidden = true
+        collectionView.rightEdgeEffect.isHidden = true
     }
     
     private func makeLayout() -> UICollectionViewLayout {
@@ -176,8 +190,12 @@ final class ChatMessagesListView: UIView {
     
     // MARK: Public methods
     
-    func updateViewportInsets(coveredBottomHeight: CGFloat) {
-        self.coveredBottomHeight = coveredBottomHeight
+    func updateViewportInsets(
+        coveredTopHeight: CGFloat = 0,
+        coveredBottomHeight: CGFloat
+    ) {
+        self.coveredTopHeight = max(0, coveredTopHeight)
+        self.coveredBottomHeight = max(0, coveredBottomHeight)
         updateCollectionInsets()
     }
     
@@ -475,7 +493,7 @@ final class ChatMessagesListView: UIView {
     
     private func updateCollectionInsets() {
         let topInset = coveredBottomHeight + Constants.latestMessageBottomInset
-        let bottomInset = Constants.topMessagesInset
+        let bottomInset = coveredTopHeight + Constants.topMessagesInset
         let previousInset = collectionView.contentInset
         let shouldStickToLatest = isAdjustingForKeyboard || isNearLatest()
         

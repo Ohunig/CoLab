@@ -73,9 +73,14 @@ final class TabBarController: UITabBarController {
         super.viewDidLoad()
         
         configureTabBar()
+        configureNavigationBar()
     }
     
     // MARK: Configure UI
+    
+    private func configureNavigationBar() {
+        self.navigationController?.navigationBar.isHidden = true
+    }
     
     private func configureTabBar() {
         tabBar.isHidden = true

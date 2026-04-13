@@ -2,7 +2,7 @@
 //  ChatItemCell.swift
 //  CoLab
 //
-//  Created by OpenAI on 19.03.2026.
+//  Created by User on 19.03.2026.
 //
 
 import UIKit

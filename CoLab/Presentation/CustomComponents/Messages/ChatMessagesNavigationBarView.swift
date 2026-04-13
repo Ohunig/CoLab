@@ -2,7 +2,7 @@
 //  ChatMessagesNavigationBarView.swift
 //  CoLab
 //
-//  Created by OpenAI on 26.03.2026.
+//  Created by User on 01.04.2026.
 //
 
 import UIKit
@@ -10,28 +10,56 @@ import UIKit
 final class ChatMessagesNavigationBarView: UIView {
     
     private struct Constants {
-        static let avatarTransitionDuration: TimeInterval = 0.25
+        static let fatalError = "init(coder:) has not been implemented"
+        
         static let titleFontSize: CGFloat = 22
+        static let titleHorizontalInset: CGFloat = 18
+        static let titleIslandCornerRadius: CGFloat = 22
+        static let titleIslandBorderWidth: CGFloat = 1
+        
         static let itemGap: CGFloat = 12
         static let titleLines = 1
+        
+        static let avatarTransitionDuration: TimeInterval = 0.25
         
         static let placeholderAvatar = UIImage(systemName: "person.crop.circle.fill")?
             .withTintColor(.white, renderingMode: .alwaysOriginal)
     }
     
     private let backButton = BackNavBarButton()
+    private let titleIslandView = UIView()
     private let titleLabel = UILabel()
     private let avatarView = CircleImage(Constants.placeholderAvatar)
     private let avatarOverlay = LoadingOverlay()
     
     var onBackTap: (() -> Void)?
+    var onAvatarTap: (() -> Void)?
+    
+    // MARK: Content
+    
+    var title: String? {
+        get { titleLabel.text }
+        set { titleLabel.text = newValue }
+    }
     
     // MARK: Colors
     
-    var baseColor: UIColor? {
+    var controlsBaseColor: UIColor? {
         didSet {
-            backButton.baseColor = baseColor
-            avatarView.baseColor = baseColor
+            backButton.baseColor = controlsBaseColor
+            avatarView.baseColor = controlsBaseColor
+        }
+    }
+    
+    var titleIslandFillColor: UIColor? {
+        didSet {
+            titleIslandView.backgroundColor = titleIslandFillColor
+        }
+    }
+    
+    var titleIslandBorderColor: UIColor? {
+        didSet {
+            titleIslandView.layer.borderColor = titleIslandBorderColor?.cgColor
         }
     }
     
@@ -44,15 +72,14 @@ final class ChatMessagesNavigationBarView: UIView {
     
     // MARK: Lifecycle
     
-    init(title: String) {
-        super.init(frame: .zero)
-        titleLabel.text = title
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         configureUI()
     }
     
     @available(*, unavailable)
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        fatalError(Constants.fatalError)
     }
     
     // MARK: Public
@@ -61,12 +88,12 @@ final class ChatMessagesNavigationBarView: UIView {
         let resolvedImage = image ?? Constants.placeholderAvatar
         avatarOverlay.hide()
         
-        let applyImage = {
+        let updateAvatar = {
             self.avatarView.image = resolvedImage
         }
         
         guard animated, avatarView.window != nil else {
-            applyImage()
+            updateAvatar()
             return
         }
         
@@ -75,7 +102,7 @@ final class ChatMessagesNavigationBarView: UIView {
             duration: Constants.avatarTransitionDuration,
             options: .transitionCrossDissolve
         ) {
-            applyImage()
+            updateAvatar()
         }
     }
     
@@ -95,7 +122,7 @@ final class ChatMessagesNavigationBarView: UIView {
         backgroundColor = .clear
         
         configureBackButton()
-        configureTitleLabel()
+        configureTitleIsland()
         configureAvatarView()
         configureLayout()
     }
@@ -111,7 +138,13 @@ final class ChatMessagesNavigationBarView: UIView {
         addSubview(backButton)
     }
     
-    private func configureTitleLabel() {
+    private func configureTitleIsland() {
+        titleIslandView.translatesAutoresizingMaskIntoConstraints = false
+        titleIslandView.layer.cornerRadius = Constants.titleIslandCornerRadius
+        titleIslandView.layer.borderWidth = Constants.titleIslandBorderWidth
+        titleIslandView.clipsToBounds = true
+        addSubview(titleIslandView)
+        
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = .systemFont(
             ofSize: Constants.titleFontSize,
@@ -119,11 +152,31 @@ final class ChatMessagesNavigationBarView: UIView {
         )
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = Constants.titleLines
-        addSubview(titleLabel)
+        titleLabel.lineBreakMode = .byTruncatingTail
+        titleIslandView.addSubview(titleLabel)
+        
+        NSLayoutConstraint.activate([
+            titleLabel.leadingAnchor.constraint(
+                equalTo: titleIslandView.leadingAnchor,
+                constant: Constants.titleHorizontalInset
+            ),
+            titleLabel.trailingAnchor.constraint(
+                equalTo: titleIslandView.trailingAnchor,
+                constant: -Constants.titleHorizontalInset
+            ),
+            titleLabel.centerYAnchor.constraint(equalTo: titleIslandView.centerYAnchor)
+        ])
     }
     
     private func configureAvatarView() {
         avatarView.translatesAutoresizingMaskIntoConstraints = false
+        avatarView.isUserInteractionEnabled = true
+        avatarView.addGestureRecognizer(
+            UITapGestureRecognizer(
+                target: self,
+                action: #selector(handleAvatarTap)
+            )
+        )
         addSubview(avatarView)
     }
     
@@ -139,16 +192,26 @@ final class ChatMessagesNavigationBarView: UIView {
             avatarView.bottomAnchor.constraint(equalTo: bottomAnchor),
             avatarView.widthAnchor.constraint(equalTo: avatarView.heightAnchor),
             
-            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            titleLabel.leadingAnchor.constraint(
+            // Центральный островок подстраивается под title, но не может
+            // залезть на кнопки слева и справа.
+            titleIslandView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            titleIslandView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            titleIslandView.heightAnchor.constraint(equalTo: heightAnchor),
+            titleIslandView.leadingAnchor.constraint(
                 greaterThanOrEqualTo: backButton.trailingAnchor,
                 constant: Constants.itemGap
             ),
-            titleLabel.trailingAnchor.constraint(
+            titleIslandView.trailingAnchor.constraint(
                 lessThanOrEqualTo: avatarView.leadingAnchor,
                 constant: -Constants.itemGap
             )
         ])
+    }
+    
+    // MARK: Actions
+    
+    @objc
+    private func handleAvatarTap() {
+        onAvatarTap?()
     }
 }
