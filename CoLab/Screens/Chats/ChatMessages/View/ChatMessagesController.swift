@@ -14,6 +14,8 @@ final class ChatMessagesController: UIViewController {
         static let topBarTopInset: CGFloat = -20
         static let topBarHeight: CGFloat = 44
         static let topBarBottomInset: CGFloat = 8
+        static let topBarBlurBottomExtension: CGFloat = 18
+        static let topBarBlurFadeHeight: CGFloat = 26
         
         static let inputHorizontalInset: CGFloat = 22
         static let inputBottomInset: CGFloat = 14
@@ -23,7 +25,14 @@ final class ChatMessagesController: UIViewController {
     private let interactor: ChatMessagesBusinessLogic
     
     private let backgroundView = MainBackgroundView()
+    private let topBarContainerView = UIView()
+    private let topBarBackgroundView = UIView()
+    private let topBarBlurView = UIVisualEffectView(
+        effect: UIBlurEffect(style: .systemMaterialDark)
+    )
+    private let topBarTintView = UIView()
     private let topBarView = ChatMessagesNavigationBarView()
+    private let topBarBackgroundMaskLayer = CAGradientLayer()
     
     private let messagesListView: ChatMessagesListView
     private let inputViewContainer = ChatMessageInputView()
@@ -96,6 +105,7 @@ final class ChatMessagesController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        updateTopBarBackgroundMask()
         updateMessagesViewportInsets()
     }
     
@@ -111,31 +121,96 @@ final class ChatMessagesController: UIViewController {
     }
     
     private func configureTopBar() {
+        topBarContainerView.translatesAutoresizingMaskIntoConstraints = false
+        topBarContainerView.backgroundColor = .clear
+        view.addSubview(topBarContainerView)
+        
+        topBarBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+        topBarBackgroundView.backgroundColor = .clear
+        topBarBackgroundView.isUserInteractionEnabled = false
+        topBarContainerView.addSubview(topBarBackgroundView)
+        
+        topBarBlurView.translatesAutoresizingMaskIntoConstraints = false
+        topBarBlurView.alpha = 0.58
+        topBarBackgroundView.addSubview(topBarBlurView)
+        
+        topBarTintView.translatesAutoresizingMaskIntoConstraints = false
+        topBarTintView.backgroundColor = .clear
+        topBarBackgroundView.addSubview(topBarTintView)
+        
         topBarView.translatesAutoresizingMaskIntoConstraints = false
         topBarView.title = chatTitle
         topBarView.onBackTap = { [weak self] in
             self?.navigationController?.popViewController(animated: true)
         }
-        // Пока с аватаром ничего не делаем, но компонент уже умеет принимать действие.
-        topBarView.onAvatarTap = { }
+        topBarView.onAvatarTap = { [weak self] in
+            self?.interactor.loadChatInfoScreen()
+        }
         
-        view.addSubview(topBarView)
+        topBarContainerView.addSubview(topBarView)
         
         NSLayoutConstraint.activate([
+            topBarContainerView.topAnchor.constraint(equalTo: view.topAnchor),
+            topBarContainerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            topBarContainerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            topBarBackgroundView.topAnchor.constraint(equalTo: topBarContainerView.topAnchor),
+            topBarBackgroundView.leadingAnchor.constraint(equalTo: topBarContainerView.leadingAnchor),
+            topBarBackgroundView.trailingAnchor.constraint(equalTo: topBarContainerView.trailingAnchor),
+            topBarBackgroundView.bottomAnchor.constraint(equalTo: topBarContainerView.bottomAnchor),
+            
+            topBarBlurView.topAnchor.constraint(equalTo: topBarBackgroundView.topAnchor),
+            topBarBlurView.leadingAnchor.constraint(equalTo: topBarBackgroundView.leadingAnchor),
+            topBarBlurView.trailingAnchor.constraint(equalTo: topBarBackgroundView.trailingAnchor),
+            topBarBlurView.bottomAnchor.constraint(equalTo: topBarBackgroundView.bottomAnchor),
+            
+            topBarTintView.topAnchor.constraint(equalTo: topBarBackgroundView.topAnchor),
+            topBarTintView.leadingAnchor.constraint(equalTo: topBarBackgroundView.leadingAnchor),
+            topBarTintView.trailingAnchor.constraint(equalTo: topBarBackgroundView.trailingAnchor),
+            topBarTintView.bottomAnchor.constraint(equalTo: topBarBackgroundView.bottomAnchor),
+            
             topBarView.topAnchor.constraint(
-                equalTo: view.safeAreaLayoutGuide.topAnchor,
+                equalTo: topBarContainerView.safeAreaLayoutGuide.topAnchor,
                 constant: Constants.topBarTopInset
             ),
             topBarView.leadingAnchor.constraint(
-                equalTo: view.leadingAnchor,
+                equalTo: topBarContainerView.leadingAnchor,
                 constant: Constants.topBarHorizontalInset
             ),
             topBarView.trailingAnchor.constraint(
-                equalTo: view.trailingAnchor,
+                equalTo: topBarContainerView.trailingAnchor,
                 constant: -Constants.topBarHorizontalInset
             ),
-            topBarView.heightAnchor.constraint(equalToConstant: Constants.topBarHeight)
+            topBarView.heightAnchor.constraint(equalToConstant: Constants.topBarHeight),
+            topBarContainerView.bottomAnchor.constraint(
+                equalTo: topBarView.bottomAnchor,
+                constant: Constants.topBarBlurBottomExtension
+            )
         ])
+    }
+
+    private func updateTopBarBackgroundMask() {
+        let bounds = topBarBackgroundView.bounds
+        guard bounds.height > 0 else { return }
+        
+        let fadeStartY = max(0, bounds.height - Constants.topBarBlurFadeHeight)
+        let fadeStartLocation = fadeStartY / bounds.height
+        
+        topBarBackgroundMaskLayer.frame = bounds
+        topBarBackgroundMaskLayer.colors = [
+            UIColor.black.cgColor,
+            UIColor.black.cgColor,
+            UIColor.clear.cgColor
+        ]
+        topBarBackgroundMaskLayer.locations = [
+            0,
+            NSNumber(value: Double(fadeStartLocation)),
+            1
+        ]
+        topBarBackgroundMaskLayer.startPoint = CGPoint(x: 0.5, y: 0)
+        topBarBackgroundMaskLayer.endPoint = CGPoint(x: 0.5, y: 1)
+        
+        topBarBackgroundView.layer.mask = topBarBackgroundMaskLayer
     }
     
     private func configureMessagesArea() {
@@ -316,6 +391,7 @@ extension ChatMessagesController: ChatMessagesDisplayLogic {
         
         backgroundView.bgColor = bgColor
         backgroundView.gradientColor = bgGradientColor
+        topBarTintView.backgroundColor = .black.withAlphaComponent(0.3)
         
         topBarView.controlsBaseColor = incomingBaseColor
         topBarView.titleIslandFillColor = titleIslandFillColor

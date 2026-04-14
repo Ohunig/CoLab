@@ -23,10 +23,13 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
     }
     
     private let chatId: String
+    private let chatTitle: String
     private let chatAvatarURL: String?
+    private let memberIds: [String]
     private var currentUserId: String?
     
     private let presenter: ChatMessagesPresentationLogic
+    private let router: ChatsRoutingLogic
     private let colorRepository: ColorStorageLogic
     // Сервисы
     private let userService: UserServiceLogic
@@ -55,16 +58,22 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
     
     init(
         chatId: String,
+        chatTitle: String,
         chatAvatarURL: String?,
+        memberIds: [String],
         presenter: ChatMessagesPresentationLogic,
+        router: ChatsRoutingLogic,
         colorRepository: ColorStorageLogic,
         userService: UserServiceLogic,
         avatarService: AvatarServiceLogic,
         messagesService: ChatMessagesLogic
     ) {
         self.chatId = chatId
+        self.chatTitle = chatTitle
         self.chatAvatarURL = chatAvatarURL
+        self.memberIds = memberIds
         self.presenter = presenter
+        self.router = router
         self.colorRepository = colorRepository
         self.userService = userService
         self.avatarService = avatarService
@@ -198,6 +207,14 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
                     Model.ChatAvatar.Response(avatarData: avatarData)
                 )
             }
+    }
+    
+    func loadChatInfoScreen() {
+        router.routeToChatInfo(
+            chatTitle: chatTitle,
+            chatAvatarURL: chatAvatarURL,
+            memberIds: memberIds
+        )
     }
     
     func stopUpdates() {

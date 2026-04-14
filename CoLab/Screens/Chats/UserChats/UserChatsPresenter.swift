@@ -77,6 +77,7 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
                 baseColor: cellBaseColor,
                 textColor: cellTextColor,
                 avatarURL: chat.avatarURL,
+                memberIds: chat.memberIds,
                 avatarData: preservedAvatarData
             )
         }
@@ -117,6 +118,7 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
             baseColor: item.baseColor,
             textColor: item.textColor,
             avatarURL: item.avatarURL,
+            memberIds: item.memberIds,
             avatarData: response.avatarData
         )
         itemsById[response.chatId] = item

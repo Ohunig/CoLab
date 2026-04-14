@@ -46,6 +46,7 @@ struct UserChatsModels {
                 let baseColor: (hex: String, a: CGFloat)
                 let textColor: (hex: String, a: CGFloat)
                 let avatarURL: String?
+                let memberIds: [String]
                 let avatarData: Data?
             }
             let items: [ChatCell]

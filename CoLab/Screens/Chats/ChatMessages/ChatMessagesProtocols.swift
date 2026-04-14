@@ -23,6 +23,8 @@ protocol ChatMessagesBusinessLogic: AnyObject {
     // Подтягиваем аватар текущего чата для верхней панели экрана
     func listenChatAvatar()
     
+    func loadChatInfoScreen()
+    
     // Остановка live updates при уходе с экрана
     func stopUpdates()
     

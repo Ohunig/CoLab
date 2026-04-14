@@ -198,15 +198,19 @@ final class UserChatsInteractor: UserChatsBusinessLogic {
         chatListService.setLiveUpdatesLimit(desiredLiveLimit)
     }
     
+    // MARK: Navigation
+    
     func loadChatMessagesScreen(
         chatId: String,
         chatTitle: String,
-        chatAvatarURL: String?
+        chatAvatarURL: String?,
+        memberIds: [String]
     ) {
         router.routeToChatMessages(
             chatId: chatId,
             chatTitle: chatTitle,
-            chatAvatarURL: chatAvatarURL
+            chatAvatarURL: chatAvatarURL,
+            memberIds: memberIds
         )
     }
     
