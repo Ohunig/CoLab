@@ -35,14 +35,53 @@ struct ChatInfoModels {
             let avatarData: Data?
             let isAvatarLoading: Bool
             let title: String
-            let memberNames: [String]
         }
         
         struct ViewModel {
             let avatarData: Data?
             let isAvatarLoading: Bool
             let title: String
-            let memberNames: [String]
+        }
+    }
+    
+    // Модели для отображения списка участников
+    enum MembersList {
+        struct Member {
+            let id: String
+            let username: String
+            let avatarURL: String?
+        }
+        
+        struct Response {
+            let members: [Member]
+        }
+        
+        struct ViewModel {
+            struct MemberCell {
+                let id: String
+                let username: String
+                let baseColor: (hex: String, a: CGFloat)
+                let textColor: (hex: String, a: CGFloat)
+                let tintColor: (hex: String, a: CGFloat)
+                let avatarURL: String?
+                let avatarData: Data?
+            }
+            
+            let items: [MemberCell]
+            let updatedMemberIds: [String]
+        }
+    }
+    
+    // Модели для точечного обновления аватаров участников
+    enum AvatarUpdate {
+        struct Response {
+            let memberId: String
+            let avatarURL: String
+            let avatarData: Data?
+        }
+        
+        struct ViewModel {
+            let memberId: String
         }
     }
     

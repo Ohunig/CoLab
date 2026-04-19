@@ -358,7 +358,7 @@ extension UserChatsController: UITableViewDelegate {
             }
             
             self.configure(chatCell, with: item)
-            return cell
+            return chatCell
         }
     }
     
@@ -408,6 +408,8 @@ extension UserChatsController: UITableViewDelegate {
             makeSnapshot(chatIds: chatIds),
             animatingDifferences: animatingDifferences
         )
+        
+        // Без анимации применяем сами изменения чатов
         
         guard updatedChatIds.isEmpty == false else { return }
         

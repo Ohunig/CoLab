@@ -51,7 +51,10 @@ enum ChatInfoAssembly {
             avatarService: avatarService
         )
         
-        let controller = ChatInfoController(interactor: interactor)
+        let controller = ChatInfoController(
+            interactor: interactor,
+            tableDataProvider: presenter
+        )
         presenter.controller = controller
         
         return controller

@@ -12,7 +12,21 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
     
     private struct Constants {
         static let unknownUsername = "..."
-        static let noMembersText = "Участников нет"
+    }
+    
+    private enum AvatarSource: Equatable {
+        case none
+        case remote(String)
+    }
+    
+    private struct AvatarSyncStep {
+        static let empty = AvatarSyncStep(
+            sourcesByMemberId: [:],
+            changedUsers: []
+        )
+        
+        let sourcesByMemberId: [String: AvatarSource]
+        let changedUsers: [UserModel]
     }
     
     private let chatTitle: String
@@ -27,7 +41,7 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
     private var currentAvatarData: Data?
     private var isAvatarLoading = false
     private var membersById: [String: UserModel] = [:]
-    private var requestsCancellables = Set<AnyCancellable>()
+    private var pipelineCancellables = Set<AnyCancellable>()
     private var hasPresentedError = false
     
     // MARK: Lifecycle
@@ -64,10 +78,15 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         )
         
         isAvatarLoading = !(chatAvatarURL?.isEmpty ?? true)
+        presenter.presentMembers(
+            Model.MembersList.Response(
+                members: currentMembers()
+            )
+        )
         presentCurrentState()
         
         loadChatAvatarIfNeeded()
-        loadMembers()
+        bindMembers()
     }
     
     private func loadChatAvatarIfNeeded() {
@@ -86,51 +105,167 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
                 self.isAvatarLoading = false
                 self.presentCurrentState()
             }
-            .store(in: &requestsCancellables)
+            .store(in: &pipelineCancellables)
     }
     
-    private func loadMembers() {
-        // Каждый участник загружается отдельно, чтобы экран постепенно наполнялся именами
+    private func bindMembers() {
         guard !memberIds.isEmpty else { return }
         
-        memberIds.forEach { memberId in
-            userService.fetchUserOnce(id: memberId)
-                .receive(on: DispatchQueue.main)
-                .sink(
-                    receiveCompletion: { [weak self] completion in
-                        guard let self else { return }
-                        guard case let .failure(error) = completion else { return }
-                        self.presentErrorIfNeeded(error)
-                    },
-                    receiveValue: { [weak self] user in
-                        guard let self else { return }
-                        self.membersById[user.id] = user
-                        self.presentCurrentState()
-                    }
+        makeMembersPublisher()
+            .receive(on: DispatchQueue.main)
+            .handleEvents(receiveOutput: { [weak self] result in
+                self?.handleMemberUpdateResult(result)
+            })
+            .compactMap { result -> UserModel? in
+                guard case let .success(user) = result else { return nil }
+                return user
+            }
+            .scan(AvatarSyncStep.empty) { [weak self] previousStep, user in
+                guard let self else { return .empty }
+                return self.makeAvatarSyncStep(
+                    for: user,
+                    previousSourcesByMemberId: previousStep.sourcesByMemberId
                 )
-                .store(in: &requestsCancellables)
-        }
+            }
+            .map { [weak self] step -> AnyPublisher<Model.AvatarUpdate.Response, Never> in
+                guard let self else {
+                    return Empty().eraseToAnyPublisher()
+                }
+                return self.makeAvatarUpdatesPublisher(for: step.changedUsers)
+            }
+            .flatMap(maxPublishers: .unlimited) { $0 }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] response in
+                self?.handleMemberAvatarUpdate(response)
+            }
+            .store(in: &pipelineCancellables)
     }
     
     private func presentCurrentState() {
-        // Сохраняем исходный порядок участников таким же, каким он пришёл у чата
-        let memberNames: [String]
-        if memberIds.isEmpty {
-            memberNames = [Constants.noMembersText]
-        } else {
-            memberNames = memberIds.map {
-                membersById[$0]?.username ?? Constants.unknownUsername
-            }
-        }
-        
         presenter.presentChatData(
             Model.GetChatData.Response(
                 avatarData: currentAvatarData,
                 isAvatarLoading: isAvatarLoading,
-                title: chatTitle,
-                memberNames: memberNames
+                title: chatTitle
             )
         )
+    }
+    
+    // MARK: Factory methods
+    
+    private func makeMembersPublisher()
+        -> AnyPublisher<Result<UserModel, FetchUserError>, Never> {
+        let publishers = memberIds.map { [weak self] memberId in
+            self?.userService
+                .userUpdatesPublisher(id: memberId)
+                .handleEvents(
+                    receiveSubscription: { [weak self] _ in
+                        self?.userService.startListeningUser(id: memberId)
+                    },
+                    receiveCancel: { [weak self] in
+                        self?.userService.stopListeningUser(id: memberId)
+                    }
+                )
+                .eraseToAnyPublisher()
+            ?? Empty().eraseToAnyPublisher()
+        }
+        
+        return Publishers.MergeMany(publishers)
+            .eraseToAnyPublisher()
+    }
+    
+    private func makeAvatarUpdatesPublisher(
+        for users: [UserModel]
+    ) -> AnyPublisher<Model.AvatarUpdate.Response, Never> {
+        let publishers = users.compactMap { user -> AnyPublisher<Model.AvatarUpdate.Response, Never>? in
+            guard let photoURL = user.photoURL, !photoURL.isEmpty else {
+                return nil
+            }
+            
+            return avatarService.avatarDataPublisher(photoURL: photoURL)
+                .map { avatarData in
+                    Model.AvatarUpdate.Response(
+                        memberId: user.id,
+                        avatarURL: photoURL,
+                        avatarData: avatarData
+                    )
+                }
+                .eraseToAnyPublisher()
+        }
+        
+        guard !publishers.isEmpty else {
+            return Empty().eraseToAnyPublisher()
+        }
+        
+        return Publishers.MergeMany(publishers)
+            .eraseToAnyPublisher()
+    }
+    
+    private func makeAvatarSyncStep(
+        for user: UserModel,
+        previousSourcesByMemberId: [String: AvatarSource]
+    ) -> AvatarSyncStep {
+        let nextSource = avatarSource(for: user)
+        var nextSourcesByMemberId = previousSourcesByMemberId
+        nextSourcesByMemberId[user.id] = nextSource
+        
+        let changedUsers: [UserModel]
+        if previousSourcesByMemberId[user.id] != nextSource {
+            changedUsers = [user]
+        } else {
+            changedUsers = []
+        }
+        
+        return AvatarSyncStep(
+            sourcesByMemberId: nextSourcesByMemberId,
+            changedUsers: changedUsers
+        )
+    }
+    
+    private func avatarSource(for user: UserModel) -> AvatarSource {
+        guard let photoURL = user.photoURL, !photoURL.isEmpty else {
+            return .none
+        }
+        return .remote(photoURL)
+    }
+    
+    // MARK: Member updates
+    
+    private func handleMemberUpdateResult(
+        _ result: Result<UserModel, FetchUserError>
+    ) {
+        switch result {
+        case let .failure(error):
+            presentErrorIfNeeded(error)
+        case let .success(user):
+            membersById[user.id] = user
+            presenter.presentMembers(
+                Model.MembersList.Response(
+                    members: currentMembers()
+                )
+            )
+        }
+    }
+    
+    private func handleMemberAvatarUpdate(
+        _ response: Model.AvatarUpdate.Response
+    ) {
+        guard membersById[response.memberId]?.photoURL == response.avatarURL else {
+            return
+        }
+        
+        presenter.presentAvatarUpdate(response)
+    }
+    
+    private func currentMembers() -> [Model.MembersList.Member] {
+        memberIds.map { memberId in
+            let user = membersById[memberId]
+            return Model.MembersList.Member(
+                id: memberId,
+                username: user?.username ?? Constants.unknownUsername,
+                avatarURL: user?.photoURL
+            )
+        }
     }
     
     private func presentErrorIfNeeded(_ error: Error) {
