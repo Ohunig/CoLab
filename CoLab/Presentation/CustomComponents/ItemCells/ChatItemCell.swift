@@ -26,7 +26,7 @@ final class ChatItemCell: UITableViewCell {
         static let avatarPlaceholderAlpha: CGFloat = 0.8
         static let avatarBackgroundAlpha: CGFloat = 0.12
         
-        static let avatarSide: CGFloat = 56
+        static let avatarSide: CGFloat = 58
         static let avatarCornerRadius: CGFloat = 28
         
         static let titleFontSize: CGFloat = 18
@@ -35,12 +35,15 @@ final class ChatItemCell: UITableViewCell {
         static let subtitleLines = 1
         static let textStackSpacing: CGFloat = 4
         static let titleRowSpacing: CGFloat = 8
+        
+        static let placeholderAvatar = UIImage(systemName: "person.crop.circle.fill")?
+            .withTintColor(.white, renderingMode: .alwaysOriginal)
     }
     
     static let reuseIdentifier = Constants.reuseIdentifier
     
     private let containerView = UIView()
-    private let avatarImageView = UIImageView()
+    private let avatarImageView = CircleImage(Constants.placeholderAvatar)
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let timeLabel = UILabel()
@@ -64,9 +67,6 @@ final class ChatItemCell: UITableViewCell {
                 Constants.containerAlpha
             )
             containerView.layer.borderColor = newValue?.cgColor
-            avatarImageView.backgroundColor = newValue?.withAlphaComponent(
-                Constants.avatarBackgroundAlpha
-            )
         }
     }
     
@@ -188,10 +188,8 @@ final class ChatItemCell: UITableViewCell {
     }
     
     private func configureAvatar() {
+        avatarImageView.borderColor = .clear
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
-        avatarImageView.contentMode = .scaleAspectFill
-        avatarImageView.clipsToBounds = true
-        avatarImageView.layer.cornerRadius = Constants.avatarCornerRadius
         containerView.addSubview(avatarImageView)
     }
     

@@ -25,7 +25,7 @@ final class UserInfoCell: UITableViewCell {
         static let avatarPlaceholderAlpha: CGFloat = 0.8
         static let avatarBackgroundAlpha: CGFloat = 0.12
         
-        static let avatarSide: CGFloat = 56
+        static let avatarSide: CGFloat = 58
         static let avatarCornerRadius: CGFloat = 28
         static let chevronSide: CGFloat = 20
         
