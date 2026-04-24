@@ -289,7 +289,7 @@ extension ChangeSettingsController: ChangeSettingsDisplayLogic {
         backgroundView.gradientColor = bgGradientColor
         
         // Аватар
-        avatar.baseColor = elementsBaseColor
+        avatar.borderColor = elementsBaseColor
         avatarHintLabel.textColor = textColor
         
         // Юзернейм

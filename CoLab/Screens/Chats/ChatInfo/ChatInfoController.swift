@@ -402,7 +402,7 @@ extension ChatInfoController: ChatInfoDisplayLogic {
         backButton.tintColor = tintColor
         
         // Аватар + название чата
-        avatar.baseColor = elementsBaseColor
+        avatar.borderColor = elementsBaseColor
         chatTitle.textColor = textColor
         
         // Empty state
