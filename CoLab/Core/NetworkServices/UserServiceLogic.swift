@@ -13,6 +13,8 @@ protocol UserServiceLogic: AnyObject {
     
     func currentUserId() -> String?
     
+    func fetchUserOnce(id: String) -> AnyPublisher<UserModel, FetchUserError>
+    
     func updateCurrentUserData(user: UserModel) -> AnyPublisher<Void, UpdateUserDataError>
     
     // Метод возвращает паблишера который публекует данные юзера. Ожидается что startListening будет вызван заранее. Иначе корректное поведение не гарантируется
@@ -20,6 +22,13 @@ protocol UserServiceLogic: AnyObject {
     
     // Метод нужен чтобы использовать в случае когда не надо следить за данными сервера долго.
     func fetchCurrentUserOnce() -> AnyPublisher<UserModel, FetchUserError>
+    
+    // Отдельный поток для любых user-id, когда нужно живое обновление чужих данных.
+    func userUpdatesPublisher(id: String) -> AnyPublisher<Result<UserModel, FetchUserError>, Never>
+    
+    func startListeningUser(id: String)
+    
+    func stopListeningUser(id: String)
     
     // Метод чтобы начать отслеживать изменения пользовательских данных
     func startListeningChanges()

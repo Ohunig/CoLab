@@ -12,11 +12,22 @@ protocol UserChatsBusinessLogic: AnyObject {
     
     func loadStart()
     
+    func listenCurrentUserAvatar()
+    
+    func stopListeningCurrentUserAvatar()
+    
     /// Первая страница чатов
     func loadInitialChats()
     
     /// Загрузка следующей страницы (если есть что грузить)
     func loadNextPage()
+    
+    func loadChatMessagesScreen(
+        chatId: String,
+        chatTitle: String,
+        chatAvatarURL: String?,
+        memberIds: [String]
+    )
 }
 
 protocol UserChatsTableDataLogic: AnyObject {
@@ -32,6 +43,8 @@ protocol UserChatsPresentationLogic: AnyObject {
     
     func presentStart(_ response: Model.Start.Response)
     
+    func presentCurrentUserAvatar(_ response: Model.CurrentUserAvatar.Response)
+    
     func presentChats(_ response: Model.ChatsList.Response)
     
     func presentAvatarUpdate(_ response: Model.AvatarUpdate.Response)
@@ -43,6 +56,8 @@ protocol UserChatsDisplayLogic: AnyObject {
     typealias Model = UserChatsModels
     
     func displayStart(_ viewModel: Model.Start.ViewModel)
+    
+    func displayCurrentUserAvatar(_ viewModel: Model.CurrentUserAvatar.ViewModel)
     
     func displayChats(_ viewModel: Model.ChatsList.ViewModel)
     

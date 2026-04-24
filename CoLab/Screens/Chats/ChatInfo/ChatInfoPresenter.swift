@@ -1,27 +1,29 @@
 //
-//  UserChatsPresenter.swift
+//  ChatInfoPresenter.swift
 //  CoLab
 //
-//  Created by User on 17.03.2026.
+//  Created by User on 14.04.2026.
 //
 
 import Foundation
 
-final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLogic {
+final class ChatInfoPresenter: ChatInfoPresentationLogic, ChatInfoTableDataLogic {
+    
     private struct Constants {
         static let errorTitle = "Что-то пошло не так"
         static let alertOk = "Ok"
         static let defaultBaseColor = (hex: "#FFFFFF", a: CGFloat(0.35))
         static let defaultTextColor = (hex: "#FFFFFF", a: CGFloat(1))
+        static let defaultTintColor = (hex: "#FFFFFF", a: CGFloat(1))
     }
     
-    weak var controller: UserChatsDisplayLogic?
+    weak var controller: ChatInfoDisplayLogic?
     
     private var orderedIds: [String] = []
-    private var itemsById: [String: Model.ChatsList.ViewModel.ChatCell] = [:]
-    // Храним цвета полученные от interactor чтобы подтягивать их в ячейки
+    private var itemsById: [String: Model.MembersList.ViewModel.MemberCell] = [:]
     private var cellBaseColor = Constants.defaultBaseColor
     private var cellTextColor = Constants.defaultTextColor
+    private var cellTintColor = Constants.defaultTintColor
     
     // MARK: Present
     
@@ -33,6 +35,10 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
         cellTextColor = (
             hex: response.textColor.hex,
             a: response.textColor.alpha
+        )
+        cellTintColor = (
+            hex: response.tint.hex,
+            a: response.tint.alpha
         )
         
         controller?.displayStart(
@@ -46,41 +52,46 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
         )
     }
     
-    func presentChats(_ response: Model.ChatsList.Response) {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm"
-        
+    func presentChatData(_ response: Model.GetChatData.Response) {
+        controller?.displayChatData(
+            Model.GetChatData.ViewModel(
+                avatarData: response.avatarData,
+                isAvatarLoading: response.isAvatarLoading,
+                title: response.title
+            )
+        )
+    }
+    
+    func presentMembers(_ response: Model.MembersList.Response) {
         let previousItemsById = itemsById
-        let items: [Model.ChatsList.ViewModel.ChatCell] = response.chats.map { chat in
-            let time: String
-            if let date = chat.lastMessageDate {
-                time = dateFormatter.string(from: date)
+        
+        let items = response.members.map { member in
+            let preservedAvatarData: Data?
+            if previousItemsById[member.id]?.avatarURL == member.avatarURL {
+                preservedAvatarData = previousItemsById[member.id]?.avatarData
             } else {
-                time = ""
+                preservedAvatarData = nil
             }
             
-            let subtitle = chat.lastMessageText ?? "Message"
-            let preservedAvatarData = itemsById[chat.id]?.avatarData
-
-            return Model.ChatsList.ViewModel.ChatCell(
-                id: chat.id,
-                title: chat.title,
-                subtitle: subtitle,
-                time: time,
+            return Model.MembersList.ViewModel.MemberCell(
+                id: member.id,
+                username: member.username,
                 baseColor: cellBaseColor,
                 textColor: cellTextColor,
-                avatarURL: chat.avatarURL,
+                tintColor: cellTintColor,
+                avatarURL: member.avatarURL,
                 avatarData: preservedAvatarData
             )
         }
         
-        let updatedChatIds = items.compactMap { item -> String? in
-            guard let previousItem = previousItemsById[item.id] else { return nil }
-            guard previousItem.title != item.title
-                || previousItem.subtitle != item.subtitle
-                || previousItem.time != item.time
+        let updatedMemberIds = items.compactMap { item -> String? in
+            guard let previousItem = previousItemsById[item.id] else { return item.id }
+            guard previousItem.username != item.username
                 || previousItem.baseColor != item.baseColor
                 || previousItem.textColor != item.textColor
+                || previousItem.tintColor != item.tintColor
+                || previousItem.avatarURL != item.avatarURL
+                || previousItem.avatarData != item.avatarData
             else {
                 return nil
             }
@@ -90,32 +101,31 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
         orderedIds = items.map { $0.id }
         itemsById = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
         
-        controller?.displayChats(
-            Model.ChatsList.ViewModel(
+        controller?.displayMembers(
+            Model.MembersList.ViewModel(
                 items: items,
-                updatedChatIds: updatedChatIds
+                updatedMemberIds: updatedMemberIds
             )
         )
     }
     
     func presentAvatarUpdate(_ response: Model.AvatarUpdate.Response) {
-        guard var item = itemsById[response.chatId] else { return }
+        guard var item = itemsById[response.memberId] else { return }
         guard item.avatarData != response.avatarData else { return }
         
-        item = Model.ChatsList.ViewModel.ChatCell(
+        item = Model.MembersList.ViewModel.MemberCell(
             id: item.id,
-            title: item.title,
-            subtitle: item.subtitle,
-            time: item.time,
+            username: item.username,
             baseColor: item.baseColor,
             textColor: item.textColor,
+            tintColor: item.tintColor,
             avatarURL: item.avatarURL,
             avatarData: response.avatarData
         )
-        itemsById[response.chatId] = item
+        itemsById[response.memberId] = item
         
         controller?.displayAvatarUpdate(
-            Model.AvatarUpdate.ViewModel(chatId: response.chatId)
+            Model.AvatarUpdate.ViewModel(memberId: response.memberId)
         )
     }
     
@@ -129,11 +139,11 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
         )
     }
     
-    func chatIds() -> [String] {
+    func memberIds() -> [String] {
         orderedIds
     }
     
-    func item(for chatId: String) -> Model.ChatsList.ViewModel.ChatCell? {
-        itemsById[chatId]
+    func item(for memberId: String) -> Model.MembersList.ViewModel.MemberCell? {
+        itemsById[memberId]
     }
 }

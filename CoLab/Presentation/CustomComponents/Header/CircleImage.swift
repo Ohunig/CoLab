@@ -55,18 +55,25 @@ final class CircleImage: UIView {
     
     private func configureUI() {
         layer.borderWidth = Constants.borderWidth
+        layer.masksToBounds = true
         clipsToBounds = true
         
         imageView.contentMode = .scaleAspectFill
+        imageView.layer.masksToBounds = true
         addSubview(imageView)
+    }
+    
+    func refreshCircularMask() {
+        let radius = bounds.width / 2
+        layer.cornerRadius = radius
+        imageView.layer.cornerRadius = radius
     }
     
     // MARK: Layout subviews
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        layer.cornerRadius = frame.width / 2
-        
         imageView.frame = bounds
+        refreshCircularMask()
     }
 }

@@ -16,7 +16,7 @@ final class ChangeSettingsController: UIViewController {
         static let horisontalInset: CGFloat = 22
         
         // Распологаем элементы навигации выше
-        static let backToUnsafe: CGFloat = 40
+        static let backToUnsafe: CGFloat = 30
         
         static let avatarSize: CGFloat = 170
         static let avatarTop: CGFloat = 40

@@ -55,4 +55,23 @@ enum FirebasePaths {
             }
         }
     }
+    
+    enum Messages {
+        static let root = "messages"
+        
+        case senderId
+        case text
+        case createdAt
+        
+        var path: String {
+            switch self {
+            case .senderId:
+                "senderId"
+            case .text:
+                "text"
+            case .createdAt:
+                "createdAt"
+            }
+        }
+    }
 }

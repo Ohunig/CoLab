@@ -14,15 +14,22 @@ struct UserChatsModels {
             let bg: ColorModel
             let bgGradient: ColorModel
             let elementsBase: ColorModel
-            let tint: ColorModel
             let textColor: ColorModel
         }
         struct ViewModel {
             let bg: (hex: String, a: CGFloat)
             let bgGradient: (hex: String, a: CGFloat)
             let elementsBase: (hex: String, a: CGFloat)
-            let tint: (hex: String, a: CGFloat)
             let textColor: (hex: String, a: CGFloat)
+        }
+    }
+    
+    enum CurrentUserAvatar {
+        struct Response {
+            let avatarData: Data?
+        }
+        struct ViewModel {
+            let avatarData: Data?
         }
     }
     
@@ -39,6 +46,7 @@ struct UserChatsModels {
                 let baseColor: (hex: String, a: CGFloat)
                 let textColor: (hex: String, a: CGFloat)
                 let avatarURL: String?
+                let memberIds: [String]
                 let avatarData: Data?
             }
             let items: [ChatCell]

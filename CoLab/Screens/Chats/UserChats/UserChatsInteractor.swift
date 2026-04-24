@@ -35,12 +35,16 @@ final class UserChatsInteractor: UserChatsBusinessLogic {
     
     private let colorRepository: ColorStorageLogic
     private let chatListService: UserChatListLogic
+    private let router: ChatsRoutingLogic
+    private let userService: UserServiceLogic
     private let avatarService: AvatarServiceLogic
     
     private var canLoadMore = false
     private var isInitialLoadBound = false
+    private var currentUserAvatarURL: String?
     
     private var pipelineCancellables = Set<AnyCancellable>()
+    private var currentUserAvatarCancellable: AnyCancellable?
     private var desiredLiveLimit: Int = 0
     
     // MARK: Lifecycle
@@ -49,16 +53,22 @@ final class UserChatsInteractor: UserChatsBusinessLogic {
         presenter: UserChatsPresentationLogic,
         colorRepository: ColorStorageLogic,
         chatListService: UserChatListLogic,
+        router: ChatsRoutingLogic,
+        userService: UserServiceLogic,
         avatarService: AvatarServiceLogic
     ) {
         self.presenter = presenter
         self.colorRepository = colorRepository
         self.chatListService = chatListService
+        self.router = router
+        self.userService = userService
         self.avatarService = avatarService
     }
     
     deinit {
         pipelineCancellables.removeAll()
+        currentUserAvatarCancellable?.cancel()
+        userService.stopListeningChanges()
         chatListService.setLiveUpdatesLimit(0)
     }
     
@@ -70,14 +80,51 @@ final class UserChatsInteractor: UserChatsBusinessLogic {
                 bg: colorRepository.backgroundColor,
                 bgGradient: colorRepository.backgroundGradientColor,
                 elementsBase: colorRepository.elementsBaseColor,
-                tint: colorRepository.tintColor,
                 textColor: colorRepository.mainTextColor
             )
         )
     }
     
+    func listenCurrentUserAvatar() {
+        userService.startListeningChanges()
+        
+        guard currentUserAvatarCancellable == nil else { return }
+        
+        currentUserAvatarCancellable = userService.currentUserDataPublisher()
+            .flatMap { [weak self] user -> AnyPublisher<Data?, Never> in
+                guard let self else {
+                    return Empty().eraseToAnyPublisher()
+                }
+                
+                guard let photoURL = user.photoURL, !photoURL.isEmpty else {
+                    self.currentUserAvatarURL = nil
+                    return Just(nil).eraseToAnyPublisher()
+                }
+                
+                guard photoURL != self.currentUserAvatarURL else {
+                    return Empty().eraseToAnyPublisher()
+                }
+                
+                self.currentUserAvatarURL = photoURL
+                return self.avatarService.avatarDataPublisher(photoURL: photoURL)
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] avatarData in
+                self?.presenter.presentCurrentUserAvatar(
+                    Model.CurrentUserAvatar.Response(avatarData: avatarData)
+                )
+            }
+    }
+    
+    func stopListeningCurrentUserAvatar() {
+        currentUserAvatarCancellable?.cancel()
+        currentUserAvatarCancellable = nil
+        currentUserAvatarURL = nil
+        userService.stopListeningChanges()
+    }
+    
     func loadInitialChats() {
-        guard isInitialLoadBound == false else { return }
+        guard !isInitialLoadBound else { return }
         isInitialLoadBound = true
         
         canLoadMore = false
@@ -149,6 +196,22 @@ final class UserChatsInteractor: UserChatsBusinessLogic {
         // Расширяем окно live-обновлений
         desiredLiveLimit += Constants.pageLimit
         chatListService.setLiveUpdatesLimit(desiredLiveLimit)
+    }
+    
+    // MARK: Navigation
+    
+    func loadChatMessagesScreen(
+        chatId: String,
+        chatTitle: String,
+        chatAvatarURL: String?,
+        memberIds: [String]
+    ) {
+        router.routeToChatMessages(
+            chatId: chatId,
+            chatTitle: chatTitle,
+            chatAvatarURL: chatAvatarURL,
+            memberIds: memberIds
+        )
     }
     
     // MARK: Factory methods
