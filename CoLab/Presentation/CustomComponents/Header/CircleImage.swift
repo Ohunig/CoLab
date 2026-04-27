@@ -18,7 +18,7 @@ final class CircleImage: UIView {
     
     private var imageView: UIImageView
     
-    private var base: UIColor?
+    private var border: UIColor?
     
     // MARK: Computed properties
     
@@ -29,10 +29,10 @@ final class CircleImage: UIView {
         }
     }
     
-    var baseColor: UIColor? {
-        get { base }
+    var borderColor: UIColor? {
+        get { border }
         set {
-            base = newValue
+            border = newValue
             layer.borderColor = newValue?.cgColor
         }
     }

@@ -188,7 +188,7 @@ extension UserSettingsController: UserSettingsDisplayLogic {
         logo.textColor = textColor
         
         // Аватар + юзернейм
-        avatar.baseColor = elementsBaseColor
+        avatar.borderColor = elementsBaseColor
         username.textColor = textColor
         
         // Ячейки

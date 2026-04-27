@@ -206,7 +206,7 @@ final class MessageCell: UICollectionViewCell {
         contentView.transform = Constants.invertedTransform
         
         avatarView.translatesAutoresizingMaskIntoConstraints = false
-        avatarView.baseColor = .clear
+        avatarView.borderColor = .clear
         
         bubbleView.translatesAutoresizingMaskIntoConstraints = false
         bubbleView.direction = .incoming

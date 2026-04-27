@@ -29,7 +29,7 @@ final class HeaderView: UIView {
     var baseColor: UIColor? {
         didSet {
             logoView.baseColor = baseColor
-            avatarView.baseColor = baseColor
+            avatarView.borderColor = baseColor
         }
     }
     

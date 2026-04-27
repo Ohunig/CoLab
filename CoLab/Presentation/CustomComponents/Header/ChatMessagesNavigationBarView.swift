@@ -47,7 +47,7 @@ final class ChatMessagesNavigationBarView: UIView {
     var controlsBaseColor: UIColor? {
         didSet {
             backButton.baseColor = controlsBaseColor
-            avatarView.baseColor = controlsBaseColor
+            avatarView.borderColor = controlsBaseColor
         }
     }
     
