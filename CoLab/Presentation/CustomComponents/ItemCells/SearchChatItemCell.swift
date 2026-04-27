@@ -222,8 +222,15 @@ final class SearchChatItemCell: UITableViewCell {
                 equalTo: containerView.leadingAnchor,
                 constant: Constants.innerInset
             ),
-            avatarView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: Constants.verticalInset),
+            avatarView.topAnchor.constraint(
+                greaterThanOrEqualTo: containerView.topAnchor,
+                constant: Constants.verticalInset
+            ),
             avatarView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            avatarView.bottomAnchor.constraint(
+                lessThanOrEqualTo: containerView.bottomAnchor,
+                constant: -Constants.verticalInset
+            ),
             avatarView.widthAnchor.constraint(equalToConstant: Constants.avatarSide),
             avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor),
             
