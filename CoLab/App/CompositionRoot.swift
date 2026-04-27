@@ -31,6 +31,8 @@ final class CompositionRoot {
             .inObjectScope(.transient)
         container.register(UserChatListLogic.self) { _ in UserChatListService() }
             .inObjectScope(.transient)
+        container.register(SearchChatsListLogic.self) { _ in SearchChatsListService() }
+            .inObjectScope(.transient)
         container.register(ChatMessagesLogic.self) { _ in ChatMessagesService() }
             .inObjectScope(.transient)
         
@@ -38,6 +40,8 @@ final class CompositionRoot {
         container.register(AuthRoutingLogic.self) { _ in AuthRouter() }
             .inObjectScope(.container)
         container.register(ChatsRoutingLogic.self) { _ in ChatsRouter() }
+            .inObjectScope(.container)
+        container.register(SearchChatsRoutingLogic.self) { _ in SearchChatsRouter() }
             .inObjectScope(.container)
         container.register(SettingsRoutingLogic.self) { resolver in
             guard let authRouter = resolver.resolve(
