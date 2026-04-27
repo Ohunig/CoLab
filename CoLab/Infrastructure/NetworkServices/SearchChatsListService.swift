@@ -50,40 +50,69 @@ final class SearchChatsListService: SearchChatsListLogic {
         after document: QueryDocumentSnapshot?,
         limit: Int
     ) -> AnyPublisher<SearchChatsPage, FetchUserChatsError> {
-        Future<SearchChatsPage, FetchUserChatsError> { [weak self] promise in
+        Deferred { [weak self] in
+            let subject = PassthroughSubject<SearchChatsPage, FetchUserChatsError>()
+            
             guard let self else {
-                promise(.failure(.unknown))
-                return
+                return Fail<SearchChatsPage, FetchUserChatsError>(error: .unknown)
+                    .eraseToAnyPublisher()
             }
             
-            let normalizedLimit = max(1, limit)
-            var query: Query = self.db.collection(Chats.root)
-                .order(by: FieldPath.documentID(), descending: true)
-            
-            if let document {
-                query = query.start(afterDocument: document)
-            }
-            
-            query
-                .limit(to: normalizedLimit)
-                .getDocuments { snapshot, error in
-                    if let error {
-                        promise(.failure(self.decodeError(error)))
-                        return
-                    }
-                    
-                    let docs = snapshot?.documents ?? []
-                    self.lastDocument = docs.last ?? self.lastDocument
-                    
-                    promise(
-                        .success(
+            let fetchPage = { [weak self] (source: FirestoreSource) in
+                guard let self else {
+                    subject.send(completion: .failure(.unknown))
+                    return
+                }
+                
+                let normalizedLimit = max(1, limit)
+                var query: Query = self.db.collection(Chats.root)
+                    .order(by: FieldPath.documentID(), descending: true)
+                
+                if let document {
+                    query = query.start(afterDocument: document)
+                }
+                
+                query
+                    .limit(to: normalizedLimit)
+                    .getDocuments(source: source) { snapshot, error in
+                        if let error {
+                            if source == .server {
+                                subject.send(
+                                    completion: .failure(self.decodeError(error))
+                                )
+                            }
+                            return
+                        }
+                        
+                        let docs = snapshot?.documents ?? []
+                        if let lastDocument = docs.last {
+                            self.lastDocument = lastDocument
+                        } else if document == nil, source == .server {
+                            self.lastDocument = nil
+                        }
+                        
+                        if source == .cache, docs.isEmpty {
+                            return
+                        }
+                        
+                        subject.send(
                             SearchChatsPage(
                                 chats: docs.compactMap(self.decodeChat(from:)),
                                 hasMore: docs.count == normalizedLimit
                             )
                         )
-                    )
-                }
+                        
+                        if source == .server {
+                            subject.send(completion: .finished)
+                        }
+                    }
+            }
+            
+            // Сначала пытаемся подгружать данные из кэша
+            fetchPage(.cache)
+            fetchPage(.server)
+            
+            return subject.eraseToAnyPublisher()
         }
         .eraseToAnyPublisher()
     }

@@ -43,6 +43,7 @@ final class SearchChatsListController: UIViewController {
     private let containerView = TableContainerView()
     
     private var displayedChatIds: [String] = []
+    private var hasLoadedChatsState = false
     
     private lazy var headerTopConstraint = headerView.topAnchor.constraint(
         equalTo: view.safeAreaLayoutGuide.topAnchor,
@@ -235,14 +236,14 @@ final class SearchChatsListController: UIViewController {
     
     private func syncChatsStateFromProvider() {
         displayedChatIds = tableDataProvider.chatIds()
-        emptyStateLabel.isHidden = !displayedChatIds.isEmpty
+        emptyStateLabel.isHidden = !hasLoadedChatsState || !displayedChatIds.isEmpty
         tableView.reloadData()
     }
     
     private func applyChatsState(chatIds: [String], animated: Bool) {
         let previousChatIds = displayedChatIds
         displayedChatIds = chatIds
-        emptyStateLabel.isHidden = !chatIds.isEmpty
+        emptyStateLabel.isHidden = !hasLoadedChatsState || !chatIds.isEmpty
         
         guard animated,
               !previousChatIds.isEmpty,
@@ -316,6 +317,7 @@ extension SearchChatsListController: SearchChatsListDisplayLogic {
     }
     
     func displayChats(_ viewModel: Model.ChatsList.ViewModel) {
+        hasLoadedChatsState = true
         guard view.window != nil else { return }
         
         applyChatsState(

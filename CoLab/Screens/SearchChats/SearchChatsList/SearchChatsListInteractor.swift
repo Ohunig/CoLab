@@ -124,10 +124,6 @@ final class SearchChatsListInteractor: SearchChatsListBusinessLogic {
         avatarCancellables.values.forEach { $0.cancel() }
         avatarCancellables.removeAll()
         
-        presenter.presentChats(
-            Model.ChatsList.Response(chats: [])
-        )
-        
         loadPage(
             chatListService.fetchFirstPage(limit: Constants.pageLimit),
             replacingCurrentChats: true
