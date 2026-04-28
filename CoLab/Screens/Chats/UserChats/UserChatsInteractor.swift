@@ -203,12 +203,14 @@ final class UserChatsInteractor: UserChatsBusinessLogic {
     func loadChatMessagesScreen(
         chatId: String,
         chatTitle: String,
+        chatDescription: String?,
         chatAvatarURL: String?,
         memberIds: [String]
     ) {
         router.routeToChatMessages(
             chatId: chatId,
             chatTitle: chatTitle,
+            chatDescription: chatDescription,
             chatAvatarURL: chatAvatarURL,
             memberIds: memberIds
         )

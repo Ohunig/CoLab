@@ -93,6 +93,7 @@ final class UserChatListService: UserChatListLogic {
         
         let id = snapshot.documentID
         let title = data[Chats.title.path] as? String ?? Constants.fallbackTitle
+        let description = data[Chats.description.path] as? String
         let lastMessageText = data[Chats.lastMessageText.path] as? String
         let timestamp = data[Chats.lastMessageDate.path] as? Timestamp
         let lastMessageDate = timestamp?.dateValue()
@@ -102,6 +103,7 @@ final class UserChatListService: UserChatListLogic {
         return ChatModel(
             id: id,
             title: title,
+            description: description,
             lastMessageText: lastMessageText,
             lastMessageDate: lastMessageDate,
             avatarURL: avatarURL,

@@ -318,6 +318,7 @@ extension UserChatsController: UITableViewDelegate {
         interactor.loadChatMessagesScreen(
             chatId: chatId,
             chatTitle: item.title,
+            chatDescription: item.description,
             chatAvatarURL: item.avatarURL,
             memberIds: item.memberIds
         )

@@ -35,12 +35,14 @@ struct ChatInfoModels {
             let avatarData: Data?
             let isAvatarLoading: Bool
             let title: String
+            let description: String?
         }
         
         struct ViewModel {
             let avatarData: Data?
             let isAvatarLoading: Bool
             let title: String
+            let description: String?
         }
     }
     

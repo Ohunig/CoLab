@@ -12,6 +12,7 @@ protocol SearchChatsRoutingLogic: AnyObject {
     
     func routeToChatInfo(
         chatTitle: String,
+        chatDescription: String?,
         chatAvatarURL: String?,
         memberIds: [String]
     )

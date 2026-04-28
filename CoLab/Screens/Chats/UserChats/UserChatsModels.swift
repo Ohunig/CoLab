@@ -41,6 +41,7 @@ struct UserChatsModels {
             struct ChatCell {
                 let id: String
                 let title: String
+                let description: String?
                 let subtitle: String
                 let time: String
                 let baseColor: (hex: String, a: CGFloat)

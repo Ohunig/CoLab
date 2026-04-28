@@ -57,7 +57,8 @@ final class ChatInfoPresenter: ChatInfoPresentationLogic, ChatInfoTableDataLogic
             Model.GetChatData.ViewModel(
                 avatarData: response.avatarData,
                 isAvatarLoading: response.isAvatarLoading,
-                title: response.title
+                title: response.title,
+                description: response.description
             )
         )
     }

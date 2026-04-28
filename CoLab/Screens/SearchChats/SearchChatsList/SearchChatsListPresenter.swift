@@ -61,6 +61,7 @@ final class SearchChatsListPresenter: SearchChatsListPresentationLogic {
             return Model.ChatsList.ViewModel.ChatCell(
                 id: chat.id,
                 title: chat.title,
+                description: chat.description,
                 baseColor: cellBaseColor,
                 textColor: cellTextColor,
                 startGradientColor: cellStartGradient,
@@ -86,6 +87,7 @@ final class SearchChatsListPresenter: SearchChatsListPresentationLogic {
         item = Model.ChatsList.ViewModel.ChatCell(
             id: item.id,
             title: item.title,
+            description: item.description,
             baseColor: item.baseColor,
             textColor: item.textColor,
             startGradientColor: item.startGradientColor,

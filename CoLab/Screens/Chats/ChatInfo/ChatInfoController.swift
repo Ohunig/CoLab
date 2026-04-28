@@ -35,6 +35,7 @@ final class ChatInfoController: UIViewController {
         static let avatarSize: CGFloat = 170
         static let avatarTop: CGFloat = 40
         static let avatarGap: CGFloat = 10
+        static let descriptionGap: CGFloat = 12
         static let avatarLabelFontSize: CGFloat = 40
         static let avatarLabelLines = 2
         static let headerBottomInset: CGFloat = 55
@@ -65,6 +66,8 @@ final class ChatInfoController: UIViewController {
     private let avatarOverlay = LoadingOverlay()
     private let avatar = CircleImage(Constants.placeholderAvatar)
     private let chatTitle = UILabel()
+    private let chatDescription = ChatDescriptionView()
+    private let headerTextStackView = UIStackView()
     
     private let emptyStateLabel = UILabel()
     private let tableView = ContentSizedTableView(frame: .zero, style: .plain)
@@ -160,11 +163,19 @@ final class ChatInfoController: UIViewController {
         )
         chatTitle.text = Constants.unknownTitle
         chatTitle.textAlignment = .center
-        chatTitle.translatesAutoresizingMaskIntoConstraints = false
+
+        chatDescription.isHidden = true
         
+        headerTextStackView.axis = .vertical
+        headerTextStackView.spacing = Constants.descriptionGap
+        headerTextStackView.alignment = .fill
+        headerTextStackView.translatesAutoresizingMaskIntoConstraints = false
+        headerTextStackView.addArrangedSubview(chatTitle)
+        headerTextStackView.addArrangedSubview(chatDescription)
+
         avatar.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(avatar)
-        scrollView.addSubview(chatTitle)
+        scrollView.addSubview(headerTextStackView)
         
         avatarTopConstraint = avatar.topAnchor.constraint(
             equalTo: scrollView.contentLayoutGuide.topAnchor
@@ -182,15 +193,15 @@ final class ChatInfoController: UIViewController {
                 equalTo: scrollView.frameLayoutGuide.centerXAnchor
             ),
             
-            chatTitle.topAnchor.constraint(
+            headerTextStackView.topAnchor.constraint(
                 equalTo: avatar.bottomAnchor,
                 constant: Constants.avatarGap
             ),
-            chatTitle.leadingAnchor.constraint(
+            headerTextStackView.leadingAnchor.constraint(
                 equalTo: scrollView.frameLayoutGuide.leadingAnchor,
                 constant: Constants.horisontalInset
             ),
-            chatTitle.trailingAnchor.constraint(
+            headerTextStackView.trailingAnchor.constraint(
                 equalTo: scrollView.frameLayoutGuide.trailingAnchor,
                 constant: -Constants.horisontalInset
             )
@@ -236,7 +247,7 @@ final class ChatInfoController: UIViewController {
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(
-                equalTo: chatTitle.bottomAnchor,
+                equalTo: headerTextStackView.bottomAnchor,
                 constant: Constants.headerBottomInset
             ),
             tableView.leadingAnchor.constraint(
@@ -404,6 +415,8 @@ extension ChatInfoController: ChatInfoDisplayLogic {
         // Аватар + название чата
         avatar.borderColor = elementsBaseColor
         chatTitle.textColor = textColor
+        chatDescription.baseColor = elementsBaseColor
+        chatDescription.textColor = textColor
         
         // Empty state
         emptyStateLabel.textColor = textColor
@@ -423,6 +436,11 @@ extension ChatInfoController: ChatInfoDisplayLogic {
             chatTitle.text = viewModel.title
         }
         
+        let description = viewModel.description ?? ""
+        let shouldShowDescription = !description.isEmpty
+        chatDescription.text = description
+        chatDescription.isHidden = !shouldShowDescription
+
         // Пока аватар загружается — держим shimmer поверх placeholder
         if viewModel.isAvatarLoading {
             if avatarOverlay.superview == nil {

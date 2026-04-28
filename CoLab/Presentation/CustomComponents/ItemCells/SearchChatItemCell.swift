@@ -24,6 +24,7 @@ final class SearchChatItemCell: UITableViewCell {
         static let containerCornerRadius: CGFloat = 25
         static let containerBorderWidth: CGFloat = 1
         static let containerAlpha: CGFloat = 0.5
+        static let secondaryTextAlpha: CGFloat = 0.72
         static let avatarBackgroundAlpha: CGFloat = 0.12
         
         static let avatarSide: CGFloat = 58
@@ -32,6 +33,9 @@ final class SearchChatItemCell: UITableViewCell {
         
         static let titleFontSize: CGFloat = 18
         static let titleLines = 1
+        static let descriptionFontSize: CGFloat = 14
+        static let descriptionLines = 1
+        static let textStackSpacing: CGFloat = 4
         
         static let placeholderAvatar = UIImage(systemName: "person.crop.circle.fill")?
             .withTintColor(.white, renderingMode: .alwaysOriginal)
@@ -42,11 +46,14 @@ final class SearchChatItemCell: UITableViewCell {
     private let containerView = UIView()
     private let avatarView = CircleImage(Constants.placeholderAvatar)
     private let titleLabel = UILabel()
+    private let descriptionLabel = UILabel()
+    private let textStackView = UIStackView()
     private let actionButton = FilledGradientButton()
     
     private var base: UIColor?
     private var labelColor: UIColor?
     private var titleValue = String()
+    private var descriptionValue = String()
     private var avatarValue: UIImage?
     
     // MARK: Computed properties
@@ -67,6 +74,9 @@ final class SearchChatItemCell: UITableViewCell {
         set {
             labelColor = newValue
             titleLabel.textColor = newValue
+            descriptionLabel.textColor = newValue?.withAlphaComponent(
+                Constants.secondaryTextAlpha
+            )
         }
     }
     
@@ -87,6 +97,15 @@ final class SearchChatItemCell: UITableViewCell {
         set {
             titleValue = newValue
             titleLabel.text = newValue
+        }
+    }
+
+    var chatDescription: String {
+        get { descriptionValue }
+        set {
+            descriptionValue = newValue
+            descriptionLabel.text = newValue
+            descriptionLabel.isHidden = newValue.isEmpty
         }
     }
     
@@ -115,6 +134,7 @@ final class SearchChatItemCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         title = ""
+        chatDescription = ""
         avatarImage = nil
         updatePressedState(isPressed: false, animated: false)
     }
@@ -152,7 +172,7 @@ final class SearchChatItemCell: UITableViewCell {
         
         configureContainer()
         configureAvatar()
-        configureTitle()
+        configureText()
         configureActionButton()
         configureLayout()
         
@@ -175,15 +195,29 @@ final class SearchChatItemCell: UITableViewCell {
         containerView.addSubview(avatarView)
     }
     
-    private func configureTitle() {
+    private func configureText() {
         titleLabel.font = .systemFont(
             ofSize: Constants.titleFontSize,
             weight: .medium
         )
         titleLabel.numberOfLines = Constants.titleLines
         titleLabel.lineBreakMode = .byTruncatingTail
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        containerView.addSubview(titleLabel)
+
+        descriptionLabel.font = .systemFont(
+            ofSize: Constants.descriptionFontSize,
+            weight: .regular
+        )
+        descriptionLabel.numberOfLines = Constants.descriptionLines
+        descriptionLabel.lineBreakMode = .byTruncatingTail
+        descriptionLabel.isHidden = true
+
+        textStackView.axis = .vertical
+        textStackView.spacing = Constants.textStackSpacing
+        textStackView.alignment = .fill
+        textStackView.translatesAutoresizingMaskIntoConstraints = false
+        textStackView.addArrangedSubview(titleLabel)
+        textStackView.addArrangedSubview(descriptionLabel)
+        containerView.addSubview(textStackView)
     }
     
     private func configureActionButton() {
@@ -246,22 +280,22 @@ final class SearchChatItemCell: UITableViewCell {
             ),
             actionButton.heightAnchor.constraint(equalTo: actionButton.widthAnchor),
             
-            titleLabel.leadingAnchor.constraint(
+            textStackView.leadingAnchor.constraint(
                 equalTo: avatarView.trailingAnchor,
                 constant: Constants.contentSpacing
             ),
-            titleLabel.trailingAnchor.constraint(
+            textStackView.trailingAnchor.constraint(
                 equalTo: actionButton.leadingAnchor,
                 constant: -Constants.buttonSpacing
             ),
-            titleLabel.centerYAnchor.constraint(
+            textStackView.centerYAnchor.constraint(
                 equalTo: containerView.centerYAnchor
             ),
-            titleLabel.topAnchor.constraint(
+            textStackView.topAnchor.constraint(
                 greaterThanOrEqualTo: containerView.topAnchor,
                 constant: Constants.innerInset
             ),
-            titleLabel.bottomAnchor.constraint(
+            textStackView.bottomAnchor.constraint(
                 lessThanOrEqualTo: containerView.bottomAnchor,
                 constant: -Constants.innerInset
             )

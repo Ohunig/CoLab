@@ -49,6 +49,7 @@ struct SearchChatsListModels {
             struct ChatCell {
                 let id: String
                 let title: String
+                let description: String?
                 let baseColor: (hex: String, a: CGFloat)
                 let textColor: (hex: String, a: CGFloat)
                 let startGradientColor: (hex: String, a: CGFloat)

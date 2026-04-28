@@ -30,6 +30,7 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
     }
     
     private let chatTitle: String
+    private let chatDescription: String?
     private let chatAvatarURL: String?
     private let memberIds: [String]
     
@@ -48,6 +49,7 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
     
     init(
         chatTitle: String,
+        chatDescription: String?,
         chatAvatarURL: String?,
         memberIds: [String],
         presenter: ChatInfoPresentationLogic,
@@ -56,6 +58,7 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         avatarService: AvatarServiceLogic
     ) {
         self.chatTitle = chatTitle
+        self.chatDescription = chatDescription
         self.chatAvatarURL = chatAvatarURL
         self.memberIds = memberIds
         self.presenter = presenter
@@ -146,7 +149,8 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
             Model.GetChatData.Response(
                 avatarData: currentAvatarData,
                 isAvatarLoading: isAvatarLoading,
-                title: chatTitle
+                title: chatTitle,
+                description: chatDescription
             )
         )
     }

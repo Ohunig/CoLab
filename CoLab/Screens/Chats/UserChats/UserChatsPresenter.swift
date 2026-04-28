@@ -72,6 +72,7 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
             return Model.ChatsList.ViewModel.ChatCell(
                 id: chat.id,
                 title: chat.title,
+                description: chat.description,
                 subtitle: subtitle,
                 time: time,
                 baseColor: cellBaseColor,
@@ -113,6 +114,7 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
         item = Model.ChatsList.ViewModel.ChatCell(
             id: item.id,
             title: item.title,
+            description: item.description,
             subtitle: item.subtitle,
             time: item.time,
             baseColor: item.baseColor,

@@ -25,6 +25,7 @@ protocol UserChatsBusinessLogic: AnyObject {
     func loadChatMessagesScreen(
         chatId: String,
         chatTitle: String,
+        chatDescription: String?,
         chatAvatarURL: String?,
         memberIds: [String]
     )

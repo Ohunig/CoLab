@@ -16,12 +16,14 @@ protocol ChatsRoutingLogic: AnyObject {
     func routeToChatMessages(
         chatId: String,
         chatTitle: String,
+        chatDescription: String?,
         chatAvatarURL: String?,
         memberIds: [String]
     )
     
     func routeToChatInfo(
         chatTitle: String,
+        chatDescription: String?,
         chatAvatarURL: String?,
         memberIds: [String]
     )
