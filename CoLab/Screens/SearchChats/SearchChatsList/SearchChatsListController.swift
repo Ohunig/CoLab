@@ -266,6 +266,7 @@ final class SearchChatsListController: UIViewController {
         with item: Model.ChatsList.ViewModel.ChatCell
     ) {
         cell.title = item.title
+        cell.chatDescription = item.description ?? ""
         cell.baseColor = UIColor(hex: item.baseColor.hex, alpha: item.baseColor.a)
         cell.textColor = UIColor(hex: item.textColor.hex, alpha: item.textColor.a)
         cell.gradientStartColor = UIColor(
@@ -409,6 +410,7 @@ extension SearchChatsListController: UITableViewDelegate {
         
         interactor.loadChatInfoScreen(
             chatTitle: item.title,
+            chatDescription: item.description,
             chatAvatarURL: item.avatarURL,
             memberIds: item.memberIds
         )

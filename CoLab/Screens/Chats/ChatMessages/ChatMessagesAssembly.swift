@@ -20,6 +20,7 @@ enum ChatMessagesAssembly {
     static func build(
         chatId: String,
         chatTitle: String,
+        chatDescription: String?,
         chatAvatarURL: String?,
         memberIds: [String]
     ) -> UIViewController {
@@ -59,6 +60,7 @@ enum ChatMessagesAssembly {
         let interactor = ChatMessagesInteractor(
             chatId: chatId,
             chatTitle: chatTitle,
+            chatDescription: chatDescription,
             chatAvatarURL: chatAvatarURL,
             memberIds: memberIds,
             presenter: presenter,

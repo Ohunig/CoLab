@@ -21,6 +21,7 @@ final class ChatsRouter: ChatsRoutingLogic {
     func routeToChatMessages(
         chatId: String,
         chatTitle: String,
+        chatDescription: String?,
         chatAvatarURL: String?,
         memberIds: [String]
     ) {
@@ -28,6 +29,7 @@ final class ChatsRouter: ChatsRoutingLogic {
             ChatMessagesAssembly.build(
                 chatId: chatId,
                 chatTitle: chatTitle,
+                chatDescription: chatDescription,
                 chatAvatarURL: chatAvatarURL,
                 memberIds: memberIds
             ),
@@ -37,12 +39,14 @@ final class ChatsRouter: ChatsRoutingLogic {
     
     func routeToChatInfo(
         chatTitle: String,
+        chatDescription: String?,
         chatAvatarURL: String?,
         memberIds: [String]
     ) {
         navigationController?.pushViewController(
             ChatInfoAssembly.build(
                 chatTitle: chatTitle,
+                chatDescription: chatDescription,
                 chatAvatarURL: chatAvatarURL,
                 memberIds: memberIds
             ),

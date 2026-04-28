@@ -24,6 +24,7 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
     
     private let chatId: String
     private let chatTitle: String
+    private let chatDescription: String?
     private let chatAvatarURL: String?
     private let memberIds: [String]
     private var currentUserId: String?
@@ -59,6 +60,7 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
     init(
         chatId: String,
         chatTitle: String,
+        chatDescription: String?,
         chatAvatarURL: String?,
         memberIds: [String],
         presenter: ChatMessagesPresentationLogic,
@@ -70,6 +72,7 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
     ) {
         self.chatId = chatId
         self.chatTitle = chatTitle
+        self.chatDescription = chatDescription
         self.chatAvatarURL = chatAvatarURL
         self.memberIds = memberIds
         self.presenter = presenter
@@ -212,6 +215,7 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
     func loadChatInfoScreen() {
         router.routeToChatInfo(
             chatTitle: chatTitle,
+            chatDescription: chatDescription,
             chatAvatarURL: chatAvatarURL,
             memberIds: memberIds
         )
