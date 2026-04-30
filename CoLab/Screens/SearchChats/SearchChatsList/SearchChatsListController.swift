@@ -26,6 +26,8 @@ final class SearchChatsListController: UIViewController {
         static let emptyTableLabelFont: CGFloat = 17
         static let estimatedRowHeight: CGFloat = 196
         
+        static let initialLoadingHeight: CGFloat = 56
+
         static let headerCoverLiftFactor: CGFloat = 0.22
         static let headerTop: CGFloat = -30
         
@@ -39,11 +41,14 @@ final class SearchChatsListController: UIViewController {
     private let tableView = UITableView(frame: .zero, style: .plain)
     private let emptyStateLabel = UILabel()
     
+    private let initialLoadingIndicator = UIActivityIndicatorView(style: .medium)
+
     private let headerView = HeaderView()
     private let containerView = TableContainerView()
     
     private var displayedChatIds: [String] = []
     private var hasLoadedChatsState = false
+    private var isInitialLoadingShown = false
     
     private lazy var headerTopConstraint = headerView.topAnchor.constraint(
         equalTo: view.safeAreaLayoutGuide.topAnchor,
@@ -86,23 +91,28 @@ final class SearchChatsListController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: animated)
         headerView.showAvatarLoading()
         interactor.listenCurrentUserAvatar()
+        syncChatsStateFromProvider()
+        showInitialLoadingIfNeeded()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         syncChatsStateFromProvider()
+        showInitialLoadingIfNeeded()
         interactor.loadInitialChats()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         headerView.hideAvatarLoading()
+        hideInitialLoading()
         interactor.stopListeningCurrentUserAvatar()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         updateHeaderAndContainerLayoutIfNeeded()
+        updateInitialLoadingFrameIfNeeded()
     }
     
     // MARK: Configure UI
@@ -140,6 +150,7 @@ final class SearchChatsListController: UIViewController {
         tableView.backgroundView = emptyStateLabel
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
+        configureInitialLoading()
         view.addSubview(tableView)
         
         NSLayoutConstraint.activate([
@@ -189,6 +200,12 @@ final class SearchChatsListController: UIViewController {
         ])
     }
     
+    private func configureInitialLoading() {
+        initialLoadingIndicator.hidesWhenStopped = true
+        initialLoadingIndicator.isHidden = true
+        tableView.addSubview(initialLoadingIndicator)
+    }
+
     // MARK: Updating layout
     
     private func updateHeaderAndContainerLayoutIfNeeded() {
@@ -236,13 +253,21 @@ final class SearchChatsListController: UIViewController {
     
     private func syncChatsStateFromProvider() {
         displayedChatIds = tableDataProvider.chatIds()
-        emptyStateLabel.isHidden = !hasLoadedChatsState || !displayedChatIds.isEmpty
+
+        if displayedChatIds.isEmpty {
+            emptyStateLabel.isHidden = !hasLoadedChatsState || isInitialLoadingShown
+        } else {
+            hideInitialLoading()
+            emptyStateLabel.isHidden = true
+        }
+
         tableView.reloadData()
     }
     
     private func applyChatsState(chatIds: [String], animated: Bool) {
         let previousChatIds = displayedChatIds
         displayedChatIds = chatIds
+        hideInitialLoading()
         emptyStateLabel.isHidden = !hasLoadedChatsState || !chatIds.isEmpty
         
         guard animated,
@@ -259,6 +284,37 @@ final class SearchChatsListController: UIViewController {
             IndexPath(row: $0, section: 0)
         }
         tableView.insertRows(at: indexPaths, with: .fade)
+    }
+
+    // Лоадер находится внутри таблицы, чтобы двигаться вместе с контентом
+    // и оставаться на месте первой ячейки.
+    private func showInitialLoadingIfNeeded() {
+        guard !isInitialLoadingShown else { return }
+        guard !hasLoadedChatsState else { return }
+        guard displayedChatIds.isEmpty else { return }
+
+        isInitialLoadingShown = true
+        emptyStateLabel.isHidden = true
+        updateInitialLoadingFrameIfNeeded()
+        tableView.bringSubviewToFront(initialLoadingIndicator)
+        initialLoadingIndicator.startAnimating()
+    }
+
+    private func hideInitialLoading() {
+        guard isInitialLoadingShown else { return }
+
+        isInitialLoadingShown = false
+        initialLoadingIndicator.stopAnimating()
+    }
+
+    private func updateInitialLoadingFrameIfNeeded() {
+        guard isInitialLoadingShown else { return }
+
+        initialLoadingIndicator.center = CGPoint(
+            x: tableView.bounds.midX,
+            y: Constants.initialLoadingHeight / 2
+        )
+        tableView.bringSubviewToFront(initialLoadingIndicator)
     }
     
     private func configure(
@@ -304,6 +360,7 @@ extension SearchChatsListController: SearchChatsListDisplayLogic {
         
         headerView.baseColor = base
         headerView.textColor = textColor
+        initialLoadingIndicator.color = textColor
         
         containerView.fillColor = bg
         containerView.glowColor = bgGradient
@@ -319,6 +376,7 @@ extension SearchChatsListController: SearchChatsListDisplayLogic {
     
     func displayChats(_ viewModel: Model.ChatsList.ViewModel) {
         hasLoadedChatsState = true
+        hideInitialLoading()
         guard view.window != nil else { return }
         
         applyChatsState(
@@ -342,6 +400,8 @@ extension SearchChatsListController: SearchChatsListDisplayLogic {
     }
     
     func displayError(_ viewModel: Model.ShowError.ViewModel) {
+        hideInitialLoading()
+
         guard isViewLoaded, view.window != nil else { return }
         guard presentedViewController == nil else { return }
         
