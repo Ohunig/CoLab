@@ -180,12 +180,6 @@ final class UserChatsInteractor: UserChatsBusinessLogic {
             }
             .store(in: &pipelineCancellables)
         
-        presenter.presentChats(
-            Model.ChatsList.Response(
-                chats: []
-            )
-        )
-        
         chatListService.setLiveUpdatesLimit(desiredLiveLimit)
     }
     

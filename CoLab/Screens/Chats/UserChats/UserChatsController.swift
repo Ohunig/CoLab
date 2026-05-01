@@ -46,6 +46,7 @@ final class UserChatsController: UIViewController {
     private let containerView = TableContainerView()
     
     private lazy var dataSource = makeDataSource()
+    private var hasLoadedChatsState = false
     
     // Констрейнты хэдера
     lazy private var headerTopConstraint = headerView.topAnchor.constraint(
@@ -265,6 +266,7 @@ extension UserChatsController: UserChatsDisplayLogic {
     }
     
     func displayChats(_ viewModel: Model.ChatsList.ViewModel) {
+        hasLoadedChatsState = true
         emptyStateLabel.isHidden = !viewModel.items.isEmpty
         
         guard view.window != nil else { return }
@@ -377,7 +379,7 @@ extension UserChatsController: UITableViewDelegate {
     // из уже готового состояния presenter без нового запроса.
     private func syncChatsStateFromProviderIfNeeded() {
         let chatIds = tableDataProvider.chatIds()
-        emptyStateLabel.isHidden = !chatIds.isEmpty
+        emptyStateLabel.isHidden = !hasLoadedChatsState || !chatIds.isEmpty
         
         let currentChatIds = dataSource.snapshot().itemIdentifiers
         if currentChatIds != chatIds {
