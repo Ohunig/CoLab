@@ -33,6 +33,8 @@ final class CompositionRoot {
             .inObjectScope(.transient)
         container.register(SearchChatsListLogic.self) { _ in SearchChatsListService() }
             .inObjectScope(.transient)
+        container.register(AddChatLogic.self) { _ in AddChatService() }
+            .inObjectScope(.transient)
         container.register(ChatMessagesLogic.self) { _ in ChatMessagesService() }
             .inObjectScope(.transient)
         
