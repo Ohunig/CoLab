@@ -8,22 +8,6 @@
 import Foundation
 import UIKit
 
-private final class ContentSizedTableView: UITableView {
-    override var contentSize: CGSize {
-        didSet {
-            invalidateIntrinsicContentSize()
-        }
-    }
-    
-    override var intrinsicContentSize: CGSize {
-        layoutIfNeeded()
-        return CGSize(
-            width: UIView.noIntrinsicMetric,
-            height: contentSize.height
-        )
-    }
-}
-
 final class ChatInfoController: UIViewController {
     
     private struct Constants {
