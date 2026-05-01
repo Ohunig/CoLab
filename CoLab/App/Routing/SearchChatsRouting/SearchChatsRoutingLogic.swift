@@ -10,10 +10,7 @@ import UIKit
 protocol SearchChatsRoutingLogic: AnyObject {
     var navigationController: UINavigationController? { get set }
     
-    func routeToChatInfo(
-        chatTitle: String,
-        chatDescription: String?,
-        chatAvatarURL: String?,
-        memberIds: [String]
+    func routeToAddChat(
+        chatId: String
     )
 }

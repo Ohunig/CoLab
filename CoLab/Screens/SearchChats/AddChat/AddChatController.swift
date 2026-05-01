@@ -1,14 +1,14 @@
 //
-//  ChatInfoController.swift
+//  AddChatController.swift
 //  CoLab
 //
-//  Created by User on 14.04.2026.
+//  Created by User on 01.05.2026.
 //
 
 import Foundation
 import UIKit
 
-final class ChatInfoController: UIViewController {
+final class AddChatController: UIViewController {
     
     private struct Constants {
         static let fatalError = "init(coder:) has not been implemented"
@@ -26,6 +26,10 @@ final class ChatInfoController: UIViewController {
         static let bottomInset: CGFloat = 24
         static let updateDuration = 0.25
         
+        static let addButtonTitle = "Добавить"
+        static let addButtonHeight: CGFloat = 55
+        static let addButtonBottom: CGFloat = 24
+        
         static let unknownTitle = "..."
         static let emptyStateText = "Участников нет"
         static let estimatedRowHeight: CGFloat = 80
@@ -39,11 +43,12 @@ final class ChatInfoController: UIViewController {
     private typealias DataSource = UITableViewDiffableDataSource<Section, ItemIdentifier>
     private typealias Snapshot = NSDiffableDataSourceSnapshot<Section, ItemIdentifier>
     
-    private let interactor: ChatInfoBusinessLogic
-    private let tableDataProvider: ChatInfoTableDataLogic
+    private let interactor: AddChatBusinessLogic
+    private let tableDataProvider: AddChatTableDataLogic
     
     private let backgroundView = MainBackgroundView()
     private let backButton = BackNavBarButton()
+    private let addButton = FilledGradientButton()
     
     private let scrollView = UIScrollView()
     
@@ -63,8 +68,8 @@ final class ChatInfoController: UIViewController {
     // MARK: Lifecycle
     
     init(
-        interactor: ChatInfoBusinessLogic,
-        tableDataProvider: ChatInfoTableDataLogic
+        interactor: AddChatBusinessLogic,
+        tableDataProvider: AddChatTableDataLogic
     ) {
         self.interactor = interactor
         self.tableDataProvider = tableDataProvider
@@ -100,10 +105,38 @@ final class ChatInfoController: UIViewController {
         setCustomBackground(backgroundView: backgroundView)
         
         configureScrollView()
+        configureAddButton()
         configureBackButton()
         configureHeader()
         configureMembers()
         updateInsetConstraints()
+    }
+    
+    private func configureAddButton() {
+        addButton.setTitle(Constants.addButtonTitle, for: .normal)
+        addButton.addAction(
+            UIAction { [weak self] _ in
+                self?.interactor.addChat()
+            },
+            for: .touchUpInside
+        )
+        addButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(addButton)
+        
+        NSLayoutConstraint.activate([
+            addButton.heightAnchor.constraint(
+                equalToConstant: Constants.addButtonHeight
+            ),
+            addButton.leadingAnchor.constraint(
+                equalTo: view.leadingAnchor,
+                constant: Constants.horisontalInset
+            ),
+            addButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            addButton.bottomAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+                constant: -Constants.addButtonBottom
+            )
+        ])
     }
     
     private func configureScrollView() {
@@ -147,7 +180,7 @@ final class ChatInfoController: UIViewController {
         )
         chatTitle.text = Constants.unknownTitle
         chatTitle.textAlignment = .center
-
+        
         chatDescription.isHidden = true
         
         headerTextStackView.axis = .vertical
@@ -156,7 +189,7 @@ final class ChatInfoController: UIViewController {
         headerTextStackView.translatesAutoresizingMaskIntoConstraints = false
         headerTextStackView.addArrangedSubview(chatTitle)
         headerTextStackView.addArrangedSubview(chatDescription)
-
+        
         avatar.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(avatar)
         scrollView.addSubview(headerTextStackView)
@@ -263,7 +296,7 @@ final class ChatInfoController: UIViewController {
     
     private func updateInsetConstraints() {
         avatarTopConstraint?.constant = view.safeAreaInsets.top + Constants.avatarTop
-        tableBottomConstraint?.constant = -(view.safeAreaInsets.bottom + Constants.bottomInset)
+        tableBottomConstraint?.constant = -Constants.bottomInset
     }
     
     private func updateAvatarImage(_ image: UIImage?) {
@@ -365,8 +398,8 @@ final class ChatInfoController: UIViewController {
 
 // MARK: - Display logic
 
-extension ChatInfoController: ChatInfoDisplayLogic {
-    typealias Model = ChatInfoModels
+extension AddChatController: AddChatDisplayLogic {
+    typealias Model = AddChatModels
     
     func displayStart(_ viewModel: Model.Start.ViewModel) {
         // Получаем нужные цвета в виде UIColor
@@ -387,6 +420,14 @@ extension ChatInfoController: ChatInfoDisplayLogic {
             hex: viewModel.textColor.hex,
             alpha: viewModel.textColor.a
         )
+        let firstGradientColor = UIColor(
+            hex: viewModel.firstGradient.hex,
+            alpha: viewModel.firstGradient.a
+        )
+        let secondGradientColor = UIColor(
+            hex: viewModel.secondGradient.hex,
+            alpha: viewModel.secondGradient.a
+        )
         
         // Фон
         backgroundView.bgColor = bgColor
@@ -404,6 +445,10 @@ extension ChatInfoController: ChatInfoDisplayLogic {
         
         // Empty state
         emptyStateLabel.textColor = textColor
+        
+        // Кнопка добавления
+        addButton.startColor = firstGradientColor
+        addButton.endColor = secondGradientColor
     }
     
     func displayChatData(_ viewModel: Model.GetChatData.ViewModel) {
@@ -424,7 +469,7 @@ extension ChatInfoController: ChatInfoDisplayLogic {
         let shouldShowDescription = !description.isEmpty
         chatDescription.text = description
         chatDescription.isHidden = !shouldShowDescription
-
+        
         // Пока аватар загружается — держим shimmer поверх placeholder
         if viewModel.isAvatarLoading {
             if avatarOverlay.superview == nil {
@@ -460,6 +505,11 @@ extension ChatInfoController: ChatInfoDisplayLogic {
         }
     }
     
+    func displayAddButtonState(_ viewModel: Model.AddButtonState.ViewModel) {
+        addButton.setTitle(viewModel.title, for: .normal)
+        addButton.isEnabled = viewModel.isEnabled
+    }
+    
     func displayError(_ viewModel: Model.ShowError.ViewModel) {
         // Показываем alert
         let alert = UIAlertController(
@@ -479,7 +529,7 @@ extension ChatInfoController: ChatInfoDisplayLogic {
 
 // MARK: - UITableView
 
-extension ChatInfoController: UITableViewDelegate {
+extension AddChatController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: false)
     }

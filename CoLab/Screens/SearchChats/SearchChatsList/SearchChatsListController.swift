@@ -468,11 +468,8 @@ extension SearchChatsListController: UITableViewDelegate {
         
         tableView.deselectRow(at: indexPath, animated: false)
         
-        interactor.loadChatInfoScreen(
-            chatTitle: item.title,
-            chatDescription: item.description,
-            chatAvatarURL: item.avatarURL,
-            memberIds: item.memberIds
+        interactor.loadAddChatScreen(
+            chatId: item.id
         )
     }
     
