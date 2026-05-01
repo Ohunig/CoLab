@@ -140,17 +140,11 @@ final class SearchChatsListInteractor: SearchChatsListBusinessLogic {
         )
     }
     
-    func loadChatInfoScreen(
-        chatTitle: String,
-        chatDescription: String?,
-        chatAvatarURL: String?,
-        memberIds: [String]
+    func loadAddChatScreen(
+        chatId: String
     ) {
-        router.routeToChatInfo(
-            chatTitle: chatTitle,
-            chatDescription: chatDescription,
-            chatAvatarURL: chatAvatarURL,
-            memberIds: memberIds
+        router.routeToAddChat(
+            chatId: chatId
         )
     }
     

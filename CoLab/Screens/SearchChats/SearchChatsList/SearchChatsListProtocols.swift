@@ -26,12 +26,9 @@ protocol SearchChatsListBusinessLogic: AnyObject {
     // Загрузка новой страницы чатов
     func loadNextPage()
     
-    // Загрузка экрана информации о чате
-    func loadChatInfoScreen(
-        chatTitle: String,
-        chatDescription: String?,
-        chatAvatarURL: String?,
-        memberIds: [String]
+    // Загрузка экрана добавления чата
+    func loadAddChatScreen(
+        chatId: String
     )
 }
 

@@ -15,18 +15,12 @@ final class SearchChatsRouter: SearchChatsRoutingLogic {
         set { navController = newValue }
     }
     
-    func routeToChatInfo(
-        chatTitle: String,
-        chatDescription: String?,
-        chatAvatarURL: String?,
-        memberIds: [String]
+    func routeToAddChat(
+        chatId: String
     ) {
         navigationController?.pushViewController(
-            ChatInfoAssembly.build(
-                chatTitle: chatTitle,
-                chatDescription: chatDescription,
-                chatAvatarURL: chatAvatarURL,
-                memberIds: memberIds
+            AddChatAssembly.build(
+                chatId: chatId
             ),
             animated: true
         )
