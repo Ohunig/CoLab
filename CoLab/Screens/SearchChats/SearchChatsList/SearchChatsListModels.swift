@@ -15,6 +15,7 @@ struct SearchChatsListModels {
             let bg: ColorModel
             let bgGradient: ColorModel
             let elementsBase: ColorModel
+            let tint: ColorModel
             let textColor: ColorModel
             let startGradient: ColorModel
             let endGradient: ColorModel
@@ -24,6 +25,7 @@ struct SearchChatsListModels {
             let bg: (hex: String, a: CGFloat)
             let bgGradient: (hex: String, a: CGFloat)
             let elementsBase: (hex: String, a: CGFloat)
+            let tint: (hex: String, a: CGFloat)
             let textColor: (hex: String, a: CGFloat)
         }
     }
