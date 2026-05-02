@@ -66,6 +66,7 @@ final class SearchChatsListService: SearchChatsListLogic {
                 
                 let normalizedLimit = max(1, limit)
                 var query: Query = self.db.collection(Chats.root)
+                    .whereField(Chats.isPublic.path, isEqualTo: true)
                     .order(by: FieldPath.documentID(), descending: true)
                 
                 if let document {
@@ -123,6 +124,7 @@ final class SearchChatsListService: SearchChatsListLogic {
         let id = snapshot.documentID
         let title = data[Chats.title.path] as? String ?? Constants.fallbackTitle
         let description = data[Chats.description.path] as? String
+        let isPublic = data[Chats.isPublic.path] as? Bool ?? false
         let lastMessageText = data[Chats.lastMessageText.path] as? String
         let timestamp = data[Chats.lastMessageDate.path] as? Timestamp
         let lastMessageDate = timestamp?.dateValue()
@@ -133,6 +135,7 @@ final class SearchChatsListService: SearchChatsListLogic {
             id: id,
             title: title,
             description: description,
+            isPublic: isPublic,
             lastMessageText: lastMessageText,
             lastMessageDate: lastMessageDate,
             avatarURL: avatarURL,

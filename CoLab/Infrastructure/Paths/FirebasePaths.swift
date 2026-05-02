@@ -35,6 +35,7 @@ enum FirebasePaths {
         case lastMessageDate
         case title
         case description
+        case isPublic
         case lastMessageText
         case avatarURL
         case categories
@@ -49,6 +50,8 @@ enum FirebasePaths {
                 "title"
             case .description:
                 "description"
+            case .isPublic:
+                "isPublic"
             case .lastMessageText:
                 "lastMessageText"
             case .avatarURL:

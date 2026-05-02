@@ -11,6 +11,7 @@ struct ChatModel: Codable, Equatable, Identifiable {
     let id: String
     let title: String
     let description: String?
+    let isPublic: Bool
     let lastMessageText: String?
     let lastMessageDate: Date?
     let avatarURL: String?

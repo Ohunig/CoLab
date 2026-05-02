@@ -94,6 +94,7 @@ final class UserChatListService: UserChatListLogic {
         let id = snapshot.documentID
         let title = data[Chats.title.path] as? String ?? Constants.fallbackTitle
         let description = data[Chats.description.path] as? String
+        let isPublic = data[Chats.isPublic.path] as? Bool ?? false
         let lastMessageText = data[Chats.lastMessageText.path] as? String
         let timestamp = data[Chats.lastMessageDate.path] as? Timestamp
         let lastMessageDate = timestamp?.dateValue()
@@ -104,6 +105,7 @@ final class UserChatListService: UserChatListLogic {
             id: id,
             title: title,
             description: description,
+            isPublic: isPublic,
             lastMessageText: lastMessageText,
             lastMessageDate: lastMessageDate,
             avatarURL: avatarURL,
