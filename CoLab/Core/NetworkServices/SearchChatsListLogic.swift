@@ -15,11 +15,13 @@ struct SearchChatsPage {
 
 protocol SearchChatsListLogic: AnyObject {
     func fetchFirstPage(
-        limit: Int
+        limit: Int,
+        searchText: String?
     ) -> AnyPublisher<SearchChatsPage, FetchUserChatsError>
     
     func fetchNextPage(
-        limit: Int
+        limit: Int,
+        searchText: String?
     ) -> AnyPublisher<SearchChatsPage, FetchUserChatsError>
     
     func reset()

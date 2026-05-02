@@ -29,6 +29,7 @@ final class SearchChatsListInteractor: SearchChatsListBusinessLogic {
     private var orderedChats: [ChatModel] = []
     private var canLoadMore = false
     private var isLoadingPage = false
+    private var searchText: String?
     private var currentUserAvatarURL: String?
     private var avatarSourcesByChatId: [String: AvatarSource] = [:]
     
@@ -69,6 +70,7 @@ final class SearchChatsListInteractor: SearchChatsListBusinessLogic {
                 bg: colorRepository.backgroundColor,
                 bgGradient: colorRepository.backgroundGradientColor,
                 elementsBase: colorRepository.elementsBaseColor,
+                tint: colorRepository.tintColor,
                 textColor: colorRepository.mainTextColor,
                 startGradient: colorRepository.firstGradientColor,
                 endGradient: colorRepository.secondGradientColor
@@ -125,7 +127,10 @@ final class SearchChatsListInteractor: SearchChatsListBusinessLogic {
         avatarCancellables.removeAll()
         
         loadPage(
-            chatListService.fetchFirstPage(limit: Constants.pageLimit),
+            chatListService.fetchFirstPage(
+                limit: Constants.pageLimit,
+                searchText: searchText
+            ),
             replacingCurrentChats: true
         )
     }
@@ -135,9 +140,17 @@ final class SearchChatsListInteractor: SearchChatsListBusinessLogic {
         guard !isLoadingPage else { return }
         
         loadPage(
-            chatListService.fetchNextPage(limit: Constants.pageLimit),
+            chatListService.fetchNextPage(
+                limit: Constants.pageLimit,
+                searchText: searchText
+            ),
             replacingCurrentChats: false
         )
+    }
+    
+    func updateSearchText(_ text: String) {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        searchText = trimmedText.isEmpty ? nil : trimmedText
     }
     
     func loadAddChatScreen(

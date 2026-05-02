@@ -22,14 +22,20 @@ final class SearchChatsListService: SearchChatsListLogic {
     // MARK: Use-cases
     
     func fetchFirstPage(
-        limit: Int
+        limit: Int,
+        searchText: String?
     ) -> AnyPublisher<SearchChatsPage, FetchUserChatsError> {
         reset()
-        return fetchPage(after: nil, limit: limit)
+        return fetchPage(
+            after: nil,
+            limit: limit,
+            searchText: searchText
+        )
     }
     
     func fetchNextPage(
-        limit: Int
+        limit: Int,
+        searchText: String?
     ) -> AnyPublisher<SearchChatsPage, FetchUserChatsError> {
         guard let lastDocument else {
             return Just(SearchChatsPage(chats: [], hasMore: false))
@@ -37,7 +43,11 @@ final class SearchChatsListService: SearchChatsListLogic {
                 .eraseToAnyPublisher()
         }
         
-        return fetchPage(after: lastDocument, limit: limit)
+        return fetchPage(
+            after: lastDocument,
+            limit: limit,
+            searchText: searchText
+        )
     }
     
     func reset() {
@@ -48,7 +58,8 @@ final class SearchChatsListService: SearchChatsListLogic {
     
     private func fetchPage(
         after document: QueryDocumentSnapshot?,
-        limit: Int
+        limit: Int,
+        searchText: String?
     ) -> AnyPublisher<SearchChatsPage, FetchUserChatsError> {
         Deferred { [weak self] in
             let subject = PassthroughSubject<SearchChatsPage, FetchUserChatsError>()
