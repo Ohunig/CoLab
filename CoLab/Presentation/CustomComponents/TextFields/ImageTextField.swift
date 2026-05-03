@@ -29,6 +29,16 @@ final class ImageTextField: UIView {
     
     private let textField = UITextField()
     
+    var onReturn: (() -> Void)?
+    
+    // Чтобы мы могли менять размеры картинки извне
+    private lazy var imageHeightAnchor = image.heightAnchor.constraint(
+        equalToConstant: Constants.imageHeight
+    )
+    private lazy var imageWidthAnchor = image.widthAnchor.constraint(
+        equalTo: image.heightAnchor
+    )
+    
     // MARK: Computed properties
     
     var placeholder: String? {
@@ -79,6 +89,42 @@ final class ImageTextField: UIView {
         }
     }
     
+    var cornerRadius: CGFloat {
+        get {
+            layer.cornerRadius
+        }
+        set {
+            layer.cornerRadius = newValue
+        }
+    }
+    
+    var font: UIFont? {
+        get {
+            textField.font
+        }
+        set {
+            textField.font = newValue
+        }
+    }
+    
+    var imageSize: CGFloat {
+        get {
+            imageHeightAnchor.constant
+        }
+        set {
+            imageHeightAnchor.constant = newValue
+        }
+    }
+    
+    var returnKeyType: UIReturnKeyType {
+        get {
+            textField.returnKeyType
+        }
+        set {
+            textField.returnKeyType = newValue
+        }
+    }
+    
     // MARK: Lifecycle
     
     init(image: UIImage?) {
@@ -117,12 +163,8 @@ final class ImageTextField: UIView {
                 image.centerYAnchor.constraint(
                     equalTo: self.centerYAnchor
                 ),
-                image.heightAnchor.constraint(
-                    equalToConstant: Constants.imageHeight
-                ),
-                image.widthAnchor.constraint(
-                    equalTo: image.heightAnchor
-                ),
+                imageHeightAnchor,
+                imageWidthAnchor,
                 image.topAnchor.constraint(
                     greaterThanOrEqualTo: self.topAnchor
                 ),
@@ -190,6 +232,7 @@ final class ImageTextField: UIView {
 extension ImageTextField: UITextFieldDelegate {
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        onReturn?()
         textField.resignFirstResponder()
         return true
     }

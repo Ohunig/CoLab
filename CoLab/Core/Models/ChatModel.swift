@@ -16,5 +16,6 @@ struct ChatModel: Codable, Equatable, Identifiable {
     let lastMessageDate: Date?
     let avatarURL: String?
     let memberIds: [String]
+    let searchKeywords: [String]
 }
 

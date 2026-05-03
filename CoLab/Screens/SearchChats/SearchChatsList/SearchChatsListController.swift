@@ -27,6 +27,18 @@ final class SearchChatsListController: UIViewController {
         static let estimatedRowHeight: CGFloat = 196
         
         static let initialLoadingHeight: CGFloat = 56
+        
+        static let searchFieldCornerRadius: CGFloat = 20
+        static let searchFieldFontSize: CGFloat = 18
+        static let searchFieldImageSize: CGFloat = 28
+        static let searchFieldImage = "magnifyingglass"
+        static let searchFieldPlaceholder = "Поиск чатов"
+        static let searchFieldHeight: CGFloat = 46
+        static let searchHeaderTop: CGFloat = 14
+        static let searchHeaderBottom: CGFloat = 16
+        static let searchHeaderHeight = searchHeaderTop
+            + searchFieldHeight
+            + searchHeaderBottom
 
         static let headerCoverLiftFactor: CGFloat = 0.22
         static let headerTop: CGFloat = -30
@@ -40,6 +52,10 @@ final class SearchChatsListController: UIViewController {
     
     private let tableView = UITableView(frame: .zero, style: .plain)
     private let emptyStateLabel = UILabel()
+    private let searchHeaderView = UIView()
+    private let searchField = ImageTextField(
+        image: UIImage(systemName: Constants.searchFieldImage)
+    )
     
     private let initialLoadingIndicator = UIActivityIndicatorView(style: .medium)
 
@@ -112,6 +128,7 @@ final class SearchChatsListController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         updateHeaderAndContainerLayoutIfNeeded()
+        updateSearchHeaderFrameIfNeeded()
         updateInitialLoadingFrameIfNeeded()
     }
     
@@ -121,6 +138,7 @@ final class SearchChatsListController: UIViewController {
         configureTableView()
         configureHeader()
         configureContainer()
+        configureKeyboardHiding()
         view.bringSubviewToFront(tableView)
     }
     
@@ -148,6 +166,7 @@ final class SearchChatsListController: UIViewController {
             forCellReuseIdentifier: SearchChatItemCell.reuseIdentifier
         )
         tableView.backgroundView = emptyStateLabel
+        configureSearchField()
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
         configureInitialLoading()
@@ -162,6 +181,49 @@ final class SearchChatsListController: UIViewController {
             ),
             tableView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
+    }
+    
+    private func configureSearchField() {
+        searchField.placeholder = Constants.searchFieldPlaceholder
+        searchField.cornerRadius = Constants.searchFieldCornerRadius
+        searchField.font = .systemFont(
+            ofSize: Constants.searchFieldFontSize,
+            weight: .medium
+        )
+        searchField.imageSize = Constants.searchFieldImageSize
+        searchField.returnKeyType = .search
+        searchField.onReturn = { [weak self] in
+            self?.submitSearchText()
+        }
+        searchField.translatesAutoresizingMaskIntoConstraints = false
+        
+        searchHeaderView.backgroundColor = .clear
+        searchHeaderView.addSubview(searchField)
+        
+        NSLayoutConstraint.activate([
+            searchField.topAnchor.constraint(
+                equalTo: searchHeaderView.topAnchor,
+                constant: Constants.searchHeaderTop
+            ),
+            searchField.leadingAnchor.constraint(
+                equalTo: searchHeaderView.leadingAnchor
+            ),
+            searchField.trailingAnchor.constraint(
+                equalTo: searchHeaderView.trailingAnchor
+            ),
+            searchField.heightAnchor.constraint(
+                equalToConstant: Constants.searchFieldHeight
+            )
+        ])
+    }
+    
+    private func configureKeyboardHiding() {
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(screenTapped)
+        )
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
     }
     
     private func configureHeader() {
@@ -249,6 +311,26 @@ final class SearchChatsListController: UIViewController {
         headerView.setCompressionProgress(recessionProgress)
     }
     
+    private func updateSearchHeaderFrameIfNeeded() {
+        guard tableView.bounds.width > 0 else { return }
+        
+        let targetFrame = CGRect(
+            origin: .zero,
+            size: CGSize(
+                width: tableView.bounds.width,
+                height: Constants.searchHeaderHeight
+            )
+        )
+        
+        let shouldUpdateFrame = searchHeaderView.frame != targetFrame
+        let shouldInstallHeader = tableView.tableHeaderView !== searchHeaderView
+        
+        guard shouldUpdateFrame || shouldInstallHeader else { return }
+        
+        searchHeaderView.frame = targetFrame
+        tableView.tableHeaderView = searchHeaderView
+    }
+    
     // MARK: Chats state
     
     private func syncChatsStateFromProvider() {
@@ -264,26 +346,15 @@ final class SearchChatsListController: UIViewController {
         tableView.reloadData()
     }
     
-    private func applyChatsState(chatIds: [String], animated: Bool) {
-        let previousChatIds = displayedChatIds
+    private func applyChatsState(chatIds: [String], animated _: Bool) {
         displayedChatIds = chatIds
         hideInitialLoading()
         emptyStateLabel.isHidden = !hasLoadedChatsState || !chatIds.isEmpty
         
-        guard animated,
-              !previousChatIds.isEmpty,
-              chatIds.count >= previousChatIds.count,
-              Array(chatIds.prefix(previousChatIds.count)) == previousChatIds else {
+        UIView.performWithoutAnimation {
             tableView.reloadData()
-            return
+            tableView.layoutIfNeeded()
         }
-        
-        guard chatIds.count > previousChatIds.count else { return }
-        
-        let indexPaths = (previousChatIds.count..<chatIds.count).map {
-            IndexPath(row: $0, section: 0)
-        }
-        tableView.insertRows(at: indexPaths, with: .fade)
     }
 
     // Лоадер находится внутри таблицы, чтобы двигаться вместе с контентом
@@ -312,9 +383,23 @@ final class SearchChatsListController: UIViewController {
 
         initialLoadingIndicator.center = CGPoint(
             x: tableView.bounds.midX,
-            y: Constants.initialLoadingHeight / 2
+            y: Constants.searchHeaderHeight + Constants.initialLoadingHeight / 2
         )
         tableView.bringSubviewToFront(initialLoadingIndicator)
+    }
+    
+    // MARK: Actions
+    
+    @objc
+    private func screenTapped(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: searchField)
+        guard !searchField.bounds.contains(location) else { return }
+        
+        view.endEditing(true)
+    }
+    
+    private func submitSearchText() {
+        interactor.updateSearchText(searchField.text ?? "")
     }
     
     private func configure(
@@ -351,6 +436,10 @@ extension SearchChatsListController: SearchChatsListDisplayLogic {
             hex: viewModel.elementsBase.hex,
             alpha: viewModel.elementsBase.a
         )
+        let tintColor = UIColor(
+            hex: viewModel.tint.hex,
+            alpha: viewModel.tint.a
+        )
         let textColor = UIColor(
             hex: viewModel.textColor.hex,
             alpha: viewModel.textColor.a
@@ -364,6 +453,10 @@ extension SearchChatsListController: SearchChatsListDisplayLogic {
         
         containerView.fillColor = bg
         containerView.glowColor = bgGradient
+        
+        searchField.baseColor = base
+        searchField.tintColor = tintColor
+        searchField.textColor = textColor
     }
     
     func displayCurrentUserAvatar(_ viewModel: Model.CurrentUserAvatar.ViewModel) {

@@ -100,6 +100,7 @@ final class UserChatListService: UserChatListLogic {
         let lastMessageDate = timestamp?.dateValue()
         let avatarURL = data[Chats.avatarURL.path] as? String
         let users = data[Chats.memberIds.path] as? [String] ?? []
+        let searchKeywords = data[Chats.searchKeywords.path] as? [String] ?? []
         
         return ChatModel(
             id: id,
@@ -109,7 +110,8 @@ final class UserChatListService: UserChatListLogic {
             lastMessageText: lastMessageText,
             lastMessageDate: lastMessageDate,
             avatarURL: avatarURL,
-            memberIds: users
+            memberIds: users,
+            searchKeywords: searchKeywords
         )
     }
     

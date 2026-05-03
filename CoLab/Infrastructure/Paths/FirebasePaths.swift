@@ -39,6 +39,7 @@ enum FirebasePaths {
         case lastMessageText
         case avatarURL
         case categories
+        case searchKeywords
         
         var path: String {
             switch self {
@@ -58,6 +59,8 @@ enum FirebasePaths {
                 "avatarURL"
             case .categories:
                 "categories"
+            case .searchKeywords:
+                "searchKeywords"
             }
         }
     }
