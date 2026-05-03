@@ -150,7 +150,12 @@ final class SearchChatsListInteractor: SearchChatsListBusinessLogic {
     
     func updateSearchText(_ text: String) {
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        searchText = trimmedText.isEmpty ? nil : trimmedText
+        let nextSearchText = trimmedText.isEmpty ? nil : trimmedText
+        
+        guard searchText != nextSearchText else { return }
+        
+        searchText = nextSearchText
+        reloadChats()
     }
     
     func loadAddChatScreen(
@@ -162,6 +167,23 @@ final class SearchChatsListInteractor: SearchChatsListBusinessLogic {
     }
     
     // MARK: Helpers
+    
+    private func reloadChats() {
+        pageCancellables.removeAll()
+        isLoadingPage = false
+        orderedChats.removeAll()
+        canLoadMore = false
+        chatListService.reset()
+        
+        avatarSourcesByChatId.removeAll()
+        avatarCancellables.values.forEach { $0.cancel() }
+        avatarCancellables.removeAll()
+        
+        presenter.presentChats(
+            Model.ChatsList.Response(chats: [])
+        )
+        loadInitialChats()
+    }
     
     private func loadPage(
         _ publisher: AnyPublisher<SearchChatsPage, FetchUserChatsError>,

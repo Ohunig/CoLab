@@ -14,6 +14,7 @@ final class SearchChatsListService: SearchChatsListLogic {
     
     private struct Constants {
         static let fallbackTitle = "Chat"
+        static let maxSearchWords = 20
     }
     
     private let db = Firestore.firestore()
@@ -80,6 +81,20 @@ final class SearchChatsListService: SearchChatsListLogic {
                     .whereField(Chats.isPublic.path, isEqualTo: true)
                     .order(by: FieldPath.documentID(), descending: true)
                 
+                let searchWords = self.normalizedSearchWords(searchText)
+                
+                if searchWords.count == 1, let searchWord = searchWords.first {
+                    query = query.whereField(
+                        Chats.searchKeywords.path,
+                        arrayContains: searchWord
+                    )
+                } else if !searchWords.isEmpty {
+                    query = query.whereField(
+                        Chats.searchKeywords.path,
+                        arrayContainsAny: searchWords
+                    )
+                }
+                
                 if let document {
                     query = query.start(afterDocument: document)
                 }
@@ -129,6 +144,25 @@ final class SearchChatsListService: SearchChatsListLogic {
         .eraseToAnyPublisher()
     }
     
+    private func normalizedSearchWords(_ text: String?) -> [String] {
+        let separators = CharacterSet.whitespacesAndNewlines
+            .union(.punctuationCharacters)
+        
+        let words = text?
+            .lowercased()
+            .components(separatedBy: separators)
+            .filter { !$0.isEmpty } ?? []
+        
+        var usedWords = Set<String>()
+        
+        return words.reduce(into: []) { result, word in
+            guard result.count < Constants.maxSearchWords else { return }
+            guard usedWords.insert(word).inserted else { return }
+            
+            result.append(word)
+        }
+    }
+    
     private func decodeChat(from snapshot: QueryDocumentSnapshot) -> ChatModel? {
         let data = snapshot.data()
         
@@ -141,6 +175,7 @@ final class SearchChatsListService: SearchChatsListLogic {
         let lastMessageDate = timestamp?.dateValue()
         let avatarURL = data[Chats.avatarURL.path] as? String
         let users = data[Chats.memberIds.path] as? [String] ?? []
+        let searchKeywords = data[Chats.searchKeywords.path] as? [String] ?? []
         
         return ChatModel(
             id: id,
@@ -150,7 +185,8 @@ final class SearchChatsListService: SearchChatsListLogic {
             lastMessageText: lastMessageText,
             lastMessageDate: lastMessageDate,
             avatarURL: avatarURL,
-            memberIds: users
+            memberIds: users,
+            searchKeywords: searchKeywords
         )
     }
     

@@ -138,6 +138,7 @@ final class SearchChatsListController: UIViewController {
         configureTableView()
         configureHeader()
         configureContainer()
+        configureKeyboardHiding()
         view.bringSubviewToFront(tableView)
     }
     
@@ -190,11 +191,10 @@ final class SearchChatsListController: UIViewController {
             weight: .medium
         )
         searchField.imageSize = Constants.searchFieldImageSize
-        searchField.addTarget(
-            self,
-            action: #selector(searchTextDidChange),
-            for: .editingChanged
-        )
+        searchField.returnKeyType = .search
+        searchField.onReturn = { [weak self] in
+            self?.submitSearchText()
+        }
         searchField.translatesAutoresizingMaskIntoConstraints = false
         
         searchHeaderView.backgroundColor = .clear
@@ -215,6 +215,15 @@ final class SearchChatsListController: UIViewController {
                 equalToConstant: Constants.searchFieldHeight
             )
         ])
+    }
+    
+    private func configureKeyboardHiding() {
+        let tapGesture = UITapGestureRecognizer(
+            target: self,
+            action: #selector(screenTapped)
+        )
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
     }
     
     private func configureHeader() {
@@ -337,26 +346,15 @@ final class SearchChatsListController: UIViewController {
         tableView.reloadData()
     }
     
-    private func applyChatsState(chatIds: [String], animated: Bool) {
-        let previousChatIds = displayedChatIds
+    private func applyChatsState(chatIds: [String], animated _: Bool) {
         displayedChatIds = chatIds
         hideInitialLoading()
         emptyStateLabel.isHidden = !hasLoadedChatsState || !chatIds.isEmpty
         
-        guard animated,
-              !previousChatIds.isEmpty,
-              chatIds.count >= previousChatIds.count,
-              Array(chatIds.prefix(previousChatIds.count)) == previousChatIds else {
+        UIView.performWithoutAnimation {
             tableView.reloadData()
-            return
+            tableView.layoutIfNeeded()
         }
-        
-        guard chatIds.count > previousChatIds.count else { return }
-        
-        let indexPaths = (previousChatIds.count..<chatIds.count).map {
-            IndexPath(row: $0, section: 0)
-        }
-        tableView.insertRows(at: indexPaths, with: .fade)
     }
 
     // Лоадер находится внутри таблицы, чтобы двигаться вместе с контентом
@@ -393,7 +391,14 @@ final class SearchChatsListController: UIViewController {
     // MARK: Actions
     
     @objc
-    private func searchTextDidChange() {
+    private func screenTapped(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: searchField)
+        guard !searchField.bounds.contains(location) else { return }
+        
+        view.endEditing(true)
+    }
+    
+    private func submitSearchText() {
         interactor.updateSearchText(searchField.text ?? "")
     }
     
