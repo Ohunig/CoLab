@@ -29,6 +29,8 @@ final class ImageTextField: UIView {
     
     private let textField = UITextField()
     
+    var onReturn: (() -> Void)?
+    
     // Чтобы мы могли менять размеры картинки извне
     private lazy var imageHeightAnchor = image.heightAnchor.constraint(
         equalToConstant: Constants.imageHeight
@@ -111,6 +113,15 @@ final class ImageTextField: UIView {
         }
         set {
             imageHeightAnchor.constant = newValue
+        }
+    }
+    
+    var returnKeyType: UIReturnKeyType {
+        get {
+            textField.returnKeyType
+        }
+        set {
+            textField.returnKeyType = newValue
         }
     }
     
@@ -221,6 +232,7 @@ final class ImageTextField: UIView {
 extension ImageTextField: UITextFieldDelegate {
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        onReturn?()
         textField.resignFirstResponder()
         return true
     }
