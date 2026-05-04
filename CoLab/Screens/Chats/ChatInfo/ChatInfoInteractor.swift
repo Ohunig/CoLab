@@ -38,9 +38,12 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
     private let colorRepository: ColorStorageLogic
     private let userService: UserServiceLogic
     private let avatarService: AvatarServiceLogic
+    private let chatService: ChatLogic
+    private let router: ChatsRoutingLogic
     
     private var currentAvatarData: Data?
     private var isAvatarLoading = false
+    private var isLeaving = false
     private var membersById: [String: UserModel] = [:]
     private var pipelineCancellables = Set<AnyCancellable>()
     private var hasPresentedError = false
@@ -55,8 +58,11 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         presenter: ChatInfoPresentationLogic,
         colorRepository: ColorStorageLogic,
         userService: UserServiceLogic,
-        avatarService: AvatarServiceLogic
+        avatarService: AvatarServiceLogic,
+        chatService: ChatLogic,
+        router: ChatsRoutingLogic
     ) {
+        self.chatId = chatId
         self.chatTitle = chatTitle
         self.chatDescription = chatDescription
         self.chatAvatarURL = chatAvatarURL
@@ -65,6 +71,8 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         self.colorRepository = colorRepository
         self.userService = userService
         self.avatarService = avatarService
+        self.chatService = chatService
+        self.router = router
     }
     
     // MARK: Use-cases

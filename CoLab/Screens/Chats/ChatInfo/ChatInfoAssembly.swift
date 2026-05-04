@@ -42,7 +42,20 @@ enum ChatInfoAssembly {
             fatalError(Constants.notAllServicesRegistered)
         }
         
+        guard let chatService = CompositionRoot.container.resolve(
+            ChatLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        
+        guard let router = CompositionRoot.container.resolve(
+            ChatsRoutingLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        
         let interactor = ChatInfoInteractor(
+            chatId: chatId,
             chatTitle: chatTitle,
             chatDescription: chatDescription,
             chatAvatarURL: chatAvatarURL,

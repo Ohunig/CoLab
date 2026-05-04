@@ -24,7 +24,7 @@ final class AddChatInteractor: AddChatBusinessLogic {
     
     private let presenter: AddChatPresentationLogic
     private let colorRepository: ColorStorageLogic
-    private let addChatService: AddChatLogic
+    private let addChatService: ChatLogic
     private let userService: UserServiceLogic
     private let avatarService: AvatarServiceLogic
     
@@ -50,7 +50,7 @@ final class AddChatInteractor: AddChatBusinessLogic {
         chatId: String,
         presenter: AddChatPresentationLogic,
         colorRepository: ColorStorageLogic,
-        addChatService: AddChatLogic,
+        addChatService: ChatLogic,
         userService: UserServiceLogic,
         avatarService: AvatarServiceLogic
     ) {
