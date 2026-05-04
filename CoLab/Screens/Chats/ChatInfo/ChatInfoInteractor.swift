@@ -29,6 +29,7 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         let changedUsers: [UserModel]
     }
     
+    private let chatId: String
     private let chatTitle: String
     private let chatDescription: String?
     private let chatAvatarURL: String?
@@ -51,6 +52,7 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
     // MARK: Lifecycle
     
     init(
+        chatId: String,
         chatTitle: String,
         chatDescription: String?,
         chatAvatarURL: String?,
@@ -98,6 +100,30 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         
         loadChatAvatarIfNeeded()
         bindMembers()
+    }
+    
+    func leaveChat() {
+        guard !isLeaving else { return }
+        
+        isLeaving = true
+        chatService.removeCurrentUser(fromChat: chatId)
+            .receive(on: DispatchQueue.main)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    guard let self else { return }
+                    
+                    if case let .failure(error) = completion {
+                        self.isLeaving = false
+                        self.presenter.presentError(
+                            Model.ShowError.Response(error: error)
+                        )
+                    }
+                },
+                receiveValue: { [weak self] in
+                    self?.router.routeToUserChats()
+                }
+            )
+            .store(in: &pipelineCancellables)
     }
     
     private func loadChatAvatarIfNeeded() {

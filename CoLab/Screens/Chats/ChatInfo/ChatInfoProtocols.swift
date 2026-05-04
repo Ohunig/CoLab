@@ -13,6 +13,8 @@ protocol ChatInfoBusinessLogic: AnyObject {
     
     // Начальные настройки экрана
     func loadStart()
+    
+    func leaveChat()
 }
 
 // Даёт контроллеру уже подготовленные данные для конкретной ячейки

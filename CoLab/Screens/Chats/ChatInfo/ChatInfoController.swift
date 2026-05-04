@@ -26,6 +26,10 @@ final class ChatInfoController: UIViewController {
         static let bottomInset: CGFloat = 24
         static let updateDuration = 0.25
         
+        static let exitCellHeight: CGFloat = 80
+        static let exitCellTop: CGFloat = 20
+        static let exitCellText = "Выйти из чата"
+        
         static let unknownTitle = "..."
         static let emptyStateText = "Участников нет"
         static let estimatedRowHeight: CGFloat = 80
@@ -57,8 +61,10 @@ final class ChatInfoController: UIViewController {
     private let tableView = ContentSizedTableView(frame: .zero, style: .plain)
     private lazy var dataSource = makeDataSource()
     
+    private let exitCell = ItemCell()
+    
     private var avatarTopConstraint: NSLayoutConstraint?
-    private var tableBottomConstraint: NSLayoutConstraint?
+    private var bottomConstraint: NSLayoutConstraint?
     
     // MARK: Lifecycle
     
@@ -103,14 +109,17 @@ final class ChatInfoController: UIViewController {
         configureBackButton()
         configureHeader()
         configureMembers()
+        configureExitButton()
         updateInsetConstraints()
     }
     
     private func configureScrollView() {
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.delaysContentTouches = false
         scrollView.showsVerticalScrollIndicator = false
         scrollView.alwaysBounceVertical = true
         scrollView.contentInsetAdjustmentBehavior = .never
+        
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scrollView)
         
         NSLayoutConstraint.activate([
@@ -224,11 +233,6 @@ final class ChatInfoController: UIViewController {
         scrollView.addSubview(tableView)
         scrollView.addSubview(emptyStateLabel)
         
-        tableBottomConstraint = tableView.bottomAnchor.constraint(
-            equalTo: scrollView.contentLayoutGuide.bottomAnchor
-        )
-        tableBottomConstraint?.isActive = true
-        
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(
                 equalTo: headerTextStackView.bottomAnchor,
@@ -261,9 +265,35 @@ final class ChatInfoController: UIViewController {
         ])
     }
     
+    private func configureExitButton() {
+        exitCell.addAction(
+            UIAction { [weak self] _ in
+                self?.interactor.leaveChat()
+            },
+            for: .touchUpInside
+        )
+        exitCell.text = Constants.exitCellText
+        exitCell.textColor = .red
+        exitCell.tintColor = .red
+        exitCell.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(exitCell)
+        
+        bottomConstraint = exitCell.bottomAnchor.constraint(
+            equalTo: scrollView.contentLayoutGuide.bottomAnchor
+        )
+        bottomConstraint?.isActive = true
+        
+        NSLayoutConstraint.activate([
+            exitCell.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.horisontalInset),
+            exitCell.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            exitCell.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: Constants.exitCellTop),
+            exitCell.heightAnchor.constraint(equalToConstant: Constants.exitCellHeight)
+        ])
+    }
+    
     private func updateInsetConstraints() {
         avatarTopConstraint?.constant = view.safeAreaInsets.top + Constants.avatarTop
-        tableBottomConstraint?.constant = -(view.safeAreaInsets.bottom + Constants.bottomInset)
+        bottomConstraint?.constant = -(view.safeAreaInsets.bottom + Constants.bottomInset)
     }
     
     private func updateAvatarImage(_ image: UIImage?) {
@@ -392,9 +422,11 @@ extension ChatInfoController: ChatInfoDisplayLogic {
         backgroundView.bgColor = bgColor
         backgroundView.gradientColor = bgGradientColor
         
-        // Кнопка назад
+        // Кнопка назад + кнопка выхода
         backButton.baseColor = elementsBaseColor
         backButton.tintColor = tintColor
+        
+        exitCell.baseColor = elementsBaseColor
         
         // Аватар + название чата
         avatar.borderColor = elementsBaseColor

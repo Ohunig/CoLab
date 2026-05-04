@@ -22,9 +22,12 @@ protocol ChatsRoutingLogic: AnyObject {
     )
     
     func routeToChatInfo(
+        chatId: String,
         chatTitle: String,
         chatDescription: String?,
         chatAvatarURL: String?,
         memberIds: [String]
     )
+    
+    func routeToUserChats()
 }
