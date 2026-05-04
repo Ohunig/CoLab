@@ -214,6 +214,7 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
     
     func loadChatInfoScreen() {
         router.routeToChatInfo(
+            chatId: chatId,
             chatTitle: chatTitle,
             chatDescription: chatDescription,
             chatAvatarURL: chatAvatarURL,

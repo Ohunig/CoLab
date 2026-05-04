@@ -16,6 +16,7 @@ enum ChatInfoAssembly {
     }
     
     static func build(
+        chatId: String,
         chatTitle: String,
         chatDescription: String?,
         chatAvatarURL: String?,
@@ -42,7 +43,20 @@ enum ChatInfoAssembly {
             fatalError(Constants.notAllServicesRegistered)
         }
         
+        guard let chatService = CompositionRoot.container.resolve(
+            ChatLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        
+        guard let router = CompositionRoot.container.resolve(
+            ChatsRoutingLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        
         let interactor = ChatInfoInteractor(
+            chatId: chatId,
             chatTitle: chatTitle,
             chatDescription: chatDescription,
             chatAvatarURL: chatAvatarURL,
@@ -50,7 +64,9 @@ enum ChatInfoAssembly {
             presenter: presenter,
             colorRepository: colorRepository,
             userService: userService,
-            avatarService: avatarService
+            avatarService: avatarService,
+            chatService: chatService,
+            router: router
         )
         
         let controller = ChatInfoController(

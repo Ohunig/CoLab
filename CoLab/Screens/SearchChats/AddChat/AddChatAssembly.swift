@@ -28,7 +28,7 @@ enum AddChatAssembly {
         }
         
         guard let addChatService = CompositionRoot.container.resolve(
-            AddChatLogic.self
+            ChatLogic.self
         ) else {
             fatalError(Constants.notAllServicesRegistered)
         }

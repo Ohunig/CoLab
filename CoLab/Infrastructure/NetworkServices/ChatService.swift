@@ -1,5 +1,5 @@
 //
-//  AddChatService.swift
+//  ChatService.swift
 //  CoLab
 //
 //  Created by User on 02.05.2026.
@@ -10,7 +10,7 @@ import Combine
 import FirebaseAuth
 import FirebaseFirestore
 
-final class AddChatService: AddChatLogic {
+final class ChatService: ChatLogic {
     private typealias Chats = FirebasePaths.Chats
     
     private struct Constants {
@@ -80,6 +80,34 @@ final class AddChatService: AddChatLogic {
                 .updateData([
                     // Не добавляет если такой id уже есть, проверки не нужны
                     Chats.memberIds.path: FieldValue.arrayUnion([userId])
+                ]) { error in
+                    if let error {
+                        promise(.failure(self.decodeError(error)))
+                    } else {
+                        promise(.success(()))
+                    }
+                }
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    func removeCurrentUser(
+        fromChat chatId: String
+    ) -> AnyPublisher<Void, FetchUserChatsError> {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            return Fail(error: .permissionDenied).eraseToAnyPublisher()
+        }
+        
+        return Future<Void, FetchUserChatsError> { [weak self] promise in
+            guard let self else {
+                promise(.failure(.unknown))
+                return
+            }
+            
+            self.db.collection(Chats.root)
+                .document(chatId)
+                .updateData([
+                    Chats.memberIds.path: FieldValue.arrayRemove([userId])
                 ]) { error in
                     if let error {
                         promise(.failure(self.decodeError(error)))

@@ -29,6 +29,7 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         let changedUsers: [UserModel]
     }
     
+    private let chatId: String
     private let chatTitle: String
     private let chatDescription: String?
     private let chatAvatarURL: String?
@@ -38,9 +39,12 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
     private let colorRepository: ColorStorageLogic
     private let userService: UserServiceLogic
     private let avatarService: AvatarServiceLogic
+    private let chatService: ChatLogic
+    private let router: ChatsRoutingLogic
     
     private var currentAvatarData: Data?
     private var isAvatarLoading = false
+    private var isLeaving = false
     private var membersById: [String: UserModel] = [:]
     private var pipelineCancellables = Set<AnyCancellable>()
     private var hasPresentedError = false
@@ -48,6 +52,7 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
     // MARK: Lifecycle
     
     init(
+        chatId: String,
         chatTitle: String,
         chatDescription: String?,
         chatAvatarURL: String?,
@@ -55,8 +60,11 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         presenter: ChatInfoPresentationLogic,
         colorRepository: ColorStorageLogic,
         userService: UserServiceLogic,
-        avatarService: AvatarServiceLogic
+        avatarService: AvatarServiceLogic,
+        chatService: ChatLogic,
+        router: ChatsRoutingLogic
     ) {
+        self.chatId = chatId
         self.chatTitle = chatTitle
         self.chatDescription = chatDescription
         self.chatAvatarURL = chatAvatarURL
@@ -65,6 +73,8 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         self.colorRepository = colorRepository
         self.userService = userService
         self.avatarService = avatarService
+        self.chatService = chatService
+        self.router = router
     }
     
     // MARK: Use-cases
@@ -90,6 +100,30 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         
         loadChatAvatarIfNeeded()
         bindMembers()
+    }
+    
+    func leaveChat() {
+        guard !isLeaving else { return }
+        
+        isLeaving = true
+        chatService.removeCurrentUser(fromChat: chatId)
+            .receive(on: DispatchQueue.main)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    guard let self else { return }
+                    
+                    if case let .failure(error) = completion {
+                        self.isLeaving = false
+                        self.presenter.presentError(
+                            Model.ShowError.Response(error: error)
+                        )
+                    }
+                },
+                receiveValue: { [weak self] in
+                    self?.router.routeToUserChats()
+                }
+            )
+            .store(in: &pipelineCancellables)
     }
     
     private func loadChatAvatarIfNeeded() {

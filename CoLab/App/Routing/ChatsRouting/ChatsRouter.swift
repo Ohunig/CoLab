@@ -38,6 +38,7 @@ final class ChatsRouter: ChatsRoutingLogic {
     }
     
     func routeToChatInfo(
+        chatId: String,
         chatTitle: String,
         chatDescription: String?,
         chatAvatarURL: String?,
@@ -45,6 +46,7 @@ final class ChatsRouter: ChatsRoutingLogic {
     ) {
         navigationController?.pushViewController(
             ChatInfoAssembly.build(
+                chatId: chatId,
                 chatTitle: chatTitle,
                 chatDescription: chatDescription,
                 chatAvatarURL: chatAvatarURL,
@@ -52,5 +54,9 @@ final class ChatsRouter: ChatsRoutingLogic {
             ),
             animated: true
         )
+    }
+    
+    func routeToUserChats() {
+        navigationController?.popToRootViewController(animated: true)
     }
 }
