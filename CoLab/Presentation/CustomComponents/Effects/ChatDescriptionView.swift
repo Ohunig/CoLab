@@ -74,19 +74,39 @@ final class ChatDescriptionView: UIView {
         }
     }
     
+    var numberOfLines: Int {
+        get { label.numberOfLines }
+        set {
+            label.numberOfLines = newValue
+            invalidateIntrinsicContentSize()
+        }
+    }
+    
+    var lineBreakMode: NSLineBreakMode {
+        get { label.lineBreakMode }
+        set { label.lineBreakMode = newValue }
+    }
+    
     static func preferredHeight(
         for text: String,
-        maxWidth: CGFloat
+        maxWidth: CGFloat,
+        numberOfLines: Int = Constants.numberOfLines
     ) -> CGFloat {
+        let font = UIFont.systemFont(
+            ofSize: Constants.fontSize,
+            weight: .regular
+        )
+        
+        if numberOfLines == 1 {
+            return Constants.verticalInset * 2 + ceil(font.lineHeight)
+        }
+        
         let labelMaxWidth = max(0, maxWidth - Constants.horisontalInset * 2)
         let textBoundingRect = NSString(string: text).boundingRect(
             with: CGSize(width: labelMaxWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading],
             attributes: [
-                .font: UIFont.systemFont(
-                    ofSize: Constants.fontSize,
-                    weight: .regular
-                )
+                .font: font
             ],
             context: nil
         )

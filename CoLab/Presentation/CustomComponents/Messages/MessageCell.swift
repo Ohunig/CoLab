@@ -246,7 +246,8 @@ final class MessageCell: UICollectionViewCell {
             let descriptionWidth = width * Constants.maxDescriptionWidthMultiplier
             return ChatDescriptionView.preferredHeight(
                 for: text,
-                maxWidth: descriptionWidth
+                maxWidth: descriptionWidth,
+                numberOfLines: 1
             ) + Constants.verticalInset * 2
         }
     }
@@ -265,6 +266,8 @@ final class MessageCell: UICollectionViewCell {
         
         eventDescriptionView.translatesAutoresizingMaskIntoConstraints = false
         eventDescriptionView.isHidden = true
+        eventDescriptionView.numberOfLines = 1
+        eventDescriptionView.lineBreakMode = .byTruncatingTail
         
         contentView.addSubview(avatarView)
         contentView.addSubview(bubbleView)

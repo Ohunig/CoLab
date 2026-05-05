@@ -23,6 +23,8 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
         static let memberLeftTextColor = (hex: "#FF5A5F", a: CGFloat(1))
         static let currentUserName = "Вы"
         static let unknownUserName = "Участник"
+        static let maxMemberEventNameLength = 12
+        static let trimmedNameSuffix = "..."
     }
     
     weak var controller: ChatMessagesDisplayLogic?
@@ -240,12 +242,22 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
         switch kind {
         case .memberJoined:
             if isCurrentUserEvent { return "Вы вошли в чат" }
-            return "\(memberName) вошёл в чат"
+            return "\(trimmedMemberEventName(memberName)) вошёл в чат"
         case .memberLeft:
             if isCurrentUserEvent { return "Вы вышли из чата" }
-            return "\(memberName) вышел из чата"
+            return "\(trimmedMemberEventName(memberName)) вышел из чата"
         case .text:
             return fallbackText
         }
+    }
+    
+    private func trimmedMemberEventName(_ name: String) -> String {
+        guard name.count > Constants.maxMemberEventNameLength else {
+            return name
+        }
+        
+        let prefixLength = Constants.maxMemberEventNameLength
+            - Constants.trimmedNameSuffix.count
+        return String(name.prefix(prefixLength)) + Constants.trimmedNameSuffix
     }
 }
