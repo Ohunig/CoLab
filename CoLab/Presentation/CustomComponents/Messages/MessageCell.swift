@@ -165,6 +165,7 @@ final class MessageCell: UICollectionViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
+        prepareLayoutForReuse()
         renderedMessageId = nil
         renderedAvatarData = nil
         text = ""
@@ -174,7 +175,6 @@ final class MessageCell: UICollectionViewCell {
         bubbleGradientStartColor = nil
         bubbleGradientEndColor = nil
         senderTextColor = nil
-        direction = .incoming
     }
 
     func beginRendering(messageId: String) -> Bool {
@@ -322,5 +322,16 @@ final class MessageCell: UICollectionViewCell {
         }
         
         NSLayoutConstraint.activate(activeDirectionConstraints)
+    }
+    
+    private func prepareLayoutForReuse() {
+        NSLayoutConstraint.deactivate(activeDirectionConstraints)
+        activeDirectionConstraints = []
+        
+        avatarView.isHidden = true
+        bubbleView.isHidden = true
+        eventDescriptionView.isHidden = true
+        
+        bubbleView.reservesSenderNameSpace = false
     }
 }
