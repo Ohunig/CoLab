@@ -83,8 +83,8 @@ final class MessageCell: UICollectionViewCell {
     private lazy var descriptionTrailingConstraint = eventDescriptionView.trailingAnchor.constraint(
         lessThanOrEqualTo: contentView.trailingAnchor
     )
-    private lazy var descriptionMaxWidthConstraint = eventDescriptionView.widthAnchor.constraint(
-        lessThanOrEqualTo: contentView.widthAnchor,
+    private lazy var descriptionWidthConstraint = eventDescriptionView.widthAnchor.constraint(
+        equalTo: contentView.widthAnchor,
         multiplier: Constants.maxDescriptionWidthMultiplier
     )
     
@@ -314,7 +314,7 @@ final class MessageCell: UICollectionViewCell {
                 descriptionCenterXConstraint,
                 descriptionLeadingConstraint,
                 descriptionTrailingConstraint,
-                descriptionMaxWidthConstraint
+                descriptionWidthConstraint
             ]
         }
         
