@@ -12,6 +12,7 @@ final class MessageCell: UICollectionViewCell {
     enum Direction: Equatable {
         case incoming
         case outgoing
+        case description
     }
     
     private struct Constants {
@@ -20,6 +21,7 @@ final class MessageCell: UICollectionViewCell {
         static let avatarSide: CGFloat = 40
         static let avatarToBubbleGap: CGFloat = 10
         static let maxBubbleWidthMultiplier: CGFloat = 0.7
+        static let maxDescriptionWidthMultiplier: CGFloat = 0.78
         static let contentUpdateAnimationDuration: TimeInterval = 0.22
         static let invertedTransform = CGAffineTransform(scaleX: 1, y: -1)
         
@@ -30,6 +32,7 @@ final class MessageCell: UICollectionViewCell {
     static let reuseIdentifier = Constants.reuseIdentifier
     
     private let bubbleView = MessageBubbleView()
+    private let eventDescriptionView = ChatDescriptionView()
     private let avatarView = CircleImage(Constants.placeholderAvatar)
     private var renderedMessageId: String?
     private var renderedAvatarData: Data?
@@ -54,23 +57,59 @@ final class MessageCell: UICollectionViewCell {
         equalTo: contentView.topAnchor,
         constant: Constants.verticalInset
     )
+    private lazy var bubbleBottomConstraint = bubbleView.bottomAnchor.constraint(
+        equalTo: contentView.bottomAnchor,
+        constant: -Constants.verticalInset
+    )
     
     private lazy var maxWidthConstraint = bubbleView.widthAnchor.constraint(
         lessThanOrEqualTo: contentView.widthAnchor,
         multiplier: Constants.maxBubbleWidthMultiplier
     )
+    private lazy var descriptionTopConstraint = eventDescriptionView.topAnchor.constraint(
+        equalTo: contentView.topAnchor,
+        constant: Constants.verticalInset
+    )
+    private lazy var descriptionBottomConstraint = eventDescriptionView.bottomAnchor.constraint(
+        equalTo: contentView.bottomAnchor,
+        constant: -Constants.verticalInset
+    )
+    private lazy var descriptionCenterXConstraint = eventDescriptionView.centerXAnchor.constraint(
+        equalTo: contentView.centerXAnchor
+    )
+    private lazy var descriptionLeadingConstraint = eventDescriptionView.leadingAnchor.constraint(
+        greaterThanOrEqualTo: contentView.leadingAnchor
+    )
+    private lazy var descriptionTrailingConstraint = eventDescriptionView.trailingAnchor.constraint(
+        lessThanOrEqualTo: contentView.trailingAnchor
+    )
+    private lazy var descriptionMaxWidthConstraint = eventDescriptionView.widthAnchor.constraint(
+        lessThanOrEqualTo: contentView.widthAnchor,
+        multiplier: Constants.maxDescriptionWidthMultiplier
+    )
     
     var direction: Direction = .incoming {
         didSet {
-            bubbleView.direction = direction == .incoming ? .incoming : .outgoing
-            bubbleView.reservesSenderNameSpace = direction == .incoming
+            switch direction {
+            case .incoming:
+                bubbleView.direction = .incoming
+                bubbleView.reservesSenderNameSpace = true
+            case .outgoing:
+                bubbleView.direction = .outgoing
+                bubbleView.reservesSenderNameSpace = false
+            case .description:
+                bubbleView.reservesSenderNameSpace = false
+            }
             updateDirection()
         }
     }
     
     var text: String {
         get { bubbleView.text }
-        set { bubbleView.text = newValue }
+        set {
+            bubbleView.text = newValue
+            eventDescriptionView.text = newValue
+        }
     }
     
     var senderName: String? {
@@ -80,7 +119,10 @@ final class MessageCell: UICollectionViewCell {
     
     var bubbleColor: UIColor? {
         get { bubbleView.fillColor }
-        set { bubbleView.fillColor = newValue }
+        set {
+            bubbleView.fillColor = newValue
+            eventDescriptionView.baseColor = newValue
+        }
     }
     
     var bubbleBorderColor: UIColor? {
@@ -100,7 +142,10 @@ final class MessageCell: UICollectionViewCell {
     
     var messageTextColor: UIColor? {
         get { bubbleView.textColor }
-        set { bubbleView.textColor = newValue }
+        set {
+            bubbleView.textColor = newValue
+            eventDescriptionView.textColor = newValue
+        }
     }
     
     var senderTextColor: UIColor? {
@@ -197,6 +242,12 @@ final class MessageCell: UICollectionViewCell {
         case .incoming:
             return max(Constants.avatarSide, bubbleHeight)
                 + Constants.verticalInset * 2
+        case .description:
+            let descriptionWidth = width * Constants.maxDescriptionWidthMultiplier
+            return ChatDescriptionView.preferredHeight(
+                for: text,
+                maxWidth: descriptionWidth
+            ) + Constants.verticalInset * 2
         }
     }
     
@@ -212,20 +263,17 @@ final class MessageCell: UICollectionViewCell {
         bubbleView.direction = .incoming
         bubbleView.reservesSenderNameSpace = true
         
+        eventDescriptionView.translatesAutoresizingMaskIntoConstraints = false
+        eventDescriptionView.isHidden = true
+        
         contentView.addSubview(avatarView)
         contentView.addSubview(bubbleView)
+        contentView.addSubview(eventDescriptionView)
         
         NSLayoutConstraint.activate([
             avatarView.widthAnchor.constraint(equalToConstant: Constants.avatarSide),
             avatarView.heightAnchor.constraint(equalToConstant: Constants.avatarSide),
-            avatarBottomConstraint,
-            
-            bubbleView.bottomAnchor.constraint(
-                equalTo: contentView.bottomAnchor,
-                constant: -Constants.verticalInset
-            ),
-            bubbleTopConstraint,
-            maxWidthConstraint
+            avatarBottomConstraint
         ])
         
         updateDirection()
@@ -237,14 +285,36 @@ final class MessageCell: UICollectionViewCell {
         switch direction {
         case .incoming:
             avatarView.isHidden = false
+            bubbleView.isHidden = false
+            eventDescriptionView.isHidden = true
             activeDirectionConstraints = [
+                bubbleTopConstraint,
+                bubbleBottomConstraint,
+                maxWidthConstraint,
                 avatarLeadingConstraint,
                 incomingBubbleLeadingConstraint
             ]
         case .outgoing:
             avatarView.isHidden = true
+            bubbleView.isHidden = false
+            eventDescriptionView.isHidden = true
             activeDirectionConstraints = [
+                bubbleTopConstraint,
+                bubbleBottomConstraint,
+                maxWidthConstraint,
                 outgoingBubbleTrailingConstraint
+            ]
+        case .description:
+            avatarView.isHidden = true
+            bubbleView.isHidden = true
+            eventDescriptionView.isHidden = false
+            activeDirectionConstraints = [
+                descriptionTopConstraint,
+                descriptionBottomConstraint,
+                descriptionCenterXConstraint,
+                descriptionLeadingConstraint,
+                descriptionTrailingConstraint,
+                descriptionMaxWidthConstraint
             ]
         }
         

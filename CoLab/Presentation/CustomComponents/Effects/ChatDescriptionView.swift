@@ -32,6 +32,20 @@ final class ChatDescriptionView: UIView {
     
     // MARK: Computed properties
     
+    override var intrinsicContentSize: CGSize {
+        let labelSize = label.sizeThatFits(
+            CGSize(
+                width: CGFloat.greatestFiniteMagnitude,
+                height: CGFloat.greatestFiniteMagnitude
+            )
+        )
+        
+        return CGSize(
+            width: ceil(labelSize.width) + Constants.horisontalInset * 2,
+            height: ceil(labelSize.height) + Constants.verticalInset * 2
+        )
+    }
+    
     var baseColor: UIColor? {
         get { base }
         set {
@@ -56,7 +70,28 @@ final class ChatDescriptionView: UIView {
         set {
             labelText = newValue
             label.text = newValue
+            invalidateIntrinsicContentSize()
         }
+    }
+    
+    static func preferredHeight(
+        for text: String,
+        maxWidth: CGFloat
+    ) -> CGFloat {
+        let labelMaxWidth = max(0, maxWidth - Constants.horisontalInset * 2)
+        let textBoundingRect = NSString(string: text).boundingRect(
+            with: CGSize(width: labelMaxWidth, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading],
+            attributes: [
+                .font: UIFont.systemFont(
+                    ofSize: Constants.fontSize,
+                    weight: .regular
+                )
+            ],
+            context: nil
+        )
+        
+        return Constants.verticalInset * 2 + ceil(textBoundingRect.height)
     }
     
     // MARK: Lifecycle
@@ -91,6 +126,10 @@ final class ChatDescriptionView: UIView {
         )
         label.numberOfLines = Constants.numberOfLines
         label.textAlignment = .center
+        label.setContentCompressionResistancePriority(
+            .defaultLow,
+            for: .horizontal
+        )
         label.translatesAutoresizingMaskIntoConstraints = false
         addSubview(label)
         
