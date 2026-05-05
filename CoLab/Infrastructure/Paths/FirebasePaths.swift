@@ -68,14 +68,20 @@ enum FirebasePaths {
     enum Messages {
         static let root = "messages"
         
+        case kind
         case senderId
+        case memberId
         case text
         case createdAt
         
         var path: String {
             switch self {
+            case .kind:
+                "kind"
             case .senderId:
                 "senderId"
+            case .memberId:
+                "memberId"
             case .text:
                 "text"
             case .createdAt:
