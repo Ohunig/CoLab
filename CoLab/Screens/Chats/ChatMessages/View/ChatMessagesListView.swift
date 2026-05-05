@@ -351,7 +351,7 @@ final class ChatMessagesListView: UIView {
     ) {
         let animateContentChanges = cell.beginRendering(messageId: item.id)
         
-        cell.direction = item.direction == .outgoing ? .outgoing : .incoming
+        cell.direction = cellDirection(for: item.direction)
         cell.text = item.text
         cell.setSenderName(item.senderName, animated: animateContentChanges)
         cell.setAvatarData(item.avatarData, animated: animateContentChanges)
@@ -544,7 +544,7 @@ extension ChatMessagesListView: UICollectionViewDelegateFlowLayout {
         let height = MessageCell.preferredHeight(
             for: item.text,
             senderName: item.senderName,
-            direction: item.direction == .outgoing ? .outgoing : .incoming,
+            direction: cellDirection(for: item.direction),
             width: collectionView.bounds.width
         )
         
@@ -553,6 +553,19 @@ extension ChatMessagesListView: UICollectionViewDelegateFlowLayout {
 }
 
 // MARK: - UIScrollView helper
+
+private func cellDirection(
+    for direction: ChatMessagesModels.MessagesList.ViewModel.Direction
+) -> MessageCell.Direction {
+    switch direction {
+    case .incoming:
+        .incoming
+    case .outgoing:
+        .outgoing
+    case .description:
+        .description
+    }
+}
 
 private extension UIScrollView {
     var collectionViewLayoutContentHeight: CGFloat {

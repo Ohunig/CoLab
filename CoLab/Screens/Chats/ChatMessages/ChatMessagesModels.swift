@@ -65,6 +65,7 @@ struct ChatMessagesModels {
             enum Direction: Equatable {
                 case incoming
                 case outgoing
+                case description
             }
             
             struct MessageItem {
