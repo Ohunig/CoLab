@@ -404,8 +404,17 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
     private func syncIncomingSenderData(for messages: [ChatMessageModel]) {
         let senderIds = Set(
             messages.compactMap { message -> String? in
-                guard message.senderId != currentUserId else { return nil }
-                return message.senderId
+                if let senderId = message.senderId,
+                   senderId != currentUserId {
+                    return senderId
+                }
+                
+                if let memberId = message.memberId,
+                   memberId != currentUserId {
+                    return memberId
+                }
+                
+                return nil
             }
         )
         

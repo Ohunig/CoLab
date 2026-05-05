@@ -19,6 +19,10 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
         static let defaultIncomingText = (hex: "#FFFFFF", a: CGFloat(1))
         static let defaultOutgoingText = (hex: "#FFFFFF", a: CGFloat(1))
         static let defaultSenderName = (hex: "#FFFFFF", a: CGFloat(0.72))
+        static let memberJoinedTextColor = (hex: "#FFFFFF", a: CGFloat(1))
+        static let memberLeftTextColor = (hex: "#FF5A5F", a: CGFloat(1))
+        static let currentUserName = "Вы"
+        static let unknownUserName = "Участник"
     }
     
     weak var controller: ChatMessagesDisplayLogic?
@@ -75,21 +79,10 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
         // Собираем уже готовые display item'ы для коллекции.
         // Контроллер потом только забирает их по id и применяет к ячейке.
         let items = response.messages.map { message in
-            let isOutgoing = message.senderId == response.currentUserId
-            let senderData = response.senderDataById[message.senderId]
-            
-            return Model.MessagesList.ViewModel.MessageItem(
-                id: message.id,
-                text: message.text,
-                direction: isOutgoing ? .outgoing : .incoming,
-                senderName: isOutgoing ? nil : senderData?.username,
-                avatarData: isOutgoing ? nil : senderData?.avatarData,
-                baseColor: isOutgoing ? outgoingGradientEndColor : incomingBaseColor,
-                borderColor: isOutgoing ? nil : incomingBorderColor,
-                gradientStartColor: isOutgoing ? outgoingGradientStartColor : nil,
-                gradientEndColor: isOutgoing ? outgoingGradientEndColor : nil,
-                textColor: isOutgoing ? outgoingTextColor : incomingTextColor,
-                senderTextColor: isOutgoing ? nil : senderNameColor
+            makeMessageItem(
+                from: message,
+                currentUserId: response.currentUserId,
+                senderDataById: response.senderDataById
             )
         }
         
@@ -144,7 +137,7 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
     ) -> Bool {
         lhs.id == rhs.id
         && lhs.text == rhs.text
-        && hasSameDirection(lhs.direction, rhs.direction)
+        && lhs.direction == rhs.direction
         && lhs.senderName == rhs.senderName
         && lhs.avatarData == rhs.avatarData
         && lhs.baseColor.hex == rhs.baseColor.hex
@@ -161,15 +154,98 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
         && lhs.senderTextColor?.a == rhs.senderTextColor?.a
     }
     
-    private func hasSameDirection(
-        _ lhs: Model.MessagesList.ViewModel.Direction,
-        _ rhs: Model.MessagesList.ViewModel.Direction
-    ) -> Bool {
-        switch (lhs, rhs) {
-        case (.incoming, .incoming), (.outgoing, .outgoing):
-            true
-        default:
-            false
+    private func makeMessageItem(
+        from message: ChatMessageModel,
+        currentUserId: String?,
+        senderDataById: [String: Model.MessagesList.SenderData]
+    ) -> Model.MessagesList.ViewModel.MessageItem {
+        switch message.kind {
+        case .text:
+            let isOutgoing = message.senderId == currentUserId
+            let senderData = message.senderId.flatMap { senderDataById[$0] }
+            
+            return Model.MessagesList.ViewModel.MessageItem(
+                id: message.id,
+                text: message.text,
+                direction: isOutgoing ? .outgoing : .incoming,
+                senderName: isOutgoing ? nil : senderData?.username,
+                avatarData: isOutgoing ? nil : senderData?.avatarData,
+                baseColor: isOutgoing ? outgoingGradientEndColor : incomingBaseColor,
+                borderColor: isOutgoing ? nil : incomingBorderColor,
+                gradientStartColor: isOutgoing ? outgoingGradientStartColor : nil,
+                gradientEndColor: isOutgoing ? outgoingGradientEndColor : nil,
+                textColor: isOutgoing ? outgoingTextColor : incomingTextColor,
+                senderTextColor: isOutgoing ? nil : senderNameColor
+            )
+        case .memberJoined, .memberLeft:
+            return makeMemberEventItem(
+                from: message,
+                currentUserId: currentUserId,
+                senderDataById: senderDataById
+            )
+        }
+    }
+    
+    private func makeMemberEventItem(
+        from message: ChatMessageModel,
+        currentUserId: String?,
+        senderDataById: [String: Model.MessagesList.SenderData]
+    ) -> Model.MessagesList.ViewModel.MessageItem {
+        let isCurrentUserEvent = message.memberId == currentUserId
+        let memberName = displayName(
+            for: message.memberId,
+            currentUserId: currentUserId,
+            senderDataById: senderDataById
+        )
+        let textColor = message.kind == .memberLeft
+            ? Constants.memberLeftTextColor
+            : Constants.memberJoinedTextColor
+        
+        return Model.MessagesList.ViewModel.MessageItem(
+            id: message.id,
+            text: memberEventText(
+                kind: message.kind,
+                memberName: memberName,
+                isCurrentUserEvent: isCurrentUserEvent,
+                fallbackText: message.text
+            ),
+            direction: .description,
+            senderName: nil,
+            avatarData: nil,
+            baseColor: incomingBaseColor,
+            borderColor: incomingBorderColor,
+            gradientStartColor: nil,
+            gradientEndColor: nil,
+            textColor: textColor,
+            senderTextColor: nil
+        )
+    }
+    
+    private func displayName(
+        for memberId: String?,
+        currentUserId: String?,
+        senderDataById: [String: Model.MessagesList.SenderData]
+    ) -> String {
+        guard let memberId else { return Constants.unknownUserName }
+        guard memberId != currentUserId else { return Constants.currentUserName }
+        return senderDataById[memberId]?.username ?? Constants.unknownUserName
+    }
+    
+    private func memberEventText(
+        kind: ChatMessageKind,
+        memberName: String,
+        isCurrentUserEvent: Bool,
+        fallbackText: String
+    ) -> String {
+        switch kind {
+        case .memberJoined:
+            if isCurrentUserEvent { return "Вы вошли в чат" }
+            return "\(memberName) вошёл в чат"
+        case .memberLeft:
+            if isCurrentUserEvent { return "Вы вышли из чата" }
+            return "\(memberName) вышел из чата"
+        case .text:
+            return fallbackText
         }
     }
 }

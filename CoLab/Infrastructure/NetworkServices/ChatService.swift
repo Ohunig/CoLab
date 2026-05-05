@@ -12,9 +12,12 @@ import FirebaseFirestore
 
 final class ChatService: ChatLogic {
     private typealias Chats = FirebasePaths.Chats
+    private typealias Messages = FirebasePaths.Messages
     
     private struct Constants {
         static let fallbackTitle = "Chat"
+        static let memberJoinedText = "Участник вошёл в чат"
+        static let memberLeftText = "Участник вышел из чата"
     }
     
     private let db = Firestore.firestore()
@@ -75,18 +78,14 @@ final class ChatService: ChatLogic {
                 return
             }
             
-            self.db.collection(Chats.root)
-                .document(chatId)
-                .updateData([
-                    // Не добавляет если такой id уже есть, проверки не нужны
-                    Chats.memberIds.path: FieldValue.arrayUnion([userId])
-                ]) { error in
-                    if let error {
-                        promise(.failure(self.decodeError(error)))
-                    } else {
-                        promise(.success(()))
-                    }
-                }
+            self.commitMemberEvent(
+                kind: .memberJoined,
+                memberId: userId,
+                chatId: chatId,
+                memberIdsUpdate: FieldValue.arrayUnion([userId]),
+                lastMessageText: Constants.memberJoinedText,
+                promise: promise
+            )
         }
         .eraseToAnyPublisher()
     }
@@ -104,22 +103,61 @@ final class ChatService: ChatLogic {
                 return
             }
             
-            self.db.collection(Chats.root)
-                .document(chatId)
-                .updateData([
-                    Chats.memberIds.path: FieldValue.arrayRemove([userId])
-                ]) { error in
-                    if let error {
-                        promise(.failure(self.decodeError(error)))
-                    } else {
-                        promise(.success(()))
-                    }
-                }
+            self.commitMemberEvent(
+                kind: .memberLeft,
+                memberId: userId,
+                chatId: chatId,
+                memberIdsUpdate: FieldValue.arrayRemove([userId]),
+                lastMessageText: Constants.memberLeftText,
+                promise: promise
+            )
         }
         .eraseToAnyPublisher()
     }
     
     // MARK: Helpers
+    
+    private func commitMemberEvent(
+        kind: ChatMessageKind,
+        memberId: String,
+        chatId: String,
+        memberIdsUpdate: FieldValue,
+        lastMessageText: String,
+        promise: @escaping (Result<Void, FetchUserChatsError>) -> Void
+    ) {
+        let createdAt = Date()
+        let chatRef = db.collection(Chats.root).document(chatId)
+        let messageRef = chatRef.collection(Messages.root).document()
+        let batch = db.batch()
+        
+        batch.updateData(
+            [
+                Chats.memberIds.path: memberIdsUpdate,
+                Chats.lastMessageText.path: lastMessageText,
+                Chats.lastMessageDate.path: FieldValue.serverTimestamp()
+            ],
+            forDocument: chatRef
+        )
+        
+        batch.setData(
+            [
+                Messages.kind.path: kind.rawValue,
+                Messages.senderId.path: memberId,
+                Messages.memberId.path: memberId,
+                Messages.text.path: lastMessageText,
+                Messages.createdAt.path: Timestamp(date: createdAt)
+            ],
+            forDocument: messageRef
+        )
+        
+        batch.commit { [weak self] error in
+            if let error {
+                promise(.failure(self?.decodeError(error) ?? .unknown))
+            } else {
+                promise(.success(()))
+            }
+        }
+    }
     
     private func decodeChat(from snapshot: DocumentSnapshot) -> ChatModel? {
         guard let data = snapshot.data() else { return nil }

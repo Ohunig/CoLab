@@ -180,6 +180,7 @@ final class ChatMessagesService: ChatMessagesLogic {
             
             batch.setData(
                 [
+                    Messages.kind.path: ChatMessageKind.text.rawValue,
                     Messages.senderId.path: senderId,
                     Messages.text.path: trimmedText,
                     Messages.createdAt.path: Timestamp(date: createdAt)
@@ -190,8 +191,6 @@ final class ChatMessagesService: ChatMessagesLogic {
             batch.setData(
                 [
                     Chats.lastMessageText.path: trimmedText,
-                    // summary дата у чата должна идти от сервера, иначе
-                    // порядок списка может ломаться из-за локального времени устройства.
                     Chats.lastMessageDate.path: FieldValue.serverTimestamp()
                 ],
                 forDocument: chatRef,
@@ -208,7 +207,9 @@ final class ChatMessagesService: ChatMessagesLogic {
                     .success(
                         ChatMessageModel(
                             id: messageRef.documentID,
+                            kind: .text,
                             senderId: senderId,
+                            memberId: nil,
                             text: trimmedText,
                             createdAt: createdAt
                         )
@@ -242,15 +243,28 @@ final class ChatMessagesService: ChatMessagesLogic {
     ) -> ChatMessageModel? {
         let data = snapshot.data()
         
-        guard let senderId = data[Messages.senderId.path] as? String,
-              let text = data[Messages.text.path] as? String,
-              let timestamp = data[Messages.createdAt.path] as? Timestamp else {
+        guard let timestamp = data[Messages.createdAt.path] as? Timestamp else {
             return nil
+        }
+        
+        let kind = (data[Messages.kind.path] as? String)
+            .flatMap(ChatMessageKind.init(rawValue:)) ?? .text
+        let senderId = data[Messages.senderId.path] as? String
+        let memberId = data[Messages.memberId.path] as? String
+        let text = data[Messages.text.path] as? String ?? ""
+        
+        switch kind {
+        case .text:
+            guard senderId != nil else { return nil }
+        case .memberJoined, .memberLeft:
+            guard memberId != nil else { return nil }
         }
         
         return ChatMessageModel(
             id: snapshot.documentID,
+            kind: kind,
             senderId: senderId,
+            memberId: memberId,
             text: text,
             createdAt: timestamp.dateValue()
         )
