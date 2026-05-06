@@ -40,12 +40,12 @@ enum TabBarScreenAssembly {
         // Все нужные экраны прокидываем в свойство таб бара
         let chats = ChatsBranchAssembly.build()
         let searchChats = SearchChatsBranchAssembly.build()
-        let v3 = UINavigationController(rootViewController: UIViewController())
+        let searchFriends = SearchFriendsBranchAssembly.build()
         let settings = SettingsBranchAssembly.build()
 //        let v2 = UINavigationController(rootViewController: DemoVC(text: "Search", color: .black))
 //        let v3 = UINavigationController(rootViewController: DemoVC(text: "Profile", color: .systemGreen))
 //        let v4 = UINavigationController(rootViewController: DemoVC(text: "Settings", color: .systemPurple))
-        viewController.viewControllers = [chats, searchChats, v3, settings]
+        viewController.viewControllers = [chats, searchChats, searchFriends, settings]
         
         presenter.controller = viewController
         return viewController

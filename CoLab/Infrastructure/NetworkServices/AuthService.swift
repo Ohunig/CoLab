@@ -18,6 +18,13 @@ final class AuthService: AuthLogic {
     
     lazy private var auth = Auth.auth()
     lazy private var db = Firestore.firestore()
+    private let searchKeywordsBuilder: SearchKeywordsBuilder
+    
+    // MARK: Lifecycle
+    
+    init(searchKeywordsBuilder: SearchKeywordsBuilder) {
+        self.searchKeywordsBuilder = searchKeywordsBuilder
+    }
     
     // MARK: Use-cases
     
@@ -122,7 +129,10 @@ final class AuthService: AuthLogic {
             .document(userID)
             .setData([
                 Users.username.path: username,
-                Users.photoURL.path: Constants.standardAvatarURL
+                Users.photoURL.path: Constants.standardAvatarURL,
+                Users.searchKeywords.path: searchKeywordsBuilder.keywords(
+                    for: username
+                )
             ], merge: true) { error in
                 if error != nil {
                     completion(.failure(.unknown))

@@ -1,19 +1,19 @@
 //
-//  SearchChatsListService.swift
+//  SearchFriendsListService.swift
 //  CoLab
 //
-//  Created by User on 24.04.2026.
+//  Created by User on 05.05.2026.
 //
 
 import Foundation
 import Combine
 import FirebaseFirestore
 
-final class SearchChatsListService: SearchChatsListLogic {
-    private typealias Chats = FirebasePaths.Chats
+final class SearchFriendsListService: SearchFriendsListLogic {
+    private typealias Users = FirebasePaths.Users
     
     private struct Constants {
-        static let fallbackTitle = "Chat"
+        static let fallbackUsername = "User"
     }
     
     private let db = Firestore.firestore()
@@ -31,7 +31,7 @@ final class SearchChatsListService: SearchChatsListLogic {
     func fetchFirstPage(
         limit: Int,
         searchText: String?
-    ) -> AnyPublisher<SearchChatsPage, FetchUserChatsError> {
+    ) -> AnyPublisher<SearchFriendsPage, FetchUserError> {
         reset()
         return fetchPage(
             after: nil,
@@ -43,10 +43,10 @@ final class SearchChatsListService: SearchChatsListLogic {
     func fetchNextPage(
         limit: Int,
         searchText: String?
-    ) -> AnyPublisher<SearchChatsPage, FetchUserChatsError> {
+    ) -> AnyPublisher<SearchFriendsPage, FetchUserError> {
         guard let lastDocument else {
-            return Just(SearchChatsPage(chats: [], hasMore: false))
-                .setFailureType(to: FetchUserChatsError.self)
+            return Just(SearchFriendsPage(users: [], hasMore: false))
+                .setFailureType(to: FetchUserError.self)
                 .eraseToAnyPublisher()
         }
         
@@ -67,12 +67,12 @@ final class SearchChatsListService: SearchChatsListLogic {
         after document: QueryDocumentSnapshot?,
         limit: Int,
         searchText: String?
-    ) -> AnyPublisher<SearchChatsPage, FetchUserChatsError> {
+    ) -> AnyPublisher<SearchFriendsPage, FetchUserError> {
         Deferred { [weak self] in
-            let subject = PassthroughSubject<SearchChatsPage, FetchUserChatsError>()
+            let subject = PassthroughSubject<SearchFriendsPage, FetchUserError>()
             
             guard let self else {
-                return Fail<SearchChatsPage, FetchUserChatsError>(error: .unknown)
+                return Fail<SearchFriendsPage, FetchUserError>(error: .unknown)
                     .eraseToAnyPublisher()
             }
             
@@ -83,9 +83,7 @@ final class SearchChatsListService: SearchChatsListLogic {
                 }
                 
                 let normalizedLimit = max(1, limit)
-                var query: Query = self.db.collection(Chats.root)
-                    .whereField(Chats.isPublic.path, isEqualTo: true)
-                    .order(by: FieldPath.documentID(), descending: true)
+                var query: Query = self.db.collection(Users.root)
                 
                 let searchWords = self.searchKeywordsBuilder.queryWords(
                     for: searchText
@@ -93,12 +91,12 @@ final class SearchChatsListService: SearchChatsListLogic {
                 
                 if searchWords.count == 1, let searchWord = searchWords.first {
                     query = query.whereField(
-                        Chats.searchKeywords.path,
+                        Users.searchKeywords.path,
                         arrayContains: searchWord
                     )
                 } else if !searchWords.isEmpty {
                     query = query.whereField(
-                        Chats.searchKeywords.path,
+                        Users.searchKeywords.path,
                         arrayContainsAny: searchWords
                     )
                 }
@@ -131,8 +129,8 @@ final class SearchChatsListService: SearchChatsListLogic {
                         }
                         
                         subject.send(
-                            SearchChatsPage(
-                                chats: docs.compactMap(self.decodeChat(from:)),
+                            SearchFriendsPage(
+                                users: docs.map(self.decodeUser(from:)),
                                 hasMore: docs.count == normalizedLimit
                             )
                         )
@@ -143,7 +141,6 @@ final class SearchChatsListService: SearchChatsListLogic {
                     }
             }
             
-            // Сначала пытаемся подгружать данные из кэша
             fetchPage(.cache)
             fetchPage(.server)
             
@@ -152,34 +149,17 @@ final class SearchChatsListService: SearchChatsListLogic {
         .eraseToAnyPublisher()
     }
     
-    private func decodeChat(from snapshot: QueryDocumentSnapshot) -> ChatModel? {
+    private func decodeUser(from snapshot: QueryDocumentSnapshot) -> UserModel {
         let data = snapshot.data()
         
-        let id = snapshot.documentID
-        let title = data[Chats.title.path] as? String ?? Constants.fallbackTitle
-        let description = data[Chats.description.path] as? String
-        let isPublic = data[Chats.isPublic.path] as? Bool ?? false
-        let lastMessageText = data[Chats.lastMessageText.path] as? String
-        let timestamp = data[Chats.lastMessageDate.path] as? Timestamp
-        let lastMessageDate = timestamp?.dateValue()
-        let avatarURL = data[Chats.avatarURL.path] as? String
-        let users = data[Chats.memberIds.path] as? [String] ?? []
-        let searchKeywords = data[Chats.searchKeywords.path] as? [String] ?? []
-        
-        return ChatModel(
-            id: id,
-            title: title,
-            description: description,
-            isPublic: isPublic,
-            lastMessageText: lastMessageText,
-            lastMessageDate: lastMessageDate,
-            avatarURL: avatarURL,
-            memberIds: users,
-            searchKeywords: searchKeywords
+        return UserModel(
+            id: snapshot.documentID,
+            username: data[Users.username.path] as? String ?? Constants.fallbackUsername,
+            photoURL: data[Users.photoURL.path] as? String
         )
     }
     
-    private func decodeError(_ error: Error) -> FetchUserChatsError {
+    private func decodeError(_ error: Error) -> FetchUserError {
         guard let ns = error as NSError? else { return .unknown }
         
         if let fsCode = FirestoreErrorCode.Code(rawValue: ns.code) {
