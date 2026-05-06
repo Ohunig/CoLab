@@ -18,21 +18,50 @@ final class CompositionRoot {
     static let container: Container = {
         let container = Container()
         
+        func resolveSearchKeywordsBuilder(
+            _ resolver: Resolver
+        ) -> SearchKeywordsBuilder {
+            guard let searchKeywordsBuilder = resolver.resolve(
+                SearchKeywordsBuilder.self
+            ) else {
+                fatalError(Constants.notAllServicesRegistered)
+            }
+            return searchKeywordsBuilder
+        }
+        
         // Репозитории
         container.register(ColorStorageLogic.self) { _ in ColorRepository() }
             .inObjectScope(.container)
+        container.register(SearchKeywordsBuilder.self) { _ in
+            SearchKeywordsBuilder()
+        }.inObjectScope(.transient)
         
         // Network сервисы
-        container.register(AuthLogic.self) { _ in AuthService() }
-            .inObjectScope(.container)
-        container.register(UserServiceLogic.self) { _ in UserService(userCache: UserCacheStorage()) }
-            .inObjectScope(.transient)
+        container.register(AuthLogic.self) { resolver in
+            AuthService(
+                searchKeywordsBuilder: resolveSearchKeywordsBuilder(resolver)
+            )
+        }.inObjectScope(.container)
+        container.register(UserServiceLogic.self) { resolver in
+            UserService(
+                userCache: UserCacheStorage(),
+                searchKeywordsBuilder: resolveSearchKeywordsBuilder(resolver)
+            )
+        }.inObjectScope(.transient)
         container.register(AvatarServiceLogic.self) { _ in AvatarService(avatarsCache: AvatarCacheStorage()) }
             .inObjectScope(.transient)
         container.register(UserChatListLogic.self) { _ in UserChatListService() }
             .inObjectScope(.transient)
-        container.register(SearchChatsListLogic.self) { _ in SearchChatsListService() }
-            .inObjectScope(.transient)
+        container.register(SearchChatsListLogic.self) { resolver in
+            SearchChatsListService(
+                searchKeywordsBuilder: resolveSearchKeywordsBuilder(resolver)
+            )
+        }.inObjectScope(.transient)
+        container.register(SearchFriendsListLogic.self) { resolver in
+            SearchFriendsListService(
+                searchKeywordsBuilder: resolveSearchKeywordsBuilder(resolver)
+            )
+        }.inObjectScope(.transient)
         container.register(ChatLogic.self) { _ in ChatService() }
             .inObjectScope(.transient)
         container.register(ChatMessagesLogic.self) { _ in ChatMessagesService() }

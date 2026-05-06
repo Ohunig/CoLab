@@ -14,6 +14,7 @@ final class UserService: UserServiceLogic {
     typealias Users = FirebasePaths.Users
     
     private let db = Firestore.firestore()
+    private let searchKeywordsBuilder: SearchKeywordsBuilder
     
     private var userSubject = CurrentValueSubject<UserModel?, Never>(nil)
     
@@ -25,8 +26,12 @@ final class UserService: UserServiceLogic {
     
     // MARK: Lifecycle
     
-    init(userCache: UserCacheLogic) {
+    init(
+        userCache: UserCacheLogic,
+        searchKeywordsBuilder: SearchKeywordsBuilder
+    ) {
         self.userCache = userCache
+        self.searchKeywordsBuilder = searchKeywordsBuilder
     }
     
     // MARK: Use-cases
@@ -48,7 +53,10 @@ final class UserService: UserServiceLogic {
         }
         let data: [String: Any?] = [
             Users.username.path: user.username,
-            Users.photoURL.path: user.photoURL
+            Users.photoURL.path: user.photoURL,
+            Users.searchKeywords.path: searchKeywordsBuilder.keywords(
+                for: user.username
+            )
         ]
         // Убираем nil-значения
         let filtered = data.compactMapValues { $0 }

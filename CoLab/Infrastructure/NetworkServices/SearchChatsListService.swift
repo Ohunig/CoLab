@@ -14,11 +14,17 @@ final class SearchChatsListService: SearchChatsListLogic {
     
     private struct Constants {
         static let fallbackTitle = "Chat"
-        static let maxSearchWords = 20
     }
     
     private let db = Firestore.firestore()
+    private let searchKeywordsBuilder: SearchKeywordsBuilder
     private var lastDocument: QueryDocumentSnapshot?
+    
+    // MARK: Lifecycle
+    
+    init(searchKeywordsBuilder: SearchKeywordsBuilder) {
+        self.searchKeywordsBuilder = searchKeywordsBuilder
+    }
     
     // MARK: Use-cases
     
@@ -81,7 +87,9 @@ final class SearchChatsListService: SearchChatsListLogic {
                     .whereField(Chats.isPublic.path, isEqualTo: true)
                     .order(by: FieldPath.documentID(), descending: true)
                 
-                let searchWords = self.normalizedSearchWords(searchText)
+                let searchWords = self.searchKeywordsBuilder.queryWords(
+                    for: searchText
+                )
                 
                 if searchWords.count == 1, let searchWord = searchWords.first {
                     query = query.whereField(
@@ -142,25 +150,6 @@ final class SearchChatsListService: SearchChatsListLogic {
             return subject.eraseToAnyPublisher()
         }
         .eraseToAnyPublisher()
-    }
-    
-    private func normalizedSearchWords(_ text: String?) -> [String] {
-        let separators = CharacterSet.whitespacesAndNewlines
-            .union(.punctuationCharacters)
-        
-        let words = text?
-            .lowercased()
-            .components(separatedBy: separators)
-            .filter { !$0.isEmpty } ?? []
-        
-        var usedWords = Set<String>()
-        
-        return words.reduce(into: []) { result, word in
-            guard result.count < Constants.maxSearchWords else { return }
-            guard usedWords.insert(word).inserted else { return }
-            
-            result.append(word)
-        }
     }
     
     private func decodeChat(from snapshot: QueryDocumentSnapshot) -> ChatModel? {
