@@ -334,7 +334,9 @@ final class SearchChatsListController: UIViewController {
     // MARK: Chats state
     
     private func syncChatsStateFromProvider() {
-        displayedChatIds = tableDataProvider.chatIds()
+        let nextChatIds = tableDataProvider.chatIds()
+        let shouldReload = displayedChatIds != nextChatIds
+        displayedChatIds = nextChatIds
 
         if displayedChatIds.isEmpty {
             emptyStateLabel.isHidden = !hasLoadedChatsState || isInitialLoadingShown
@@ -343,13 +345,24 @@ final class SearchChatsListController: UIViewController {
             emptyStateLabel.isHidden = true
         }
 
+        guard shouldReload else {
+            refreshVisibleCells()
+            return
+        }
+        
         tableView.reloadData()
     }
     
     private func applyChatsState(chatIds: [String], animated _: Bool) {
+        let shouldReload = displayedChatIds != chatIds
         displayedChatIds = chatIds
         hideInitialLoading()
         emptyStateLabel.isHidden = !hasLoadedChatsState || !chatIds.isEmpty
+        
+        guard shouldReload else {
+            refreshVisibleCells()
+            return
+        }
         
         UIView.performWithoutAnimation {
             tableView.reloadData()
@@ -420,6 +433,22 @@ final class SearchChatsListController: UIViewController {
         )
         cell.avatarImage = item.avatarData.flatMap(UIImage.init(data:))
     }
+    
+    private func refreshVisibleCells() {
+        tableView.indexPathsForVisibleRows?.forEach { indexPath in
+            guard displayedChatIds.indices.contains(indexPath.row),
+                  let item = tableDataProvider.item(
+                    for: displayedChatIds[indexPath.row]
+                  ),
+                  let cell = tableView.cellForRow(
+                    at: indexPath
+                  ) as? SearchChatItemCell else {
+                return
+            }
+            
+            configure(cell, with: item)
+        }
+    }
 }
 
 // MARK: Display logic extension
@@ -483,13 +512,15 @@ extension SearchChatsListController: SearchChatsListDisplayLogic {
         guard let row = displayedChatIds.firstIndex(of: viewModel.chatId) else {
             return
         }
+        let indexPath = IndexPath(row: row, section: 0)
+        guard let item = tableDataProvider.item(for: viewModel.chatId),
+              let cell = tableView.cellForRow(
+                at: indexPath
+              ) as? SearchChatItemCell else {
+            return
+        }
         
-        // Так как если была вызвана данная функция, значит в источнике данных
-        // аватар уже появился
-        tableView.reloadRows(
-            at: [IndexPath(row: row, section: 0)],
-            with: .none
-        )
+        configure(cell, with: item)
     }
     
     func displayError(_ viewModel: Model.ShowError.ViewModel) {
