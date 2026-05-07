@@ -80,6 +80,34 @@ final class ChatService: ChatLogic {
             
             self.commitMemberEvent(
                 kind: .memberJoined,
+                senderId: userId,
+                memberId: userId,
+                chatId: chatId,
+                memberIdsUpdate: FieldValue.arrayUnion([userId]),
+                lastMessageText: Constants.memberJoinedText,
+                promise: promise
+            )
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    func addUser(
+        _ userId: String,
+        toChat chatId: String
+    ) -> AnyPublisher<Void, FetchUserChatsError> {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            return Fail(error: .permissionDenied).eraseToAnyPublisher()
+        }
+        
+        return Future<Void, FetchUserChatsError> { [weak self] promise in
+            guard let self else {
+                promise(.failure(.unknown))
+                return
+            }
+            
+            self.commitMemberEvent(
+                kind: .memberJoined,
+                senderId: currentUserId,
                 memberId: userId,
                 chatId: chatId,
                 memberIdsUpdate: FieldValue.arrayUnion([userId]),
@@ -105,6 +133,7 @@ final class ChatService: ChatLogic {
             
             self.commitMemberEvent(
                 kind: .memberLeft,
+                senderId: userId,
                 memberId: userId,
                 chatId: chatId,
                 memberIdsUpdate: FieldValue.arrayRemove([userId]),
@@ -119,6 +148,7 @@ final class ChatService: ChatLogic {
     
     private func commitMemberEvent(
         kind: ChatMessageKind,
+        senderId: String,
         memberId: String,
         chatId: String,
         memberIdsUpdate: FieldValue,
@@ -142,7 +172,7 @@ final class ChatService: ChatLogic {
         batch.setData(
             [
                 Messages.kind.path: kind.rawValue,
-                Messages.senderId.path: memberId,
+                Messages.senderId.path: senderId,
                 Messages.memberId.path: memberId,
                 Messages.text.path: lastMessageText,
                 Messages.createdAt.path: Timestamp(date: createdAt)
