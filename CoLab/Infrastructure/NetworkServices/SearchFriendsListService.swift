@@ -155,7 +155,8 @@ final class SearchFriendsListService: SearchFriendsListLogic {
         return UserModel(
             id: snapshot.documentID,
             username: data[Users.username.path] as? String ?? Constants.fallbackUsername,
-            photoURL: data[Users.photoURL.path] as? String
+            photoURL: data[Users.photoURL.path] as? String,
+            friendIds: data[Users.friendIds.path] as? [String] ?? []
         )
     }
     

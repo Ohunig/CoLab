@@ -14,6 +14,13 @@ final class UserCacheStorage: UserCacheLogic {
         static let fileExtension = "json"
         static let queueLabel = "com.colab.UserCacheStorage.queue"
     }
+    
+    private struct StoredUserModel: Decodable {
+        let id: String
+        let username: String
+        let photoURL: String?
+        let friendIds: [String]?
+    }
    
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
@@ -48,7 +55,18 @@ final class UserCacheStorage: UserCacheLogic {
         return queue.sync {
             let url = fileURL(for: userId)
             guard let data = try? Data(contentsOf: url) else { return nil }
-            return try? decoder.decode(UserModel.self, from: data)
+            if let user = try? decoder.decode(UserModel.self, from: data) {
+                return user
+            }
+            guard let storedUser = try? decoder.decode(StoredUserModel.self, from: data) else {
+                return nil
+            }
+            return UserModel(
+                id: storedUser.id,
+                username: storedUser.username,
+                photoURL: storedUser.photoURL,
+                friendIds: storedUser.friendIds ?? []
+            )
         }
     }
 

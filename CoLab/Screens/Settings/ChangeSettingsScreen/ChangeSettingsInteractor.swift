@@ -115,7 +115,8 @@ final class ChangeSettingsInteractor: ChangeSettingsBusinessLogic {
                             user: UserModel(
                                 id: user.id,
                                 username: request.username,
-                                photoURL: photoURL
+                                photoURL: photoURL,
+                                friendIds: user.friendIds
                             )
                         )
                         .map { photoURL as String? }
@@ -129,7 +130,8 @@ final class ChangeSettingsInteractor: ChangeSettingsBusinessLogic {
                     user: UserModel(
                         id: user.id,
                         username: request.username,
-                        photoURL: user.photoURL
+                        photoURL: user.photoURL,
+                        friendIds: user.friendIds
                     )
                 )
                 .map { user.photoURL as String? }
@@ -154,7 +156,8 @@ final class ChangeSettingsInteractor: ChangeSettingsBusinessLogic {
                 self.currentUserData = UserModel(
                     id: user.id,
                     username: request.username,
-                    photoURL: newPhotoURL
+                    photoURL: newPhotoURL,
+                    friendIds: user.friendIds
                 )
             }
             .store(in: &cancellables)

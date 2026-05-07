@@ -50,6 +50,8 @@ final class CompositionRoot {
         }.inObjectScope(.transient)
         container.register(AvatarServiceLogic.self) { _ in AvatarService(avatarsCache: AvatarCacheStorage()) }
             .inObjectScope(.transient)
+        container.register(FriendsServiceLogic.self) { _ in FriendsService() }
+            .inObjectScope(.transient)
         container.register(UserChatListLogic.self) { _ in UserChatListService() }
             .inObjectScope(.transient)
         container.register(SearchChatsListLogic.self) { resolver in
@@ -73,6 +75,8 @@ final class CompositionRoot {
         container.register(ChatsRoutingLogic.self) { _ in ChatsRouter() }
             .inObjectScope(.container)
         container.register(SearchChatsRoutingLogic.self) { _ in SearchChatsRouter() }
+            .inObjectScope(.container)
+        container.register(SearchFriendsRoutingLogic.self) { _ in SearchFriendsRouter() }
             .inObjectScope(.container)
         container.register(SettingsRoutingLogic.self) { resolver in
             guard let authRouter = resolver.resolve(

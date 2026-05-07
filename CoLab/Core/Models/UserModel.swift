@@ -13,4 +13,5 @@ struct UserModel: Codable, Equatable {
     let id: String
     let username: String
     let photoURL: String?
+    let friendIds: [String]
 }

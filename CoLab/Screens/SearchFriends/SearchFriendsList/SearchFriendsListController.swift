@@ -574,7 +574,15 @@ extension SearchFriendsListController: UITableViewDataSource {
 
 extension SearchFriendsListController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard displayedUserIds.indices.contains(indexPath.row),
+              let item = tableDataProvider.item(
+                for: displayedUserIds[indexPath.row]
+              ) else {
+            return
+        }
+        
         tableView.deselectRow(at: indexPath, animated: false)
+        interactor.loadAddFriendScreen(userId: item.id)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {

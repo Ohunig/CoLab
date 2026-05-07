@@ -21,6 +21,8 @@ protocol SearchFriendsListBusinessLogic: AnyObject {
     func loadNextPage()
     
     func updateSearchText(_ text: String)
+    
+    func loadAddFriendScreen(userId: String)
 }
 
 protocol SearchFriendsListTableDataLogic: AnyObject {
