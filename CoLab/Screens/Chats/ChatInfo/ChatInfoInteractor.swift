@@ -19,21 +19,11 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         case remote(String)
     }
     
-    private struct AvatarSyncStep {
-        static let empty = AvatarSyncStep(
-            sourcesByMemberId: [:],
-            changedUsers: []
-        )
-        
-        let sourcesByMemberId: [String: AvatarSource]
-        let changedUsers: [UserModel]
-    }
-    
     private let chatId: String
-    private let chatTitle: String
-    private let chatDescription: String?
-    private let chatAvatarURL: String?
-    private let memberIds: [String]
+    private var chatTitle: String
+    private var chatDescription: String?
+    private var chatAvatarURL: String?
+    private var memberIds: [String]
     
     private let presenter: ChatInfoPresentationLogic
     private let colorRepository: ColorStorageLogic
@@ -46,7 +36,11 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
     private var isAvatarLoading = false
     private var isLeaving = false
     private var membersById: [String: UserModel] = [:]
+    private var avatarSourcesByMemberId: [String: AvatarSource] = [:]
     private var pipelineCancellables = Set<AnyCancellable>()
+    private var chatAvatarCancellable: AnyCancellable?
+    private var memberCancellables: [String: AnyCancellable] = [:]
+    private var avatarCancellables: [String: AnyCancellable] = [:]
     private var hasPresentedError = false
     
     // MARK: Lifecycle
@@ -98,8 +92,16 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         )
         presentCurrentState()
         
-        loadChatAvatarIfNeeded()
+        updateChatAvatar(chatAvatarURL)
         bindMembers()
+        bindChat()
+    }
+    
+    func loadAddMemberScreen() {
+        router.routeToAddChatMember(
+            chatId: chatId,
+            memberIds: memberIds
+        )
     }
     
     func leaveChat() {
@@ -126,56 +128,111 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
             .store(in: &pipelineCancellables)
     }
     
-    private func loadChatAvatarIfNeeded() {
+    // MARK: Chat updates
+    
+    private func bindChat() {
+        chatService.chatUpdatesPublisher(chatId: chatId)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] result in
+                switch result {
+                case let .failure(error):
+                    self?.presentErrorIfNeeded(error)
+                case let .success(chat):
+                    self?.handleChatUpdate(chat)
+                }
+            }
+            .store(in: &pipelineCancellables)
+    }
+    
+    private func handleChatUpdate(_ chat: ChatModel) {
+        let shouldUpdateAvatar = chatAvatarURL != chat.avatarURL
+        
+        chatTitle = chat.title
+        chatDescription = chat.description
+        syncMemberIds(chat.memberIds)
+        
+        if shouldUpdateAvatar {
+            updateChatAvatar(chat.avatarURL)
+        } else {
+            presentCurrentState()
+        }
+    }
+    
+    private func updateChatAvatar(_ nextAvatarURL: String?) {
+        chatAvatarURL = nextAvatarURL
+        chatAvatarCancellable?.cancel()
+        currentAvatarData = nil
+        
         // Если у чата нет аватара — просто скрываем shimmer и оставляем placeholder
-        guard let chatAvatarURL, !chatAvatarURL.isEmpty else {
+        guard let nextAvatarURL, !nextAvatarURL.isEmpty else {
             isAvatarLoading = false
             presentCurrentState()
             return
         }
         
-        avatarService.avatarDataPublisher(photoURL: chatAvatarURL)
+        isAvatarLoading = true
+        presentCurrentState()
+        
+        chatAvatarCancellable = avatarService
+            .avatarDataPublisher(photoURL: nextAvatarURL)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] avatarData in
-                guard let self else { return }
+                guard let self,
+                      self.chatAvatarURL == nextAvatarURL else {
+                    return
+                }
+                
                 self.currentAvatarData = avatarData
                 self.isAvatarLoading = false
                 self.presentCurrentState()
             }
-            .store(in: &pipelineCancellables)
     }
     
     private func bindMembers() {
-        guard !memberIds.isEmpty else { return }
+        memberIds.forEach { bindMemberIfNeeded($0) }
+    }
+    
+    private func syncMemberIds(_ nextMemberIds: [String]) {
+        let previousIds = Set(memberIds)
+        let nextIds = Set(nextMemberIds)
+        memberIds = nextMemberIds
         
-        makeMembersPublisher()
-            .receive(on: DispatchQueue.main)
-            .handleEvents(receiveOutput: { [weak self] result in
-                self?.handleMemberUpdateResult(result)
-            })
-            .compactMap { result -> UserModel? in
-                guard case let .success(user) = result else { return nil }
-                return user
-            }
-            .scan(AvatarSyncStep.empty) { [weak self] previousStep, user in
-                guard let self else { return .empty }
-                return self.makeAvatarSyncStep(
-                    for: user,
-                    previousSourcesByMemberId: previousStep.sourcesByMemberId
-                )
-            }
-            .map { [weak self] step -> AnyPublisher<Model.AvatarUpdate.Response, Never> in
-                guard let self else {
-                    return Empty().eraseToAnyPublisher()
+        previousIds.subtracting(nextIds).forEach { memberId in
+            memberCancellables[memberId]?.cancel()
+            memberCancellables.removeValue(forKey: memberId)
+            avatarCancellables[memberId]?.cancel()
+            avatarCancellables.removeValue(forKey: memberId)
+            avatarSourcesByMemberId.removeValue(forKey: memberId)
+            membersById.removeValue(forKey: memberId)
+        }
+        
+        presenter.presentMembers(
+            Model.MembersList.Response(
+                members: currentMembers()
+            )
+        )
+        bindMembers()
+    }
+    
+    private func bindMemberIfNeeded(_ memberId: String) {
+        guard memberCancellables[memberId] == nil else { return }
+        
+        let cancellable = userService
+            .userUpdatesPublisher(id: memberId)
+            .handleEvents(
+                receiveSubscription: { [weak self] _ in
+                    self?.userService.startListeningUser(id: memberId)
+                },
+                receiveCancel: { [weak self] in
+                    self?.userService.stopListeningUser(id: memberId)
                 }
-                return self.makeAvatarUpdatesPublisher(for: step.changedUsers)
-            }
-            .flatMap(maxPublishers: .unlimited) { $0 }
+            )
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] response in
-                self?.handleMemberAvatarUpdate(response)
+            .sink { [weak self] result in
+                self?.handleMemberUpdateResult(result)
             }
-            .store(in: &pipelineCancellables)
+        
+        memberCancellables[memberId] = cancellable
     }
     
     private func presentCurrentState() {
@@ -190,75 +247,6 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
     }
     
     // MARK: Factory methods
-    
-    private func makeMembersPublisher()
-        -> AnyPublisher<Result<UserModel, FetchUserError>, Never> {
-        let publishers = memberIds.map { [weak self] memberId in
-            self?.userService
-                .userUpdatesPublisher(id: memberId)
-                .handleEvents(
-                    receiveSubscription: { [weak self] _ in
-                        self?.userService.startListeningUser(id: memberId)
-                    },
-                    receiveCancel: { [weak self] in
-                        self?.userService.stopListeningUser(id: memberId)
-                    }
-                )
-                .eraseToAnyPublisher()
-            ?? Empty().eraseToAnyPublisher()
-        }
-        
-        return Publishers.MergeMany(publishers)
-            .eraseToAnyPublisher()
-    }
-    
-    private func makeAvatarUpdatesPublisher(
-        for users: [UserModel]
-    ) -> AnyPublisher<Model.AvatarUpdate.Response, Never> {
-        let publishers = users.compactMap { user -> AnyPublisher<Model.AvatarUpdate.Response, Never>? in
-            guard let photoURL = user.photoURL, !photoURL.isEmpty else {
-                return nil
-            }
-            
-            return avatarService.avatarDataPublisher(photoURL: photoURL)
-                .map { avatarData in
-                    Model.AvatarUpdate.Response(
-                        memberId: user.id,
-                        avatarURL: photoURL,
-                        avatarData: avatarData
-                    )
-                }
-                .eraseToAnyPublisher()
-        }
-        
-        guard !publishers.isEmpty else {
-            return Empty().eraseToAnyPublisher()
-        }
-        
-        return Publishers.MergeMany(publishers)
-            .eraseToAnyPublisher()
-    }
-    
-    private func makeAvatarSyncStep(
-        for user: UserModel,
-        previousSourcesByMemberId: [String: AvatarSource]
-    ) -> AvatarSyncStep {
-        let nextSource = avatarSource(for: user)
-        var nextSourcesByMemberId = previousSourcesByMemberId
-        nextSourcesByMemberId[user.id] = nextSource
-        
-        let changedUsers: [UserModel]
-        if previousSourcesByMemberId[user.id] != nextSource {
-            changedUsers = [user]
-        } else {
-            changedUsers = []
-        }
-        
-        return AvatarSyncStep(
-            sourcesByMemberId: nextSourcesByMemberId,
-            changedUsers: changedUsers
-        )
-    }
     
     private func avatarSource(for user: UserModel) -> AvatarSource {
         guard let photoURL = user.photoURL, !photoURL.isEmpty else {
@@ -282,6 +270,39 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
                     members: currentMembers()
                 )
             )
+            syncMemberAvatar(for: user)
+        }
+    }
+    
+    private func syncMemberAvatar(for user: UserModel) {
+        let nextSource = avatarSource(for: user)
+        guard avatarSourcesByMemberId[user.id] != nextSource else { return }
+        
+        avatarSourcesByMemberId[user.id] = nextSource
+        avatarCancellables[user.id]?.cancel()
+        
+        switch nextSource {
+        case .none:
+            presenter.presentAvatarUpdate(
+                Model.AvatarUpdate.Response(
+                    memberId: user.id,
+                    avatarURL: "",
+                    avatarData: nil
+                )
+            )
+        case let .remote(photoURL):
+            avatarCancellables[user.id] = avatarService
+                .avatarDataPublisher(photoURL: photoURL)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] avatarData in
+                    self?.handleMemberAvatarUpdate(
+                        Model.AvatarUpdate.Response(
+                            memberId: user.id,
+                            avatarURL: photoURL,
+                            avatarData: avatarData
+                        )
+                    )
+                }
         }
     }
     

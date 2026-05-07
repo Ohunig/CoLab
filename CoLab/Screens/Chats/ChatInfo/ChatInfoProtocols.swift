@@ -14,6 +14,8 @@ protocol ChatInfoBusinessLogic: AnyObject {
     // Начальные настройки экрана
     func loadStart()
     
+    func loadAddMemberScreen()
+    
     func leaveChat()
 }
 

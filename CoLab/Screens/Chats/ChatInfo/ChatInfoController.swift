@@ -22,13 +22,16 @@ final class ChatInfoController: UIViewController {
         static let descriptionGap: CGFloat = 12
         static let avatarLabelFontSize: CGFloat = 40
         static let avatarLabelLines = 2
-        static let headerBottomInset: CGFloat = 55
+        static let headerBottomInset: CGFloat = 40
         static let bottomInset: CGFloat = 24
         static let updateDuration = 0.25
         
         static let exitCellHeight: CGFloat = 80
         static let exitCellTop: CGFloat = 20
         static let exitCellText = "Выйти из чата"
+        static let addMemberCellHeight: CGFloat = 80
+        static let addMemberCellTop: CGFloat = headerBottomInset
+        static let addMemberCellText = "Добавить участника"
         
         static let unknownTitle = "..."
         static let emptyStateText = "Участников нет"
@@ -61,6 +64,7 @@ final class ChatInfoController: UIViewController {
     private let tableView = ContentSizedTableView(frame: .zero, style: .plain)
     private lazy var dataSource = makeDataSource()
     
+    private let addMemberCell = ItemCell()
     private let exitCell = ItemCell()
     
     private var avatarTopConstraint: NSLayoutConstraint?
@@ -109,6 +113,7 @@ final class ChatInfoController: UIViewController {
         configureBackButton()
         configureHeader()
         configureMembers()
+        configureAddMemberButton()
         configureExitButton()
         updateInsetConstraints()
     }
@@ -286,8 +291,27 @@ final class ChatInfoController: UIViewController {
         NSLayoutConstraint.activate([
             exitCell.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Constants.horisontalInset),
             exitCell.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            exitCell.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: Constants.exitCellTop),
+            exitCell.topAnchor.constraint(equalTo: addMemberCell.bottomAnchor, constant: Constants.exitCellTop),
             exitCell.heightAnchor.constraint(equalToConstant: Constants.exitCellHeight)
+        ])
+    }
+    
+    private func configureAddMemberButton() {
+        addMemberCell.addAction(
+            UIAction { [weak self] _ in
+                self?.interactor.loadAddMemberScreen()
+            },
+            for: .touchUpInside
+        )
+        addMemberCell.text = Constants.addMemberCellText
+        addMemberCell.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(addMemberCell)
+        
+        NSLayoutConstraint.activate([
+            addMemberCell.leadingAnchor.constraint(equalTo: tableView.leadingAnchor),
+            addMemberCell.trailingAnchor.constraint(equalTo: tableView.trailingAnchor),
+            addMemberCell.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: Constants.addMemberCellTop),
+            addMemberCell.heightAnchor.constraint(equalToConstant: Constants.addMemberCellHeight)
         ])
     }
     
@@ -422,9 +446,13 @@ extension ChatInfoController: ChatInfoDisplayLogic {
         backgroundView.bgColor = bgColor
         backgroundView.gradientColor = bgGradientColor
         
-        // Кнопка назад + кнопка выхода
+        // Кнопка назад + кнопки действий
         backButton.baseColor = elementsBaseColor
         backButton.tintColor = tintColor
+        
+        addMemberCell.baseColor = elementsBaseColor
+        addMemberCell.textColor = textColor
+        addMemberCell.tintColor = tintColor
         
         exitCell.baseColor = elementsBaseColor
         

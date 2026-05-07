@@ -29,5 +29,12 @@ protocol ChatsRoutingLogic: AnyObject {
         memberIds: [String]
     )
     
+    func routeToAddChatMember(
+        chatId: String,
+        memberIds: [String]
+    )
+    
     func routeToUserChats()
+    
+    func routeBack()
 }
