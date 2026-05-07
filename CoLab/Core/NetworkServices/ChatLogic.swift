@@ -16,5 +16,7 @@ protocol ChatLogic: AnyObject {
     
     func addCurrentUser(toChat chatId: String) -> AnyPublisher<Void, FetchUserChatsError>
     
+    func addUser(_ userId: String, toChat chatId: String) -> AnyPublisher<Void, FetchUserChatsError>
+    
     func removeCurrentUser(fromChat chatId: String) -> AnyPublisher<Void, FetchUserChatsError>
 }

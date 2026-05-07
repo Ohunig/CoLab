@@ -56,7 +56,24 @@ final class ChatsRouter: ChatsRoutingLogic {
         )
     }
     
+    func routeToAddChatMember(
+        chatId: String,
+        memberIds: [String]
+    ) {
+        navigationController?.pushViewController(
+            AddChatMemberAssembly.build(
+                chatId: chatId,
+                memberIds: memberIds
+            ),
+            animated: true
+        )
+    }
+    
     func routeToUserChats() {
         navigationController?.popToRootViewController(animated: true)
+    }
+    
+    func routeBack() {
+        navigationController?.popViewController(animated: true)
     }
 }

@@ -22,7 +22,7 @@ final class AddChatController: UIViewController {
         static let descriptionGap: CGFloat = 12
         static let avatarLabelFontSize: CGFloat = 40
         static let avatarLabelLines = 2
-        static let headerBottomInset: CGFloat = 55
+        static let headerBottomInset: CGFloat = 40
         static let bottomInset: CGFloat = 24
         static let updateDuration = 0.25
         

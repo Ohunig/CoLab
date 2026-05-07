@@ -25,14 +25,13 @@ final class SearchFriendItemCell: UITableViewCell {
         static let containerAlpha: CGFloat = 0.5
         
         static let avatarSide: CGFloat = 58
-        static let chevronSide: CGFloat = 20
+        static let avatarVerticalInset: CGFloat = 5
         
         static let titleFontSize: CGFloat = 18
         static let titleLines = 1
         
         static let placeholderAvatar = UIImage(systemName: "person.crop.circle.fill")?
             .withTintColor(.white, renderingMode: .alwaysOriginal)
-        static let chevronImage = "chevron.right"
     }
     
     static let reuseIdentifier = Constants.reuseIdentifier
@@ -40,10 +39,6 @@ final class SearchFriendItemCell: UITableViewCell {
     private let containerView = UIView()
     private let avatarView = CircleImage(Constants.placeholderAvatar)
     private let titleLabel = UILabel()
-    private let chevronImageView = UIImageView(
-        image: UIImage(systemName: Constants.chevronImage)?
-            .withRenderingMode(.alwaysTemplate)
-    )
     
     private var base: UIColor?
     private var labelColor: UIColor?
@@ -140,7 +135,6 @@ final class SearchFriendItemCell: UITableViewCell {
         configureContainer()
         configureAvatar()
         configureTitle()
-        configureChevron()
         configureLayout()
         
         baseColor = .white
@@ -173,12 +167,6 @@ final class SearchFriendItemCell: UITableViewCell {
         containerView.addSubview(titleLabel)
     }
     
-    private func configureChevron() {
-        chevronImageView.contentMode = .scaleAspectFit
-        chevronImageView.translatesAutoresizingMaskIntoConstraints = false
-        containerView.addSubview(chevronImageView)
-    }
-    
     private func configureLayout() {
         NSLayoutConstraint.activate([
             containerView.topAnchor.constraint(
@@ -198,37 +186,23 @@ final class SearchFriendItemCell: UITableViewCell {
             ),
             avatarView.topAnchor.constraint(
                 greaterThanOrEqualTo: containerView.topAnchor,
-                constant: Constants.verticalInset
+                constant: Constants.avatarVerticalInset
             ),
             avatarView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
             avatarView.bottomAnchor.constraint(
                 lessThanOrEqualTo: containerView.bottomAnchor,
-                constant: -Constants.verticalInset
+                constant: -Constants.avatarVerticalInset
             ),
             avatarView.widthAnchor.constraint(equalToConstant: Constants.avatarSide),
             avatarView.heightAnchor.constraint(equalTo: avatarView.widthAnchor),
-            
-            chevronImageView.trailingAnchor.constraint(
-                equalTo: containerView.trailingAnchor,
-                constant: -Constants.innerInset
-            ),
-            chevronImageView.centerYAnchor.constraint(
-                equalTo: containerView.centerYAnchor
-            ),
-            chevronImageView.widthAnchor.constraint(
-                equalToConstant: Constants.chevronSide
-            ),
-            chevronImageView.heightAnchor.constraint(
-                equalTo: chevronImageView.widthAnchor
-            ),
             
             titleLabel.leadingAnchor.constraint(
                 equalTo: avatarView.trailingAnchor,
                 constant: Constants.contentSpacing
             ),
             titleLabel.trailingAnchor.constraint(
-                equalTo: chevronImageView.leadingAnchor,
-                constant: -Constants.contentSpacing
+                equalTo: containerView.trailingAnchor,
+                constant: -Constants.innerInset
             ),
             titleLabel.topAnchor.constraint(
                 greaterThanOrEqualTo: containerView.topAnchor,
@@ -246,6 +220,5 @@ final class SearchFriendItemCell: UITableViewCell {
     
     override func tintColorDidChange() {
         super.tintColorDidChange()
-        chevronImageView.tintColor = tintColor
     }
 }

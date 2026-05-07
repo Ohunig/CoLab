@@ -26,12 +26,11 @@ final class UserInfoCell: UITableViewCell {
         static let avatarBackgroundAlpha: CGFloat = 0.12
         
         static let avatarSide: CGFloat = 58
+        static let avatarVerticalInset: CGFloat = 5
         static let avatarCornerRadius: CGFloat = 28
-        static let chevronSide: CGFloat = 20
         
         static let titleFontSize: CGFloat = 18
         static let placeholderAvatar = "person.crop.circle.fill"
-        static let chevronImage = "chevron.right"
     }
     
     static let reuseIdentifier = Constants.reuseIdentifier
@@ -39,10 +38,6 @@ final class UserInfoCell: UITableViewCell {
     private let containerView = UIView()
     private let avatarImageView = UIImageView()
     private let titleLabel = UILabel()
-    private let chevronImageView = UIImageView(
-        image: UIImage(systemName: Constants.chevronImage)?
-            .withRenderingMode(.alwaysTemplate)
-    )
     
     private var base: UIColor?
     private var labelColor: UIColor?
@@ -149,7 +144,6 @@ final class UserInfoCell: UITableViewCell {
         configureContainer()
         configureAvatar()
         configureTitle()
-        configureChevron()
         configureLayout()
     }
     
@@ -179,16 +173,9 @@ final class UserInfoCell: UITableViewCell {
         avatarImage = nil
     }
     
-    private func configureChevron() {
-        chevronImageView.translatesAutoresizingMaskIntoConstraints = false
-        chevronImageView.contentMode = .scaleAspectFit
-        containerView.addSubview(chevronImageView)
-    }
-    
     private func configureLayout() {
         configureContainerConstraints()
         configureAvatarConstraints()
-        configureChevronConstraints()
         configureTitleConstraints()
     }
     
@@ -215,46 +202,20 @@ final class UserInfoCell: UITableViewCell {
             ),
             avatarImageView.topAnchor.constraint(
                 greaterThanOrEqualTo: containerView.topAnchor,
-                constant: Constants.innerInset
+                constant: Constants.avatarVerticalInset
             ),
             avatarImageView.centerYAnchor.constraint(
                 equalTo: containerView.centerYAnchor
             ),
             avatarImageView.bottomAnchor.constraint(
                 lessThanOrEqualTo: containerView.bottomAnchor,
-                constant: -Constants.innerInset
+                constant: -Constants.avatarVerticalInset
             ),
             avatarImageView.widthAnchor.constraint(
                 equalToConstant: Constants.avatarSide
             ),
             avatarImageView.heightAnchor.constraint(
                 equalTo: avatarImageView.widthAnchor
-            )
-        ])
-    }
-    
-    private func configureChevronConstraints() {
-        NSLayoutConstraint.activate([
-            chevronImageView.trailingAnchor.constraint(
-                equalTo: containerView.trailingAnchor,
-                constant: -Constants.innerInset
-            ),
-            chevronImageView.topAnchor.constraint(
-                greaterThanOrEqualTo: containerView.topAnchor,
-                constant: Constants.innerInset
-            ),
-            chevronImageView.centerYAnchor.constraint(
-                equalTo: containerView.centerYAnchor
-            ),
-            chevronImageView.bottomAnchor.constraint(
-                lessThanOrEqualTo: containerView.bottomAnchor,
-                constant: -Constants.innerInset
-            ),
-            chevronImageView.widthAnchor.constraint(
-                equalToConstant: Constants.chevronSide
-            ),
-            chevronImageView.heightAnchor.constraint(
-                equalTo: chevronImageView.widthAnchor
             )
         ])
     }
@@ -277,8 +238,8 @@ final class UserInfoCell: UITableViewCell {
                 constant: -Constants.innerInset
             ),
             titleLabel.trailingAnchor.constraint(
-                equalTo: chevronImageView.leadingAnchor,
-                constant: -Constants.contentSpacing
+                equalTo: containerView.trailingAnchor,
+                constant: -Constants.innerInset
             )
         ])
     }
@@ -287,6 +248,5 @@ final class UserInfoCell: UITableViewCell {
     
     override func tintColorDidChange() {
         super.tintColorDidChange()
-        chevronImageView.tintColor = tintColor
     }
 }
