@@ -39,11 +39,17 @@ enum SearchFriendsListAssembly {
         ) else {
             fatalError(Constants.notAllServicesRegistered)
         }
+        guard let router = CompositionRoot.container.resolve(
+            SearchFriendsRoutingLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
         
         let interactor = SearchFriendsListInteractor(
             presenter: presenter,
             colorRepository: colorRepository,
             friendsListService: friendsListService,
+            router: router,
             userService: userService,
             avatarService: avatarService
         )

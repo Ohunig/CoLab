@@ -76,6 +76,8 @@ final class CompositionRoot {
             .inObjectScope(.container)
         container.register(SearchChatsRoutingLogic.self) { _ in SearchChatsRouter() }
             .inObjectScope(.container)
+        container.register(SearchFriendsRoutingLogic.self) { _ in SearchFriendsRouter() }
+            .inObjectScope(.container)
         container.register(SettingsRoutingLogic.self) { resolver in
             guard let authRouter = resolver.resolve(
                 AuthRoutingLogic.self

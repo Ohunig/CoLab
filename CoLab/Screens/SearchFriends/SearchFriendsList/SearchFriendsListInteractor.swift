@@ -21,6 +21,7 @@ final class SearchFriendsListInteractor: SearchFriendsListBusinessLogic {
     private let presenter: SearchFriendsListPresentationLogic
     private let colorRepository: ColorStorageLogic
     private let friendsListService: SearchFriendsListLogic
+    private let router: SearchFriendsRoutingLogic
     private let userService: UserServiceLogic
     private let avatarService: AvatarServiceLogic
     
@@ -41,12 +42,14 @@ final class SearchFriendsListInteractor: SearchFriendsListBusinessLogic {
         presenter: SearchFriendsListPresentationLogic,
         colorRepository: ColorStorageLogic,
         friendsListService: SearchFriendsListLogic,
+        router: SearchFriendsRoutingLogic,
         userService: UserServiceLogic,
         avatarService: AvatarServiceLogic
     ) {
         self.presenter = presenter
         self.colorRepository = colorRepository
         self.friendsListService = friendsListService
+        self.router = router
         self.userService = userService
         self.avatarService = avatarService
     }
@@ -150,6 +153,10 @@ final class SearchFriendsListInteractor: SearchFriendsListBusinessLogic {
         
         searchText = nextSearchText
         reloadUsers()
+    }
+    
+    func loadAddFriendScreen(userId: String) {
+        router.routeToAddFriend(userId: userId)
     }
     
     // MARK: Helpers
