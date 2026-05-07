@@ -106,7 +106,7 @@ final class UserService: UserServiceLogic {
                         return
                     }
                     
-                    guard let user = try? snapshot?.decoded(UserModel.self) else {
+                    guard let user = self.decodeUser(from: snapshot) else {
                         promise(.failure(.decoding))
                         return
                     }
@@ -149,7 +149,7 @@ final class UserService: UserServiceLogic {
                     return
                 }
                 
-                guard let user = try? snapshot?.decoded(UserModel.self) else {
+                guard let user = self.decodeUser(from: snapshot) else {
                     subject.send(.failure(.decoding))
                     return
                 }
@@ -180,7 +180,7 @@ final class UserService: UserServiceLogic {
             .addSnapshotListener { [weak self] snapshot, error in
                 // Если получаем ошибку, считаем что данные не менялись и ничего не делаем
                 guard error == nil else { return }
-                guard let user = try? snapshot?.decoded(UserModel.self) else {
+                guard let user = self?.decodeUser(from: snapshot) else {
                     return
                 }
                 // Если данные не изменились то ничего не отправляем
@@ -215,6 +215,23 @@ final class UserService: UserServiceLogic {
         let subject = PassthroughSubject<Result<UserModel, FetchUserError>, Never>()
         foreignUserSubjects[id] = subject
         return subject
+    }
+    
+    // MARK: Decode user
+    
+    private func decodeUser(from snapshot: DocumentSnapshot?) -> UserModel? {
+        guard let snapshot,
+              let data = snapshot.data(),
+              let username = data[Users.username.path] as? String else {
+            return nil
+        }
+        
+        return UserModel(
+            id: snapshot.documentID,
+            username: username,
+            photoURL: data[Users.photoURL.path] as? String,
+            friendIds: data[Users.friendIds.path] as? [String] ?? []
+        )
     }
     
     // MARK: Decode error

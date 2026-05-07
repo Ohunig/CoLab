@@ -17,6 +17,7 @@ enum FirebasePaths {
         case username
         case photoURL
         case searchKeywords
+        case friendIds
         
         var path: String {
             switch self {
@@ -26,6 +27,8 @@ enum FirebasePaths {
                 "photoURL"
             case .searchKeywords:
                 "searchKeywords"
+            case .friendIds:
+                "friendIds"
             }
         }
     }

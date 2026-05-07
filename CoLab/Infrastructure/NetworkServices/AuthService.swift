@@ -130,6 +130,7 @@ final class AuthService: AuthLogic {
             .setData([
                 Users.username.path: username,
                 Users.photoURL.path: Constants.standardAvatarURL,
+                Users.friendIds.path: [],
                 Users.searchKeywords.path: searchKeywordsBuilder.keywords(
                     for: username
                 )
