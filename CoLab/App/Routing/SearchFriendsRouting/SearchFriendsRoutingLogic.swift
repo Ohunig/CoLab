@@ -7,8 +7,6 @@
 
 import UIKit
 
-protocol SearchFriendsRoutingLogic: AnyObject {
+protocol SearchFriendsRoutingLogic: AddFriendRoutingLogic {
     var navigationController: UINavigationController? { get set }
-    
-    func routeToAddFriend(userId: String)
 }
