@@ -5,11 +5,7 @@
 //  Created by User on 24.04.2026.
 //
 
-import UIKit
-
-protocol SearchChatsRoutingLogic: AnyObject {
-    var navigationController: UINavigationController? { get set }
-    
+protocol SearchChatsRoutingLogic: UserInfoRoutingLogic {
     func routeToAddChat(
         chatId: String
     )

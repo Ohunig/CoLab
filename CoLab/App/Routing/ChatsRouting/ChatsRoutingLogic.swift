@@ -6,13 +6,9 @@
 //
 
 import Foundation
-import UIKit
 
 // Логика навигации внутри ветки чатов
-protocol ChatsRoutingLogic: AnyObject {
-    
-    var navigationController: UINavigationController? { get set }
-    
+protocol ChatsRoutingLogic: UserInfoRoutingLogic {
     func routeToChatMessages(
         chatId: String,
         chatTitle: String,
@@ -35,6 +31,4 @@ protocol ChatsRoutingLogic: AnyObject {
     )
     
     func routeToUserChats()
-    
-    func routeBack()
 }

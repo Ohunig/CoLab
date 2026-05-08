@@ -16,6 +16,8 @@ protocol AddChatBusinessLogic: AnyObject {
     
     // Добавление текущего юзера в чат
     func addChat()
+    
+    func loadUserInfoScreen(userId: String)
 }
 
 // Даёт контроллеру уже подготовленные данные для конкретной ячейки

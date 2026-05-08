@@ -45,13 +45,20 @@ enum AddChatAssembly {
             fatalError(Constants.notAllServicesRegistered)
         }
         
+        guard let router = CompositionRoot.container.resolve(
+            SearchChatsRoutingLogic.self
+        ) else {
+            fatalError(Constants.notAllServicesRegistered)
+        }
+        
         let interactor = AddChatInteractor(
             chatId: chatId,
             presenter: presenter,
             colorRepository: colorRepository,
             addChatService: addChatService,
             userService: userService,
-            avatarService: avatarService
+            avatarService: avatarService,
+            router: router
         )
         
         let controller = AddChatController(

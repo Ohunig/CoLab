@@ -531,6 +531,10 @@ extension AddChatController: AddChatDisplayLogic {
 
 extension AddChatController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let memberIds = tableDataProvider.memberIds()
+        guard memberIds.indices.contains(indexPath.row) else { return }
+        
         tableView.deselectRow(at: indexPath, animated: false)
+        interactor.loadUserInfoScreen(userId: memberIds[indexPath.row])
     }
 }

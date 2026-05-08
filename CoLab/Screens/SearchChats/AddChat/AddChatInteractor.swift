@@ -27,6 +27,7 @@ final class AddChatInteractor: AddChatBusinessLogic {
     private let addChatService: ChatLogic
     private let userService: UserServiceLogic
     private let avatarService: AvatarServiceLogic
+    private let router: UserInfoRoutingLogic
     
     private var chatTitle = Constants.unknownTitle
     private var chatDescription: String?
@@ -52,7 +53,8 @@ final class AddChatInteractor: AddChatBusinessLogic {
         colorRepository: ColorStorageLogic,
         addChatService: ChatLogic,
         userService: UserServiceLogic,
-        avatarService: AvatarServiceLogic
+        avatarService: AvatarServiceLogic,
+        router: UserInfoRoutingLogic
     ) {
         self.chatId = chatId
         self.presenter = presenter
@@ -60,6 +62,7 @@ final class AddChatInteractor: AddChatBusinessLogic {
         self.addChatService = addChatService
         self.userService = userService
         self.avatarService = avatarService
+        self.router = router
     }
     
     // MARK: Use-cases
@@ -139,6 +142,10 @@ final class AddChatInteractor: AddChatBusinessLogic {
                 }
             )
             .store(in: &pipelineCancellables)
+    }
+    
+    func loadUserInfoScreen(userId: String) {
+        router.routeToUserInfo(userId: userId)
     }
     
     // MARK: Chat updates

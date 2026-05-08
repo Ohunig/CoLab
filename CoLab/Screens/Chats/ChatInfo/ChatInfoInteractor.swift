@@ -104,6 +104,10 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         )
     }
     
+    func loadUserInfoScreen(userId: String) {
+        router.routeToUserInfo(userId: userId)
+    }
+    
     func leaveChat() {
         guard !isLeaving else { return }
         
