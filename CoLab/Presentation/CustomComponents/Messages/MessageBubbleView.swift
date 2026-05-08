@@ -42,9 +42,6 @@ final class MessageBubbleView: UIView {
     private let senderNameLabel = UILabel()
     private let textLabel = UILabel()
     
-    private lazy var senderHeightConstraint = senderNameLabel.heightAnchor.constraint(
-        equalToConstant: ceil(senderFont.lineHeight)
-    )
     private lazy var senderWidthConstraint = senderNameLabel.widthAnchor.constraint(
         equalToConstant: Constants.senderRowWidth
     )
@@ -258,7 +255,6 @@ final class MessageBubbleView: UIView {
                 constant: Constants.horizontalInset
             ),
             senderWidthConstraint,
-            senderHeightConstraint,
             
             textLabel.leadingAnchor.constraint(
                 equalTo: leadingAnchor,
