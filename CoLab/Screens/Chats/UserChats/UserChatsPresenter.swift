@@ -67,7 +67,9 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
             }
             
             let subtitle = chat.lastMessageText ?? "Message"
-            let preservedAvatarData = itemsById[chat.id]?.avatarData
+            let previousItem = itemsById[chat.id]
+            let hasRemoteAvatar = chat.avatarURL?.isEmpty == false
+            let hasSameAvatarURL = previousItem?.avatarURL == chat.avatarURL
 
             return Model.ChatsList.ViewModel.ChatCell(
                 id: chat.id,
@@ -79,7 +81,10 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
                 textColor: cellTextColor,
                 avatarURL: chat.avatarURL,
                 memberIds: chat.memberIds,
-                avatarData: preservedAvatarData
+                avatarData: hasSameAvatarURL ? previousItem?.avatarData : nil,
+                isAvatarLoading: hasSameAvatarURL
+                    ? previousItem?.isAvatarLoading ?? hasRemoteAvatar
+                    : hasRemoteAvatar
             )
         }
         
@@ -90,6 +95,8 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
                 || previousItem.time != item.time
                 || previousItem.baseColor != item.baseColor
                 || previousItem.textColor != item.textColor
+                || previousItem.avatarURL != item.avatarURL
+                || previousItem.isAvatarLoading != item.isAvatarLoading
             else {
                 return nil
             }
@@ -109,7 +116,9 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
     
     func presentAvatarUpdate(_ response: Model.AvatarUpdate.Response) {
         guard var item = itemsById[response.chatId] else { return }
-        guard item.avatarData != response.avatarData else { return }
+        guard item.avatarData != response.avatarData || item.isAvatarLoading else {
+            return
+        }
         
         item = Model.ChatsList.ViewModel.ChatCell(
             id: item.id,
@@ -121,7 +130,8 @@ final class UserChatsPresenter: UserChatsPresentationLogic, UserChatsTableDataLo
             textColor: item.textColor,
             avatarURL: item.avatarURL,
             memberIds: item.memberIds,
-            avatarData: response.avatarData
+            avatarData: response.avatarData,
+            isAvatarLoading: false
         )
         itemsById[response.chatId] = item
         

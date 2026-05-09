@@ -443,5 +443,6 @@ extension UserChatsController: UITableViewDelegate {
             alpha: item.textColor.a
         )
         cell.avatarImage = item.avatarData.flatMap(UIImage.init(data:))
+        cell.isAvatarLoading = item.isAvatarLoading
     }
 }

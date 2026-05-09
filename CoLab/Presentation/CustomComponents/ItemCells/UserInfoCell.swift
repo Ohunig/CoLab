@@ -37,12 +37,14 @@ final class UserInfoCell: UITableViewCell {
     
     private let containerView = UIView()
     private let avatarImageView = UIImageView()
+    private let avatarOverlay = LoadingOverlay()
     private let titleLabel = UILabel()
     
     private var base: UIColor?
     private var labelColor: UIColor?
     private var titleValue = String()
     private var avatarValue: UIImage?
+    private var isAvatarLoadingValue = false
     
     // MARK: Computed properties
     
@@ -83,8 +85,15 @@ final class UserInfoCell: UITableViewCell {
         get { avatarValue }
         set {
             avatarValue = newValue
-            avatarImageView.image = newValue
-                ?? UIImage(systemName: Constants.placeholderAvatar)
+            updateAvatarState()
+        }
+    }
+    
+    var isAvatarLoading: Bool {
+        get { isAvatarLoadingValue }
+        set {
+            isAvatarLoadingValue = newValue
+            updateAvatarState()
         }
     }
     
@@ -106,6 +115,7 @@ final class UserInfoCell: UITableViewCell {
         super.prepareForReuse()
         title = ""
         avatarImage = nil
+        isAvatarLoading = false
         updatePressedState(isPressed: false, animated: false)
     }
     
@@ -158,6 +168,7 @@ final class UserInfoCell: UITableViewCell {
         avatarImageView.translatesAutoresizingMaskIntoConstraints = false
         avatarImageView.contentMode = .scaleAspectFill
         avatarImageView.clipsToBounds = true
+        avatarImageView.isUserInteractionEnabled = true
         avatarImageView.layer.cornerRadius = Constants.avatarCornerRadius
         containerView.addSubview(avatarImageView)
     }
@@ -171,6 +182,20 @@ final class UserInfoCell: UITableViewCell {
         baseColor = .white
         textColor = .white
         avatarImage = nil
+    }
+    
+    private func updateAvatarState() {
+        if isAvatarLoadingValue {
+            avatarImageView.image = nil
+            if avatarOverlay.superview == nil {
+                avatarOverlay.isUserInteractionEnabled = false
+                avatarOverlay.show(over: avatarImageView)
+            }
+        } else {
+            avatarOverlay.hide()
+            avatarImageView.image = avatarValue
+                ?? UIImage(systemName: Constants.placeholderAvatar)
+        }
     }
     
     private func configureLayout() {

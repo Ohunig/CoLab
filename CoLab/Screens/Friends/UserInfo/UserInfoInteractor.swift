@@ -59,7 +59,6 @@ final class UserInfoInteractor: UserInfoBusinessLogic {
             )
         )
         
-        presentUserData()
         loadUser()
     }
     

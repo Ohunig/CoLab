@@ -20,6 +20,7 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
         var username: String?
         var photoURL: String?
         var avatarData: Data?
+        var isAvatarLoading = false
     }
     
     private let chatId: String
@@ -438,9 +439,15 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
     }
     
     private func startListeningSenderUser(senderId: String) {
-        userService.startListeningUser(id: senderId)
-        
         senderUserCancellables[senderId] = userService.userUpdatesPublisher(id: senderId)
+            .handleEvents(
+                receiveSubscription: { [weak self] _ in
+                    self?.userService.startListeningUser(id: senderId)
+                },
+                receiveCancel: { [weak self] in
+                    self?.userService.stopListeningUser(id: senderId)
+                }
+            )
             .receive(on: DispatchQueue.main)
             .sink { [weak self] result in
                 guard let self else { return }
@@ -460,6 +467,9 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
                         self.senderAvatarCancellables.removeValue(forKey: senderId)
                         state.avatarData = nil
                     }
+                    
+                    let hasAvatarURL = user.photoURL?.isEmpty == false
+                    state.isAvatarLoading = hasAvatarURL && state.avatarData == nil
                     self.senderStatesById[senderId] = state
                     
                     // Не шлём presenter update на каждое поле сразу.
@@ -482,9 +492,13 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
                 self.senderAvatarCancellables.removeValue(forKey: senderId)
                 
                 guard self.senderStatesById[senderId]?.photoURL == photoURL else { return }
-                guard self.senderStatesById[senderId]?.avatarData != avatarData else { return }
+                guard self.senderStatesById[senderId]?.avatarData != avatarData
+                        || self.senderStatesById[senderId]?.isAvatarLoading == true else {
+                    return
+                }
                 
                 self.senderStatesById[senderId]?.avatarData = avatarData
+                self.senderStatesById[senderId]?.isAvatarLoading = false
                 self.scheduleMessagesUpdate()
             }
     }
@@ -527,7 +541,8 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
         senderStatesById.mapValues { state in
             Model.MessagesList.SenderData(
                 username: state.username,
-                avatarData: state.avatarData
+                avatarData: state.avatarData,
+                isAvatarLoading: state.isAvatarLoading
             )
         }
     }

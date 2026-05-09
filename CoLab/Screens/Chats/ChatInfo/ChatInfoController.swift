@@ -55,7 +55,7 @@ final class ChatInfoController: UIViewController {
     private let scrollView = UIScrollView()
     
     private let avatarOverlay = LoadingOverlay()
-    private let avatar = CircleImage(Constants.placeholderAvatar)
+    private let avatar = CircleImage(UIImage())
     private let chatTitle = UILabel()
     private let chatDescription = ChatDescriptionView()
     private let headerTextStackView = UIStackView()
@@ -322,20 +322,7 @@ final class ChatInfoController: UIViewController {
     
     private func updateAvatarImage(_ image: UIImage?) {
         // Если своего изображения нет, остаётся стандартный placeholder для чата
-        let resolvedImage = image ?? Constants.placeholderAvatar
-        
-        guard avatar.window != nil else {
-            avatar.image = resolvedImage
-            return
-        }
-        
-        UIView.transition(
-            with: avatar,
-            duration: Constants.updateDuration,
-            options: .transitionCrossDissolve
-        ) {
-            self.avatar.image = resolvedImage
-        }
+        avatar.image = image ?? Constants.placeholderAvatar
     }
     
     // MARK: Factory methods
@@ -414,6 +401,7 @@ final class ChatInfoController: UIViewController {
             alpha: item.tintColor.a
         )
         cell.avatarImage = item.avatarData.flatMap { UIImage.init(data: $0) }
+        cell.isAvatarLoading = item.isAvatarLoading
     }
 }
 

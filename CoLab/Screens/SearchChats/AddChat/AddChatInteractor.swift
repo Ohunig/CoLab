@@ -86,7 +86,6 @@ final class AddChatInteractor: AddChatBusinessLogic {
                 isAdded: false
             )
         )
-        presentCurrentState()
         bindChat()
     }
     
@@ -156,6 +155,8 @@ final class AddChatInteractor: AddChatBusinessLogic {
             .sink { [weak self] result in
                 switch result {
                 case let .failure(error):
+                    self?.isAvatarLoading = false
+                    self?.presentCurrentState()
                     self?.presentErrorIfNeeded(error)
                 case let .success(chat):
                     self?.handleChatUpdate(chat)

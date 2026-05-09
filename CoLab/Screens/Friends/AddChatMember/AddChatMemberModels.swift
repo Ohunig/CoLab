@@ -37,6 +37,7 @@ struct AddChatMemberModels {
                 let username: String
                 let photoURL: String?
                 let avatarData: Data?
+                let isAvatarLoading: Bool
                 let baseColor: (hex: String, a: CGFloat)
                 let tintColor: (hex: String, a: CGFloat)
                 let textColor: (hex: String, a: CGFloat)

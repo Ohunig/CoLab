@@ -53,11 +53,18 @@ final class SearchFriendsListPresenter: SearchFriendsListPresentationLogic {
     
     func presentUsers(_ response: Model.UsersList.Response) {
         let items = response.users.map { user in
-            Model.UsersList.ViewModel.UserCell(
+            let previousItem = itemsById[user.id]
+            let hasRemoteAvatar = user.photoURL?.isEmpty == false
+            let hasSameAvatarURL = previousItem?.photoURL == user.photoURL
+            
+            return Model.UsersList.ViewModel.UserCell(
                 id: user.id,
                 username: user.username,
                 photoURL: user.photoURL,
-                avatarData: itemsById[user.id]?.avatarData,
+                avatarData: hasSameAvatarURL ? previousItem?.avatarData : nil,
+                isAvatarLoading: hasSameAvatarURL
+                    ? previousItem?.isAvatarLoading ?? hasRemoteAvatar
+                    : hasRemoteAvatar,
                 baseColor: cellBaseColor,
                 tintColor: cellTintColor,
                 textColor: cellTextColor
@@ -74,13 +81,16 @@ final class SearchFriendsListPresenter: SearchFriendsListPresentationLogic {
     
     func presentAvatarUpdate(_ response: Model.AvatarUpdate.Response) {
         guard var item = itemsById[response.userId] else { return }
-        guard item.avatarData != response.avatarData else { return }
+        guard item.avatarData != response.avatarData || item.isAvatarLoading else {
+            return
+        }
         
         item = Model.UsersList.ViewModel.UserCell(
             id: item.id,
             username: item.username,
             photoURL: item.photoURL,
             avatarData: response.avatarData,
+            isAvatarLoading: false,
             baseColor: item.baseColor,
             tintColor: item.tintColor,
             textColor: item.textColor

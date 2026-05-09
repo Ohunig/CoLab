@@ -37,13 +37,15 @@ final class SearchFriendItemCell: UITableViewCell {
     static let reuseIdentifier = Constants.reuseIdentifier
     
     private let containerView = UIView()
-    private let avatarView = CircleImage(Constants.placeholderAvatar)
+    private let avatarView = CircleImage(UIImage())
+    private let avatarOverlay = LoadingOverlay()
     private let titleLabel = UILabel()
     
     private var base: UIColor?
     private var labelColor: UIColor?
     private var titleValue = String()
     private var avatarValue: UIImage?
+    private var isAvatarLoadingValue = false
     
     // MARK: Computed properties
     
@@ -78,7 +80,15 @@ final class SearchFriendItemCell: UITableViewCell {
         get { avatarValue }
         set {
             avatarValue = newValue
-            avatarView.image = newValue ?? Constants.placeholderAvatar
+            updateAvatarState()
+        }
+    }
+    
+    var isAvatarLoading: Bool {
+        get { isAvatarLoadingValue }
+        set {
+            isAvatarLoadingValue = newValue
+            updateAvatarState()
         }
     }
     
@@ -98,6 +108,7 @@ final class SearchFriendItemCell: UITableViewCell {
         super.prepareForReuse()
         title = ""
         avatarImage = nil
+        isAvatarLoading = false
         updatePressedState(isPressed: false, animated: false)
     }
     
@@ -140,6 +151,19 @@ final class SearchFriendItemCell: UITableViewCell {
         baseColor = .white
         textColor = .white
         avatarImage = nil
+    }
+    
+    private func updateAvatarState() {
+        if isAvatarLoadingValue {
+            avatarView.image = nil
+            if avatarOverlay.superview == nil {
+                avatarOverlay.isUserInteractionEnabled = false
+                avatarOverlay.show(over: avatarView)
+            }
+        } else {
+            avatarOverlay.hide()
+            avatarView.image = avatarValue ?? Constants.placeholderAvatar
+        }
     }
     
     private func configureContainer() {

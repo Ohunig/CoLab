@@ -20,8 +20,6 @@ final class ChatMessagesNavigationBarView: UIView {
         static let itemGap: CGFloat = 12
         static let titleLines = 1
         
-        static let avatarTransitionDuration: TimeInterval = 0.25
-        
         static let placeholderAvatar = UIImage(systemName: "person.crop.circle.fill")?
             .withTintColor(.white, renderingMode: .alwaysOriginal)
     }
@@ -29,7 +27,7 @@ final class ChatMessagesNavigationBarView: UIView {
     private let backButton = BackNavBarButton()
     private let titleIslandView = UIView()
     private let titleLabel = UILabel()
-    private let avatarView = CircleImage(Constants.placeholderAvatar)
+    private let avatarView = CircleImage(UIImage())
     private let avatarOverlay = LoadingOverlay()
     
     var onBackTap: (() -> Void)?
@@ -84,26 +82,10 @@ final class ChatMessagesNavigationBarView: UIView {
     
     // MARK: Public
     
-    func setAvatarImage(_ image: UIImage?, animated: Bool) {
+    func setAvatarImage(_ image: UIImage?) {
         let resolvedImage = image ?? Constants.placeholderAvatar
         avatarOverlay.hide()
-        
-        let updateAvatar = {
-            self.avatarView.image = resolvedImage
-        }
-        
-        guard animated, avatarView.window != nil else {
-            updateAvatar()
-            return
-        }
-        
-        UIView.transition(
-            with: avatarView,
-            duration: Constants.avatarTransitionDuration,
-            options: .transitionCrossDissolve
-        ) {
-            updateAvatar()
-        }
+        avatarView.image = resolvedImage
     }
     
     func showAvatarLoading() {
