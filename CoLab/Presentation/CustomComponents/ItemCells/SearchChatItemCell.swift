@@ -44,7 +44,8 @@ final class SearchChatItemCell: UITableViewCell {
     static let reuseIdentifier = Constants.reuseIdentifier
     
     private let containerView = UIView()
-    private let avatarView = CircleImage(Constants.placeholderAvatar)
+    private let avatarView = CircleImage(UIImage())
+    private let avatarOverlay = LoadingOverlay()
     private let titleLabel = UILabel()
     private let descriptionLabel = UILabel()
     private let textStackView = UIStackView()
@@ -55,6 +56,7 @@ final class SearchChatItemCell: UITableViewCell {
     private var titleValue = String()
     private var descriptionValue = String()
     private var avatarValue: UIImage?
+    private var isAvatarLoadingValue = false
     
     // MARK: Computed properties
     
@@ -113,7 +115,15 @@ final class SearchChatItemCell: UITableViewCell {
         get { avatarValue }
         set {
             avatarValue = newValue
-            avatarView.image = newValue ?? Constants.placeholderAvatar
+            updateAvatarState()
+        }
+    }
+    
+    var isAvatarLoading: Bool {
+        get { isAvatarLoadingValue }
+        set {
+            isAvatarLoadingValue = newValue
+            updateAvatarState()
         }
     }
     
@@ -136,6 +146,7 @@ final class SearchChatItemCell: UITableViewCell {
         title = ""
         chatDescription = ""
         avatarImage = nil
+        isAvatarLoading = false
         updatePressedState(isPressed: false, animated: false)
     }
     
@@ -179,6 +190,19 @@ final class SearchChatItemCell: UITableViewCell {
         baseColor = .white
         textColor = .white
         avatarImage = nil
+    }
+    
+    private func updateAvatarState() {
+        if isAvatarLoadingValue {
+            avatarView.image = nil
+            if avatarOverlay.superview == nil {
+                avatarOverlay.isUserInteractionEnabled = false
+                avatarOverlay.show(over: avatarView)
+            }
+        } else {
+            avatarOverlay.hide()
+            avatarView.image = avatarValue ?? Constants.placeholderAvatar
+        }
     }
     
     private func configureContainer() {

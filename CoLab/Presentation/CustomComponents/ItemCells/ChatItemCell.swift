@@ -43,7 +43,8 @@ final class ChatItemCell: UITableViewCell {
     static let reuseIdentifier = Constants.reuseIdentifier
     
     private let containerView = UIView()
-    private let avatarImageView = CircleImage(Constants.placeholderAvatar)
+    private let avatarImageView = CircleImage(UIImage())
+    private let avatarOverlay = LoadingOverlay()
     private let titleLabel = UILabel()
     private let subtitleLabel = UILabel()
     private let timeLabel = UILabel()
@@ -56,6 +57,7 @@ final class ChatItemCell: UITableViewCell {
     private var subtitleValue = String()
     private var timeValue = String()
     private var avatarValue: UIImage?
+    private var isAvatarLoadingValue = false
     
     // MARK: Computed properties
     
@@ -115,7 +117,15 @@ final class ChatItemCell: UITableViewCell {
         get { avatarValue }
         set {
             avatarValue = newValue
-            avatarImageView.image = newValue ?? UIImage(systemName: "person.crop.circle.fill")
+            updateAvatarState()
+        }
+    }
+    
+    var isAvatarLoading: Bool {
+        get { isAvatarLoadingValue }
+        set {
+            isAvatarLoadingValue = newValue
+            updateAvatarState()
         }
     }
     
@@ -139,6 +149,7 @@ final class ChatItemCell: UITableViewCell {
         subtitle = ""
         time = ""
         avatarImage = nil
+        isAvatarLoading = false
         updatePressedState(isPressed: false, animated: false)
     }
     
@@ -223,6 +234,19 @@ final class ChatItemCell: UITableViewCell {
         baseColor = .white
         textColor = .white
         avatarImage = nil
+    }
+    
+    private func updateAvatarState() {
+        if isAvatarLoadingValue {
+            avatarImageView.image = nil
+            if avatarOverlay.superview == nil {
+                avatarOverlay.isUserInteractionEnabled = false
+                avatarOverlay.show(over: avatarImageView)
+            }
+        } else {
+            avatarOverlay.hide()
+            avatarImageView.image = avatarValue ?? Constants.placeholderAvatar
+        }
     }
     
     private func configureLayout() {

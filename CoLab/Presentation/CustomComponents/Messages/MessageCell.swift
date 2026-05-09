@@ -33,9 +33,11 @@ final class MessageCell: UICollectionViewCell {
     
     private let bubbleView = MessageBubbleView()
     private let eventDescriptionView = ChatDescriptionView()
-    private let avatarView = CircleImage(Constants.placeholderAvatar)
+    private let avatarView = CircleImage(UIImage())
+    private let avatarOverlay = LoadingOverlay()
     private var renderedMessageId: String?
     private var renderedAvatarData: Data?
+    private var renderedIsAvatarLoading: Bool?
     private var activeDirectionConstraints: [NSLayoutConstraint] = []
     
     private lazy var avatarLeadingConstraint = avatarView.leadingAnchor.constraint(
@@ -168,9 +170,11 @@ final class MessageCell: UICollectionViewCell {
         prepareLayoutForReuse()
         renderedMessageId = nil
         renderedAvatarData = nil
+        renderedIsAvatarLoading = nil
         text = ""
         senderName = nil
-        avatarView.image = Constants.placeholderAvatar
+        avatarView.image = nil
+        avatarOverlay.hide()
         bubbleBorderColor = nil
         bubbleGradientStartColor = nil
         bubbleGradientEndColor = nil
@@ -200,25 +204,27 @@ final class MessageCell: UICollectionViewCell {
         }
     }
 
-    func setAvatarData(_ avatarData: Data?, animated: Bool) {
-        guard renderedAvatarData != avatarData else {
+    func setAvatarData(
+        _ avatarData: Data?,
+        isLoading: Bool
+    ) {
+        guard renderedAvatarData != avatarData
+                || renderedIsAvatarLoading != isLoading else {
             return
         }
         renderedAvatarData = avatarData
+        renderedIsAvatarLoading = isLoading
         
-        let targetImage = avatarData.flatMap(UIImage.init(data:)) ?? Constants.placeholderAvatar
-        
-        guard animated else {
-            avatarView.image = targetImage
-            return
-        }
-        
-        UIView.transition(
-            with: avatarView,
-            duration: Constants.contentUpdateAnimationDuration,
-            options: [.transitionCrossDissolve, .allowAnimatedContent, .curveEaseInOut]
-        ) {
-            self.avatarView.image = targetImage
+        if isLoading {
+            avatarView.image = nil
+            if avatarOverlay.superview == nil {
+                avatarOverlay.isUserInteractionEnabled = false
+                avatarOverlay.show(over: avatarView)
+            }
+        } else {
+            avatarOverlay.hide()
+            avatarView.image = avatarData.flatMap(UIImage.init(data:))
+                ?? Constants.placeholderAvatar
         }
     }
     
