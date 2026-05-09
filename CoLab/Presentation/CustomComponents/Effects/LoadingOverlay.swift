@@ -27,10 +27,12 @@ final class LoadingOverlay: UIView {
         static let animationDuration: CGFloat = 1.4
         
         static let stringKeyPath = "locations"
-        
+        static let animationKey = "loadingOverlay.locations"
     }
 
     private let gradientLayer = CAGradientLayer()
+    private var activeConstraints: [NSLayoutConstraint] = []
+    private var shouldAnimate = false
 
     // MARK: Lifecycle
     
@@ -42,6 +44,10 @@ final class LoadingOverlay: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError(Constants.fatalError)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     private func setup() {
@@ -60,40 +66,86 @@ final class LoadingOverlay: UIView {
         gradientLayer.locations = Constants.locations
 
         layer.addSublayer(gradientLayer)
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(applicationDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
     }
     
     // MARK: Use-cases
 
     func show(over parent: UIView) {
-        parent.addSubview(self)
-
-        NSLayoutConstraint.activate([
-            leadingAnchor.constraint(equalTo: parent.leadingAnchor),
-            trailingAnchor.constraint(equalTo: parent.trailingAnchor),
-            topAnchor.constraint(equalTo: parent.topAnchor),
-            bottomAnchor.constraint(equalTo: parent.bottomAnchor)
-        ])
-
-        startAnimation()
+        shouldAnimate = true
+        
+        if superview !== parent {
+            NSLayoutConstraint.deactivate(activeConstraints)
+            activeConstraints.removeAll()
+            removeFromSuperview()
+            
+            parent.addSubview(self)
+            activeConstraints = [
+                leadingAnchor.constraint(equalTo: parent.leadingAnchor),
+                trailingAnchor.constraint(equalTo: parent.trailingAnchor),
+                topAnchor.constraint(equalTo: parent.topAnchor),
+                bottomAnchor.constraint(equalTo: parent.bottomAnchor)
+            ]
+            NSLayoutConstraint.activate(activeConstraints)
+        } else {
+            parent.bringSubviewToFront(self)
+        }
+        
+        restartAnimationIfNeeded()
     }
 
     func hide() {
+        shouldAnimate = false
         stopAnimation()
+        NSLayoutConstraint.deactivate(activeConstraints)
+        activeConstraints.removeAll()
         removeFromSuperview()
+    }
+    
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        
+        guard window != nil else {
+            stopAnimation()
+            return
+        }
+        
+        restartAnimationIfNeeded()
+    }
+    
+    private func restartAnimationIfNeeded() {
+        guard shouldAnimate, window != nil else { return }
+        
+        stopAnimation()
+        startAnimation()
     }
 
     private func startAnimation() {
+        gradientLayer.locations = Constants.locations
+        
         let animation = CABasicAnimation(keyPath: Constants.stringKeyPath)
         animation.fromValue = Constants.animationFromValue
         animation.toValue = Constants.animationToValue
         animation.duration = Constants.animationDuration
         animation.repeatCount = .infinity
+        animation.isRemovedOnCompletion = false
 
-        gradientLayer.add(animation, forKey: nil)
+        gradientLayer.add(animation, forKey: Constants.animationKey)
     }
 
     private func stopAnimation() {
-        gradientLayer.removeAllAnimations()
+        gradientLayer.removeAnimation(forKey: Constants.animationKey)
+    }
+    
+    @objc
+    private func applicationDidBecomeActive() {
+        restartAnimationIfNeeded()
     }
     
     // MARK: Layout subviews
@@ -101,5 +153,11 @@ final class LoadingOverlay: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         gradientLayer.frame = bounds
+        
+        if shouldAnimate,
+           window != nil,
+           gradientLayer.animation(forKey: Constants.animationKey) == nil {
+            startAnimation()
+        }
     }
 }
