@@ -423,6 +423,7 @@ final class SearchFriendsListController: UIViewController {
         cell.textColor = UIColor(hex: item.textColor.hex, alpha: item.textColor.a)
         cell.tintColor = UIColor(hex: item.tintColor.hex, alpha: item.tintColor.a)
         cell.avatarImage = item.avatarData.flatMap(UIImage.init(data:))
+        cell.isAvatarLoading = item.isAvatarLoading
     }
     
     private func refreshVisibleCells() {

@@ -35,7 +35,7 @@ final class UserInfoController: UIViewController {
     private let backButton = BackNavBarButton()
     
     private let avatarOverlay = LoadingOverlay()
-    private let avatar = CircleImage(Constants.placeholderAvatar)
+    private let avatar = CircleImage(UIImage())
     private let usernameLabel = UILabel()
     
     // MARK: Lifecycle
@@ -138,20 +138,7 @@ final class UserInfoController: UIViewController {
     }
     
     private func updateAvatarImage(_ image: UIImage?) {
-        let resolvedImage = image ?? Constants.placeholderAvatar
-        
-        guard avatar.window != nil else {
-            avatar.image = resolvedImage
-            return
-        }
-        
-        UIView.transition(
-            with: avatar,
-            duration: Constants.updateDuration,
-            options: .transitionCrossDissolve
-        ) {
-            self.avatar.image = resolvedImage
-        }
+        avatar.image = image ?? Constants.placeholderAvatar
     }
 }
 

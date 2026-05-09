@@ -47,7 +47,6 @@ final class ChatMessagesListView: UIView {
     var onNeedsPreviousMessages: (() -> Void)?
     
     private var isPreviousPagePaginationArmed = true
-    private var isShowingInitialLoading = false
     private var isAdjustingForKeyboard = false
     private var shouldForceLatestOnNextAppend = false
     private var coveredTopHeight: CGFloat = 0
@@ -55,13 +54,16 @@ final class ChatMessagesListView: UIView {
     
     private let messagesContentView = UIView()
     private let emptyStateLabel = UILabel()
-    private let initialLoadingOverlay = LoadingOverlay()
     
     private lazy var collectionView = UICollectionView(
         frame: .zero,
         collectionViewLayout: makeLayout()
     )
     private lazy var dataSource = makeDataSource()
+    
+    private var hasMessages: Bool {
+        !collectionDataProvider.messageIds().isEmpty
+    }
     
     // MARK: Lifecycle
     
@@ -79,12 +81,6 @@ final class ChatMessagesListView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         updateCollectionInsets()
-    }
-    
-    // MARK: State
-    
-    var hasMessages: Bool {
-        !collectionDataProvider.messageIds().isEmpty
     }
     
     // MARK: Configure UI
@@ -218,32 +214,13 @@ final class ChatMessagesListView: UIView {
         )
     }
     
-    func showInitialLoadingIfNeeded() {
-        guard !isShowingInitialLoading else { return }
-        isShowingInitialLoading = true
-        emptyStateLabel.isHidden = true
-        initialLoadingOverlay.isUserInteractionEnabled = false
-        initialLoadingOverlay.show(over: self)
-    }
-    
-    func hideInitialLoading() {
-        guard isShowingInitialLoading else { return }
-        isShowingInitialLoading = false
-        initialLoadingOverlay.hide()
-    }
-    
     // Если сообщения уже пришли пока экран ещё не был показан,
     // синхронизируем коллекцию из состояния presenter при первом появлении.
     func syncStateFromProviderIfNeeded() {
         let messageIds = collectionDataProvider.messageIds()
-        if messageIds.isEmpty {
-            emptyStateLabel.isHidden = isShowingInitialLoading
-        } else {
-            hideInitialLoading()
-            emptyStateLabel.isHidden = true
-        }
-        
         guard !messageIds.isEmpty else { return }
+        emptyStateLabel.isHidden = true
+        
         guard dataSource.snapshot().itemIdentifiers != displayedMessageIds(from: messageIds) else {
             return
         }
@@ -252,7 +229,6 @@ final class ChatMessagesListView: UIView {
     }
     
     func displayMessages(_ viewModel: ChatMessagesModels.MessagesList.ViewModel) {
-        hideInitialLoading()
         emptyStateLabel.isHidden = !viewModel.items.isEmpty
         
         guard window != nil else { return }
@@ -354,7 +330,10 @@ final class ChatMessagesListView: UIView {
         cell.direction = cellDirection(for: item.direction)
         cell.text = item.text
         cell.setSenderName(item.senderName, animated: animateContentChanges)
-        cell.setAvatarData(item.avatarData, animated: animateContentChanges)
+        cell.setAvatarData(
+            item.avatarData,
+            isLoading: item.isAvatarLoading
+        )
         
         let bubbleBaseColor = UIColor(
             hex: item.baseColor.hex,

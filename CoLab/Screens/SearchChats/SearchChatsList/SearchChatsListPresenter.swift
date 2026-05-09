@@ -58,6 +58,9 @@ final class SearchChatsListPresenter: SearchChatsListPresentationLogic {
     
     func presentChats(_ response: Model.ChatsList.Response) {
         let items = response.chats.map { chat in
+            let previousItem = itemsById[chat.id]
+            let hasRemoteAvatar = chat.avatarURL?.isEmpty == false
+            let hasSameAvatarURL = previousItem?.avatarURL == chat.avatarURL
             
             return Model.ChatsList.ViewModel.ChatCell(
                 id: chat.id,
@@ -69,7 +72,10 @@ final class SearchChatsListPresenter: SearchChatsListPresentationLogic {
                 endGradientColor: cellEndGradient,
                 avatarURL: chat.avatarURL,
                 memberIds: chat.memberIds,
-                avatarData: itemsById[chat.id]?.avatarData
+                avatarData: hasSameAvatarURL ? previousItem?.avatarData : nil,
+                isAvatarLoading: hasSameAvatarURL
+                    ? previousItem?.isAvatarLoading ?? hasRemoteAvatar
+                    : hasRemoteAvatar
             )
         }
         
@@ -83,7 +89,9 @@ final class SearchChatsListPresenter: SearchChatsListPresentationLogic {
     
     func presentAvatarUpdate(_ response: Model.AvatarUpdate.Response) {
         guard var item = itemsById[response.chatId] else { return }
-        guard item.avatarData != response.avatarData else { return }
+        guard item.avatarData != response.avatarData || item.isAvatarLoading else {
+            return
+        }
         
         item = Model.ChatsList.ViewModel.ChatCell(
             id: item.id,
@@ -95,7 +103,8 @@ final class SearchChatsListPresenter: SearchChatsListPresentationLogic {
             endGradientColor: item.endGradientColor,
             avatarURL: item.avatarURL,
             memberIds: item.memberIds,
-            avatarData: response.avatarData
+            avatarData: response.avatarData,
+            isAvatarLoading: false
         )
         itemsById[response.chatId] = item
         

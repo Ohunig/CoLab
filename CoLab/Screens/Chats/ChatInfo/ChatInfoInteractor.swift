@@ -84,13 +84,11 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
             )
         )
         
-        isAvatarLoading = !(chatAvatarURL?.isEmpty ?? true)
         presenter.presentMembers(
             Model.MembersList.Response(
                 members: currentMembers()
             )
         )
-        presentCurrentState()
         
         updateChatAvatar(chatAvatarURL)
         bindMembers()

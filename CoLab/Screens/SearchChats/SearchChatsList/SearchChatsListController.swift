@@ -432,6 +432,7 @@ final class SearchChatsListController: UIViewController {
             alpha: item.endGradientColor.a
         )
         cell.avatarImage = item.avatarData.flatMap(UIImage.init(data:))
+        cell.isAvatarLoading = item.isAvatarLoading
     }
     
     private func refreshVisibleCells() {

@@ -74,7 +74,6 @@ final class AddFriendInteractor: AddFriendBusinessLogic {
             )
         )
         
-        presentUserData()
         presentAddButtonState()
         bindCurrentUser()
         bindTargetUser()
@@ -153,6 +152,8 @@ final class AddFriendInteractor: AddFriendBusinessLogic {
     ) {
         switch result {
         case let .failure(error):
+            isAvatarLoading = false
+            presentUserData()
             presenter.presentError(Model.ShowError.Response(error: error))
         case let .success(user):
             let shouldUpdateAvatar = avatarURL != user.photoURL

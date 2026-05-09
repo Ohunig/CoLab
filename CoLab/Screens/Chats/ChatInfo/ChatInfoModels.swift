@@ -67,6 +67,7 @@ struct ChatInfoModels {
                 let tintColor: (hex: String, a: CGFloat)
                 let avatarURL: String?
                 let avatarData: Data?
+                let isAvatarLoading: Bool
             }
             
             let items: [MemberCell]

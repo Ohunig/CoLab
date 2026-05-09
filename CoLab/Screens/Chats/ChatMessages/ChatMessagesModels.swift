@@ -53,6 +53,7 @@ struct ChatMessagesModels {
         struct SenderData {
             let username: String?
             let avatarData: Data?
+            let isAvatarLoading: Bool
         }
         
         struct Response {
@@ -74,6 +75,7 @@ struct ChatMessagesModels {
                 let direction: Direction
                 let senderName: String?
                 let avatarData: Data?
+                let isAvatarLoading: Bool
                 let baseColor: (hex: String, a: CGFloat)
                 let borderColor: (hex: String, a: CGFloat)?
                 let gradientStartColor: (hex: String, a: CGFloat)?

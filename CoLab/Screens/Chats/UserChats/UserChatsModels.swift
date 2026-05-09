@@ -49,6 +49,7 @@ struct UserChatsModels {
                 let avatarURL: String?
                 let memberIds: [String]
                 let avatarData: Data?
+                let isAvatarLoading: Bool
             }
             let items: [ChatCell]
             let updatedChatIds: [String]

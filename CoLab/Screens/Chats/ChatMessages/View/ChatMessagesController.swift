@@ -80,12 +80,6 @@ final class ChatMessagesController: UIViewController {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
         
-        if messagesListView.hasMessages {
-            messagesListView.hideInitialLoading()
-        } else {
-            messagesListView.showInitialLoadingIfNeeded()
-        }
-        
         topBarView.showAvatarLoading()
         interactor.listenChatAvatar()
         interactor.loadInitialMessages()
@@ -410,7 +404,7 @@ extension ChatMessagesController: ChatMessagesDisplayLogic {
     
     func displayChatAvatar(_ viewModel: Model.ChatAvatar.ViewModel) {
         let image = viewModel.avatarData.flatMap(UIImage.init(data:))
-        topBarView.setAvatarImage(image, animated: true)
+        topBarView.setAvatarImage(image)
     }
     
     func displayMessages(_ viewModel: Model.MessagesList.ViewModel) {
@@ -418,7 +412,6 @@ extension ChatMessagesController: ChatMessagesDisplayLogic {
     }
     
     func displayError(_ viewModel: Model.ShowError.ViewModel) {
-        messagesListView.hideInitialLoading()
         guard isViewLoaded, view.window != nil else { return }
         guard presentedViewController == nil else { return }
         

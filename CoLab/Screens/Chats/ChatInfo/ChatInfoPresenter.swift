@@ -67,11 +67,18 @@ final class ChatInfoPresenter: ChatInfoPresentationLogic, ChatInfoTableDataLogic
         let previousItemsById = itemsById
         
         let items = response.members.map { member in
+            let previousItem = previousItemsById[member.id]
+            let hasRemoteAvatar = member.avatarURL?.isEmpty == false
             let preservedAvatarData: Data?
-            if previousItemsById[member.id]?.avatarURL == member.avatarURL {
-                preservedAvatarData = previousItemsById[member.id]?.avatarData
+            let isAvatarLoading: Bool
+            
+            if previousItem?.avatarURL == member.avatarURL {
+                preservedAvatarData = previousItem?.avatarData
+                isAvatarLoading = previousItem?.isAvatarLoading
+                    ?? hasRemoteAvatar
             } else {
                 preservedAvatarData = nil
+                isAvatarLoading = hasRemoteAvatar
             }
             
             return Model.MembersList.ViewModel.MemberCell(
@@ -81,7 +88,8 @@ final class ChatInfoPresenter: ChatInfoPresentationLogic, ChatInfoTableDataLogic
                 textColor: cellTextColor,
                 tintColor: cellTintColor,
                 avatarURL: member.avatarURL,
-                avatarData: preservedAvatarData
+                avatarData: preservedAvatarData,
+                isAvatarLoading: isAvatarLoading
             )
         }
         
@@ -93,6 +101,7 @@ final class ChatInfoPresenter: ChatInfoPresentationLogic, ChatInfoTableDataLogic
                 || previousItem.tintColor != item.tintColor
                 || previousItem.avatarURL != item.avatarURL
                 || previousItem.avatarData != item.avatarData
+                || previousItem.isAvatarLoading != item.isAvatarLoading
             else {
                 return nil
             }
@@ -112,7 +121,9 @@ final class ChatInfoPresenter: ChatInfoPresentationLogic, ChatInfoTableDataLogic
     
     func presentAvatarUpdate(_ response: Model.AvatarUpdate.Response) {
         guard var item = itemsById[response.memberId] else { return }
-        guard item.avatarData != response.avatarData else { return }
+        guard item.avatarData != response.avatarData || item.isAvatarLoading else {
+            return
+        }
         
         item = Model.MembersList.ViewModel.MemberCell(
             id: item.id,
@@ -121,7 +132,8 @@ final class ChatInfoPresenter: ChatInfoPresentationLogic, ChatInfoTableDataLogic
             textColor: item.textColor,
             tintColor: item.tintColor,
             avatarURL: item.avatarURL,
-            avatarData: response.avatarData
+            avatarData: response.avatarData,
+            isAvatarLoading: false
         )
         itemsById[response.memberId] = item
         

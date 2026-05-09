@@ -23,6 +23,7 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
         static let memberLeftTextColor = (hex: "#FF5A5F", a: CGFloat(1))
         static let currentUserName = "Вы"
         static let unknownUserName = "Участник"
+        static let loadingSenderName = "..."
         static let maxMemberEventNameLength = 12
         static let trimmedNameSuffix = "..."
     }
@@ -142,6 +143,7 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
         && lhs.direction == rhs.direction
         && lhs.senderName == rhs.senderName
         && lhs.avatarData == rhs.avatarData
+        && lhs.isAvatarLoading == rhs.isAvatarLoading
         && lhs.baseColor.hex == rhs.baseColor.hex
         && lhs.baseColor.a == rhs.baseColor.a
         && lhs.borderColor?.hex == rhs.borderColor?.hex
@@ -170,8 +172,13 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
                 id: message.id,
                 text: message.text,
                 direction: isOutgoing ? .outgoing : .incoming,
-                senderName: isOutgoing ? nil : senderData?.username,
+                senderName: textMessageSenderName(
+                    senderId: message.senderId,
+                    senderData: senderData,
+                    isOutgoing: isOutgoing
+                ),
                 avatarData: isOutgoing ? nil : senderData?.avatarData,
+                isAvatarLoading: isOutgoing ? false : senderData?.isAvatarLoading ?? true,
                 baseColor: isOutgoing ? outgoingGradientEndColor : incomingBaseColor,
                 borderColor: isOutgoing ? nil : incomingBorderColor,
                 gradientStartColor: isOutgoing ? outgoingGradientStartColor : nil,
@@ -186,6 +193,16 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
                 senderDataById: senderDataById
             )
         }
+    }
+    
+    private func textMessageSenderName(
+        senderId: String?,
+        senderData: Model.MessagesList.SenderData?,
+        isOutgoing: Bool
+    ) -> String? {
+        guard !isOutgoing else { return nil }
+        guard senderId != nil else { return Constants.unknownUserName }
+        return senderData?.username ?? Constants.loadingSenderName
     }
     
     private func makeMemberEventItem(
@@ -214,6 +231,7 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
             direction: .description,
             senderName: nil,
             avatarData: nil,
+            isAvatarLoading: false,
             baseColor: incomingBaseColor,
             borderColor: incomingBorderColor,
             gradientStartColor: nil,
