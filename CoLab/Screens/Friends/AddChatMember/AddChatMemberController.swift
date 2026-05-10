@@ -39,6 +39,8 @@ final class AddChatMemberController: UIViewController {
     
     private var displayedUserIds: [String] = []
     private var hasLoadedFriendsState = false
+    private var backButtonTopConstraint: NSLayoutConstraint?
+    private var modalTopSafeAreaCompensation: CGFloat = 0
     
     // MARK: Lifecycle
     
@@ -82,21 +84,24 @@ final class AddChatMemberController: UIViewController {
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.addAction(
             UIAction { [weak self] _ in
-                self?.navigationController?.popViewController(animated: true)
+                self?.interactor.loadGoBack()
             },
             for: .touchUpInside
         )
         view.addSubview(backButton)
+        
+        let topConstraint = backButton.topAnchor.constraint(
+            equalTo: view.safeAreaLayoutGuide.topAnchor,
+            constant: -Constants.backToUnsafe + modalTopSafeAreaCompensation
+        )
+        backButtonTopConstraint = topConstraint
         
         NSLayoutConstraint.activate([
             backButton.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,
                 constant: Constants.horisontalInset
             ),
-            backButton.topAnchor.constraint(
-                equalTo: view.safeAreaLayoutGuide.topAnchor,
-                constant: -Constants.backToUnsafe
-            )
+            topConstraint
         ])
     }
     
@@ -363,5 +368,12 @@ extension AddChatMemberController: UITableViewDelegate {
         
         tableView.deselectRow(at: indexPath, animated: false)
         interactor.addMember(userId: item.id)
+    }
+}
+
+extension AddChatMemberController: ModalTopSafeAreaCompensating {
+    func setModalTopSafeAreaCompensation(_ value: CGFloat) {
+        modalTopSafeAreaCompensation = value
+        backButtonTopConstraint?.constant = -Constants.backToUnsafe + value
     }
 }
