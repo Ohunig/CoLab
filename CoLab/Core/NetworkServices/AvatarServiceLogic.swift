@@ -20,6 +20,10 @@ protocol AvatarServiceLogic: AnyObject {
         for userId: String
     ) -> AnyPublisher<String, Error>
     
+    func uploadChatAvatarData(
+        data: Data
+    ) -> AnyPublisher<String, Error>
+    
     // Очищает сохранённые в памяти аватары
     func clearAvatarsCache()
 }

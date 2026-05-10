@@ -37,6 +37,8 @@ final class UserInfoController: UIViewController {
     private let avatarOverlay = LoadingOverlay()
     private let avatar = CircleImage(UIImage())
     private let usernameLabel = UILabel()
+    private var backButtonTopConstraint: NSLayoutConstraint?
+    private var modalTopSafeAreaCompensation: CGFloat = 0
     
     // MARK: Lifecycle
     
@@ -81,15 +83,18 @@ final class UserInfoController: UIViewController {
         )
         view.addSubview(backButton)
         
+        let topConstraint = backButton.topAnchor.constraint(
+            equalTo: view.safeAreaLayoutGuide.topAnchor,
+            constant: -Constants.backToUnsafe + modalTopSafeAreaCompensation
+        )
+        backButtonTopConstraint = topConstraint
+        
         NSLayoutConstraint.activate([
             backButton.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor,
                 constant: Constants.horisontalInset
             ),
-            backButton.topAnchor.constraint(
-                equalTo: view.safeAreaLayoutGuide.topAnchor,
-                constant: -Constants.backToUnsafe
-            )
+            topConstraint
         ])
     }
     
@@ -214,5 +219,12 @@ extension UserInfoController: UserInfoDisplayLogic {
             )
         )
         present(alert, animated: true)
+    }
+}
+
+extension UserInfoController: ModalTopSafeAreaCompensating {
+    func setModalTopSafeAreaCompensation(_ value: CGFloat) {
+        modalTopSafeAreaCompensation = value
+        backButtonTopConstraint?.constant = -Constants.backToUnsafe + value
     }
 }

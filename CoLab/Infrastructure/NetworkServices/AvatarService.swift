@@ -87,9 +87,21 @@ final class AvatarService: AvatarServiceLogic {
         data: Data,
         for userId: String
     ) -> AnyPublisher<String, Error> {
-        
         let fileName = "\(userId)-\(Int(Date().timeIntervalSince1970)).jpg"
-        
+        return uploadAvatarData(data: data, fileName: fileName)
+    }
+    
+    func uploadChatAvatarData(
+        data: Data
+    ) -> AnyPublisher<String, Error> {
+        let fileName = "chat-\(UUID().uuidString)-\(Int(Date().timeIntervalSince1970)).jpg"
+        return uploadAvatarData(data: data, fileName: fileName)
+    }
+    
+    private func uploadAvatarData(
+        data: Data,
+        fileName: String
+    ) -> AnyPublisher<String, Error> {
         return Future { promise in
             // Используется async/await так как supabase работает с таким api. Это никак не мешает использовать GCD в остальном коде
             Task {

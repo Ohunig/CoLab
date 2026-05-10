@@ -12,6 +12,8 @@ protocol AddChatMemberBusinessLogic: AnyObject {
     
     func loadStart()
     
+    func loadGoBack()
+    
     func addMember(userId: String)
 }
 

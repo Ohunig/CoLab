@@ -69,6 +69,10 @@ final class AddChatMemberInteractor: AddChatMemberBusinessLogic {
         loadFriends()
     }
     
+    func loadGoBack() {
+        router.routeBack()
+    }
+    
     func addMember(userId: String) {
         guard !isAdding else { return }
         guard !memberIds.contains(userId) else {

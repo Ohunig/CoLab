@@ -135,9 +135,10 @@ extension TabBarController: CustomTabBarDelegate {
     }
 
     func customTabBarDidTapActionButton(_ bar: CustomTabBar) {
-        let modal = UINavigationController(rootViewController: ModalActionVC())
-        modal.modalPresentationStyle = .fullScreen
-        present(modal, animated: true, completion: nil)
+        present(
+            CreateChatBranchAssembly.build(),
+            animated: true
+        )
     }
 }
 
@@ -167,27 +168,5 @@ extension TabBarController: UINavigationControllerDelegate {
         } else {
             setTabBar(hidden: false)
         }
-    }
-}
-
-class ModalActionVC: UIViewController {
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        let lbl = UILabel()
-        lbl.text = "Modal / Full Screen"
-        lbl.font = .systemFont(ofSize: 24, weight: .semibold)
-        lbl.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(lbl)
-        NSLayoutConstraint.activate([
-            lbl.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            lbl.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
-        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close,
-                                                           target: self,
-                                                           action: #selector(close))
-    }
-    @objc private func close() {
-        dismiss(animated: true, completion: nil)
     }
 }

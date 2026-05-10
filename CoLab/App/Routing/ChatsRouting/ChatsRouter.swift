@@ -72,8 +72,4 @@ final class ChatsRouter: ChatsRoutingLogic {
     func routeToUserChats() {
         navigationController?.popToRootViewController(animated: true)
     }
-    
-    func routeBack() {
-        navigationController?.popViewController(animated: true)
-    }
 }

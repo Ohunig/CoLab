@@ -16,13 +16,81 @@ final class ChatService: ChatLogic {
     
     private struct Constants {
         static let fallbackTitle = "Chat"
+        static let standardAvatarURL = "avatar.jpg"
         static let memberJoinedText = "Участник вошёл в чат"
         static let memberLeftText = "Участник вышел из чата"
     }
     
     private let db = Firestore.firestore()
+    private let searchKeywordsBuilder: SearchKeywordsBuilder
+    
+    init(searchKeywordsBuilder: SearchKeywordsBuilder) {
+        self.searchKeywordsBuilder = searchKeywordsBuilder
+    }
     
     // MARK: Use-cases
+    
+    func createChat(
+        request: CreateChatRequest
+    ) -> AnyPublisher<ChatModel, FetchUserChatsError> {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            return Fail(error: .permissionDenied).eraseToAnyPublisher()
+        }
+        
+        return Future<ChatModel, FetchUserChatsError> { [weak self] promise in
+            guard let self else {
+                promise(.failure(.unknown))
+                return
+            }
+            
+            let chatRef = self.db.collection(Chats.root).document()
+            let createdAt = Date()
+            let memberIds = self.uniqueMemberIds(
+                currentUserId: currentUserId,
+                requestedMemberIds: request.memberIds
+            )
+            let searchKeywords = self.searchKeywordsBuilder.keywords(
+                for: "\(request.title) \(request.description)"
+            )
+            let avatarURL = request.avatarURL.flatMap {
+                $0.isEmpty ? nil : $0
+            } ?? Constants.standardAvatarURL
+            
+            let data: [String: Any] = [
+                Chats.title.path: request.title,
+                Chats.description.path: request.description,
+                Chats.isPublic.path: request.isPublic,
+                Chats.memberIds.path: memberIds,
+                Chats.lastMessageDate.path: Timestamp(date: createdAt),
+                Chats.searchKeywords.path: searchKeywords,
+                Chats.avatarURL.path: avatarURL
+            ]
+            
+            chatRef.setData(data) { [weak self] error in
+                if let error {
+                    promise(.failure(self?.decodeError(error) ?? .unknown))
+                    return
+                }
+                
+                promise(
+                    .success(
+                        ChatModel(
+                            id: chatRef.documentID,
+                            title: request.title,
+                            description: request.description,
+                            isPublic: request.isPublic,
+                            lastMessageText: nil,
+                            lastMessageDate: createdAt,
+                            avatarURL: avatarURL,
+                            memberIds: memberIds,
+                            searchKeywords: searchKeywords
+                        )
+                    )
+                )
+            }
+        }
+        .eraseToAnyPublisher()
+    }
     
     func chatUpdatesPublisher(
         chatId: String
@@ -145,6 +213,16 @@ final class ChatService: ChatLogic {
     }
     
     // MARK: Helpers
+    
+    private func uniqueMemberIds(
+        currentUserId: String,
+        requestedMemberIds: [String]
+    ) -> [String] {
+        var seen = Set<String>()
+        return ([currentUserId] + requestedMemberIds).filter {
+            seen.insert($0).inserted
+        }
+    }
     
     private func commitMemberEvent(
         kind: ChatMessageKind,
