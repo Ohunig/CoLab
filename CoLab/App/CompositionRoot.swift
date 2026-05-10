@@ -64,8 +64,11 @@ final class CompositionRoot {
                 searchKeywordsBuilder: resolveSearchKeywordsBuilder(resolver)
             )
         }.inObjectScope(.transient)
-        container.register(ChatLogic.self) { _ in ChatService() }
-            .inObjectScope(.transient)
+        container.register(ChatLogic.self) { resolver in
+            ChatService(
+                searchKeywordsBuilder: resolveSearchKeywordsBuilder(resolver)
+            )
+        }.inObjectScope(.transient)
         container.register(ChatMessagesLogic.self) { _ in ChatMessagesService() }
             .inObjectScope(.transient)
         
@@ -74,6 +77,9 @@ final class CompositionRoot {
             .inObjectScope(.container)
         container.register(ChatsRoutingLogic.self) { _ in ChatsRouter() }
             .inObjectScope(.container)
+        container.register(CreateChatRoutingLogic.self) { _ in
+            CreateChatRouter()
+        }.inObjectScope(.container)
         container.register(SearchChatsRoutingLogic.self) { _ in SearchChatsRouter() }
             .inObjectScope(.container)
         container.register(SearchFriendsRoutingLogic.self) { _ in SearchFriendsRouter() }

@@ -44,7 +44,6 @@ enum FirebasePaths {
         case isPublic
         case lastMessageText
         case avatarURL
-        case categories
         case searchKeywords
         
         var path: String {
@@ -63,8 +62,6 @@ enum FirebasePaths {
                 "lastMessageText"
             case .avatarURL:
                 "avatarURL"
-            case .categories:
-                "categories"
             case .searchKeywords:
                 "searchKeywords"
             }

@@ -8,8 +8,20 @@
 import Foundation
 import Combine
 
+struct CreateChatRequest {
+    let title: String
+    let description: String
+    let isPublic: Bool
+    let memberIds: [String]
+    let avatarURL: String?
+}
+
 // Сервис для работы с конкретным чатом
 protocol ChatLogic: AnyObject {
+    func createChat(
+        request: CreateChatRequest
+    ) -> AnyPublisher<ChatModel, FetchUserChatsError>
+    
     func chatUpdatesPublisher(
         chatId: String
     ) -> AnyPublisher<Result<ChatModel, FetchUserChatsError>, Never>
