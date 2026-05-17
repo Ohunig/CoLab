@@ -37,4 +37,12 @@ protocol ChatMessagesLogic: AnyObject {
         text: String,
         chatId: String
     ) -> AnyPublisher<ChatMessageModel, SendChatMessageError>
+    
+    func voteForTaskCompletion(
+        messageId: String,
+        taskId: String,
+        isApproved: Bool,
+        chatId: String,
+        memberCount: Int
+    ) -> AnyPublisher<ChatMessageModel, SendChatMessageError>
 }
