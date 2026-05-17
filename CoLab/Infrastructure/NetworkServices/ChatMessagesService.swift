@@ -14,6 +14,11 @@ final class ChatMessagesService: ChatMessagesLogic {
     
     private typealias Chats = FirebasePaths.Chats
     private typealias Messages = FirebasePaths.Messages
+    private typealias Tasks = FirebasePaths.Tasks
+    
+    private struct Constants {
+        static let taskVoteUpdatedText = "Голосование обновлено"
+    }
     
     private let db = Firestore.firestore()
     
@@ -220,6 +225,158 @@ final class ChatMessagesService: ChatMessagesLogic {
         .eraseToAnyPublisher()
     }
     
+    func voteForTaskCompletion(
+        messageId: String,
+        taskId: String,
+        isApproved: Bool,
+        chatId: String,
+        memberCount: Int
+    ) -> AnyPublisher<ChatMessageModel, SendChatMessageError> {
+        guard let currentUserId = Auth.auth().currentUser?.uid else {
+            return Fail(error: .permissionDenied).eraseToAnyPublisher()
+        }
+        
+        return Future<ChatMessageModel, SendChatMessageError> { [weak self] promise in
+            guard let self else {
+                promise(.failure(.unknown))
+                return
+            }
+            
+            let chatRef = self.db.collection(Chats.root).document(chatId)
+            let messageRef = chatRef.collection(Messages.root).document(messageId)
+            let taskRef = chatRef.collection(Tasks.root).document(taskId)
+            var updatedMessage: ChatMessageModel?
+            let requiredVotes = self.minimumVotesToResolve(memberCount: memberCount)
+            
+            self.db.runTransaction { transaction, errorPointer in
+                do {
+                    let snapshot = try transaction.getDocument(messageRef)
+                    guard var data = snapshot.data(),
+                          let message = self.decodeMessageData(
+                            data,
+                            id: snapshot.documentID
+                          ),
+                          message.kind == .taskVote,
+                          message.taskId == taskId else {
+                        errorPointer?.pointee = NSError(
+                            domain: "CoLab.ChatMessagesService",
+                            code: -1
+                        )
+                        return nil
+                    }
+                    
+                    guard !self.isResolvedTaskVote(
+                        message,
+                        requiredVotes: requiredVotes
+                    ) else {
+                        if message.isResolved {
+                            updatedMessage = message
+                        } else {
+                            data[Messages.isResolved.path] = true
+                            updatedMessage = self.decodeMessageData(
+                                data,
+                                id: snapshot.documentID
+                            )
+                            transaction.updateData(
+                                [Messages.isResolved.path: true],
+                                forDocument: messageRef
+                            )
+                        }
+                        
+                        if message.votesFor.count >= requiredVotes {
+                            transaction.updateData(
+                                [
+                                    Tasks.isCompleted.path: true,
+                                    Tasks.completedAt.path: FieldValue.serverTimestamp(),
+                                    Tasks.activeVoteMessageId.path: FieldValue.delete()
+                                ],
+                                forDocument: taskRef
+                            )
+                        } else if message.votesAgainst.count >= requiredVotes {
+                            transaction.updateData(
+                                [Tasks.activeVoteMessageId.path: FieldValue.delete()],
+                                forDocument: taskRef
+                            )
+                        }
+                        
+                        return nil
+                    }
+                    
+                    var votesFor = message.votesFor
+                    var votesAgainst = message.votesAgainst
+                    votesFor.removeAll { $0 == currentUserId }
+                    votesAgainst.removeAll { $0 == currentUserId }
+                    
+                    if isApproved {
+                        votesFor.append(currentUserId)
+                    } else {
+                        votesAgainst.append(currentUserId)
+                    }
+                    
+                    let isResolved = votesFor.count >= requiredVotes
+                        || votesAgainst.count >= requiredVotes
+                    data[Messages.votesFor.path] = votesFor
+                    data[Messages.votesAgainst.path] = votesAgainst
+                    data[Messages.isResolved.path] = isResolved
+                    updatedMessage = self.decodeMessageData(
+                        data,
+                        id: snapshot.documentID
+                    )
+                    
+                    transaction.updateData(
+                        [
+                            Messages.votesFor.path: votesFor,
+                            Messages.votesAgainst.path: votesAgainst,
+                            Messages.isResolved.path: isResolved
+                        ],
+                        forDocument: messageRef
+                    )
+                    
+                    if votesFor.count >= requiredVotes {
+                        transaction.updateData(
+                            [
+                                Tasks.isCompleted.path: true,
+                                Tasks.completedAt.path: FieldValue.serverTimestamp(),
+                                Tasks.activeVoteMessageId.path: FieldValue.delete()
+                            ],
+                            forDocument: taskRef
+                        )
+                    } else if votesAgainst.count >= requiredVotes {
+                        transaction.updateData(
+                            [Tasks.activeVoteMessageId.path: FieldValue.delete()],
+                            forDocument: taskRef
+                        )
+                    }
+                    
+                    transaction.updateData(
+                        [
+                            Chats.lastMessageText.path: Constants.taskVoteUpdatedText,
+                            Chats.lastMessageDate.path: FieldValue.serverTimestamp()
+                        ],
+                        forDocument: chatRef
+                    )
+                } catch {
+                    errorPointer?.pointee = error as NSError
+                }
+                
+                return nil
+            } completion: { [weak self] _, error in
+                if let error {
+                    promise(.failure(self?.decodeSendError(error) ?? .unknown))
+                    return
+                }
+                
+                guard let updatedMessage else {
+                    promise(.failure(.unknown))
+                    return
+                }
+                
+                promise(.success(updatedMessage))
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+    
     // MARK: Deinit
     
     deinit {
@@ -241,7 +398,13 @@ final class ChatMessagesService: ChatMessagesLogic {
     private func decodeMessage(
         from snapshot: QueryDocumentSnapshot
     ) -> ChatMessageModel? {
-        let data = snapshot.data()
+        decodeMessageData(snapshot.data(), id: snapshot.documentID)
+    }
+    
+    private func decodeMessageData(
+        _ data: [String: Any],
+        id: String
+    ) -> ChatMessageModel? {
         
         guard let timestamp = data[Messages.createdAt.path] as? Timestamp else {
             return nil
@@ -252,22 +415,51 @@ final class ChatMessagesService: ChatMessagesLogic {
         let senderId = data[Messages.senderId.path] as? String
         let memberId = data[Messages.memberId.path] as? String
         let text = data[Messages.text.path] as? String ?? ""
+        let taskId = data[Messages.taskId.path] as? String
+        let taskText = data[Messages.taskText.path] as? String
+        let votesFor = data[Messages.votesFor.path] as? [String] ?? []
+        let votesAgainst = data[Messages.votesAgainst.path] as? [String] ?? []
+        let isResolved = data[Messages.isResolved.path] as? Bool ?? false
         
         switch kind {
         case .text:
             guard senderId != nil else { return nil }
         case .memberJoined, .memberLeft:
             guard memberId != nil else { return nil }
+        case .taskVote:
+            guard senderId != nil,
+                  taskId != nil,
+                  taskText != nil else {
+                return nil
+            }
         }
         
         return ChatMessageModel(
-            id: snapshot.documentID,
+            id: id,
             kind: kind,
             senderId: senderId,
             memberId: memberId,
             text: text,
-            createdAt: timestamp.dateValue()
+            createdAt: timestamp.dateValue(),
+            taskId: taskId,
+            taskText: taskText,
+            votesFor: votesFor,
+            votesAgainst: votesAgainst,
+            isResolved: isResolved
         )
+    }
+    
+    private func minimumVotesToResolve(memberCount: Int) -> Int {
+        max(1, Int(ceil(Double(max(memberCount, 1)) / 2.0)))
+    }
+    
+    private func isResolvedTaskVote(
+        _ message: ChatMessageModel,
+        requiredVotes: Int
+    ) -> Bool {
+        message.isResolved
+            || message.votesFor.count >= requiredVotes
+            || message.votesAgainst.count >= requiredVotes
     }
     
     private func decodeError(_ error: Error) -> FetchChatMessagesError {
