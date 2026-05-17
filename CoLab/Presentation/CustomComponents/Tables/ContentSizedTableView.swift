@@ -17,7 +17,9 @@ final class ContentSizedTableView: UITableView {
     }
     
     override var intrinsicContentSize: CGSize {
-        layoutIfNeeded()
+        if window != nil {
+            layoutIfNeeded()
+        }
         return CGSize(
             width: UIView.noIntrinsicMetric,
             height: contentSize.height
