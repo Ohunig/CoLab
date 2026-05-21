@@ -13,6 +13,7 @@ final class MessageCell: UICollectionViewCell {
         case incoming
         case outgoing
         case description
+        case taskVote
     }
     
     private struct Constants {
@@ -22,6 +23,7 @@ final class MessageCell: UICollectionViewCell {
         static let avatarToBubbleGap: CGFloat = 10
         static let maxBubbleWidthMultiplier: CGFloat = 0.7
         static let maxDescriptionWidthMultiplier: CGFloat = 0.78
+        static let maxTaskVoteWidthMultiplier: CGFloat = 0.86
         static let contentUpdateAnimationDuration: TimeInterval = 0.22
         static let invertedTransform = CGAffineTransform(scaleX: 1, y: -1)
         
@@ -33,6 +35,7 @@ final class MessageCell: UICollectionViewCell {
     
     private let bubbleView = MessageBubbleView()
     private let eventDescriptionView = ChatDescriptionView()
+    private let taskVoteView = TaskVoteMessageView()
     private let avatarView = CircleImage(UIImage())
     private let avatarOverlay = LoadingOverlay()
     private var renderedMessageId: String?
@@ -89,6 +92,26 @@ final class MessageCell: UICollectionViewCell {
         equalTo: contentView.widthAnchor,
         multiplier: Constants.maxDescriptionWidthMultiplier
     )
+    private lazy var taskVoteTopConstraint = taskVoteView.topAnchor.constraint(
+        equalTo: contentView.topAnchor,
+        constant: Constants.verticalInset
+    )
+    private lazy var taskVoteBottomConstraint = taskVoteView.bottomAnchor.constraint(
+        equalTo: contentView.bottomAnchor,
+        constant: -Constants.verticalInset
+    )
+    private lazy var taskVoteCenterXConstraint = taskVoteView.centerXAnchor.constraint(
+        equalTo: contentView.centerXAnchor
+    )
+    private lazy var taskVoteWidthConstraint = taskVoteView.widthAnchor.constraint(
+        equalTo: contentView.widthAnchor,
+        multiplier: Constants.maxTaskVoteWidthMultiplier
+    )
+    
+    var onTaskVote: ((Bool) -> Void)? {
+        get { taskVoteView.onVote }
+        set { taskVoteView.onVote = newValue }
+    }
     
     var direction: Direction = .incoming {
         didSet {
@@ -101,6 +124,8 @@ final class MessageCell: UICollectionViewCell {
                 bubbleView.reservesSenderNameSpace = false
             case .description:
                 bubbleView.reservesSenderNameSpace = false
+            case .taskVote:
+                bubbleView.reservesSenderNameSpace = false
             }
             updateDirection()
         }
@@ -111,6 +136,7 @@ final class MessageCell: UICollectionViewCell {
         set {
             bubbleView.text = newValue
             eventDescriptionView.text = newValue
+            taskVoteView.text = newValue
         }
     }
     
@@ -124,12 +150,16 @@ final class MessageCell: UICollectionViewCell {
         set {
             bubbleView.fillColor = newValue
             eventDescriptionView.baseColor = newValue
+            taskVoteView.baseColor = newValue
         }
     }
     
     var bubbleBorderColor: UIColor? {
         get { bubbleView.borderColor }
-        set { bubbleView.borderColor = newValue }
+        set {
+            bubbleView.borderColor = newValue
+            taskVoteView.borderColor = newValue
+        }
     }
     
     var bubbleGradientStartColor: UIColor? {
@@ -147,6 +177,7 @@ final class MessageCell: UICollectionViewCell {
         set {
             bubbleView.textColor = newValue
             eventDescriptionView.textColor = newValue
+            taskVoteView.textColor = newValue
         }
     }
     
@@ -179,6 +210,8 @@ final class MessageCell: UICollectionViewCell {
         bubbleGradientStartColor = nil
         bubbleGradientEndColor = nil
         senderTextColor = nil
+        taskVoteView.isResolved = false
+        onTaskVote = nil
     }
 
     func beginRendering(messageId: String) -> Bool {
@@ -228,6 +261,18 @@ final class MessageCell: UICollectionViewCell {
         }
     }
     
+    func setTaskVote(
+        votesForCount: Int,
+        votesAgainstCount: Int,
+        currentVote: Bool?,
+        isResolved: Bool
+    ) {
+        taskVoteView.votesForCount = votesForCount
+        taskVoteView.votesAgainstCount = votesAgainstCount
+        taskVoteView.currentVote = currentVote
+        taskVoteView.isResolved = isResolved
+    }
+    
     static func preferredHeight(
         for text: String,
         senderName: String?,
@@ -255,6 +300,12 @@ final class MessageCell: UICollectionViewCell {
                 maxWidth: descriptionWidth,
                 numberOfLines: 1
             ) + Constants.verticalInset * 2
+        case .taskVote:
+            let taskVoteWidth = width * Constants.maxTaskVoteWidthMultiplier
+            return TaskVoteMessageView.preferredHeight(
+                for: text,
+                maxWidth: taskVoteWidth
+            ) + Constants.verticalInset * 2
         }
     }
     
@@ -275,9 +326,13 @@ final class MessageCell: UICollectionViewCell {
         eventDescriptionView.numberOfLines = 1
         eventDescriptionView.lineBreakMode = .byTruncatingTail
         
+        taskVoteView.translatesAutoresizingMaskIntoConstraints = false
+        taskVoteView.isHidden = true
+        
         contentView.addSubview(avatarView)
         contentView.addSubview(bubbleView)
         contentView.addSubview(eventDescriptionView)
+        contentView.addSubview(taskVoteView)
         
         NSLayoutConstraint.activate([
             avatarView.widthAnchor.constraint(equalToConstant: Constants.avatarSide),
@@ -296,6 +351,7 @@ final class MessageCell: UICollectionViewCell {
             avatarView.isHidden = false
             bubbleView.isHidden = false
             eventDescriptionView.isHidden = true
+            taskVoteView.isHidden = true
             activeDirectionConstraints = [
                 bubbleTopConstraint,
                 bubbleBottomConstraint,
@@ -307,6 +363,7 @@ final class MessageCell: UICollectionViewCell {
             avatarView.isHidden = true
             bubbleView.isHidden = false
             eventDescriptionView.isHidden = true
+            taskVoteView.isHidden = true
             activeDirectionConstraints = [
                 bubbleTopConstraint,
                 bubbleBottomConstraint,
@@ -317,6 +374,7 @@ final class MessageCell: UICollectionViewCell {
             avatarView.isHidden = true
             bubbleView.isHidden = true
             eventDescriptionView.isHidden = false
+            taskVoteView.isHidden = true
             activeDirectionConstraints = [
                 descriptionTopConstraint,
                 descriptionBottomConstraint,
@@ -324,6 +382,17 @@ final class MessageCell: UICollectionViewCell {
                 descriptionLeadingConstraint,
                 descriptionTrailingConstraint,
                 descriptionWidthConstraint
+            ]
+        case .taskVote:
+            avatarView.isHidden = true
+            bubbleView.isHidden = true
+            eventDescriptionView.isHidden = true
+            taskVoteView.isHidden = false
+            activeDirectionConstraints = [
+                taskVoteTopConstraint,
+                taskVoteBottomConstraint,
+                taskVoteCenterXConstraint,
+                taskVoteWidthConstraint
             ]
         }
         
@@ -337,6 +406,7 @@ final class MessageCell: UICollectionViewCell {
         avatarView.isHidden = true
         bubbleView.isHidden = true
         eventDescriptionView.isHidden = true
+        taskVoteView.isHidden = true
         
         bubbleView.reservesSenderNameSpace = false
     }

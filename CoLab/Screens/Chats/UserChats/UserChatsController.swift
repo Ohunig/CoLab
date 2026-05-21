@@ -266,6 +266,8 @@ extension UserChatsController: UserChatsDisplayLogic {
     }
     
     func displayChats(_ viewModel: Model.ChatsList.ViewModel) {
+        let shouldAnimate = dataSource.snapshot().itemIdentifiers.isEmpty == false
+        
         hasLoadedChatsState = true
         emptyStateLabel.isHidden = !viewModel.items.isEmpty
         
@@ -274,17 +276,17 @@ extension UserChatsController: UserChatsDisplayLogic {
         applyChatsState(
             chatIds: viewModel.items.map { $0.id },
             updatedChatIds: viewModel.updatedChatIds,
-            animatingDifferences: true
+            animatingDifferences: shouldAnimate
         )
     }
     
     func displayAvatarUpdate(_ viewModel: Model.AvatarUpdate.ViewModel) {
         guard view.window != nil else { return }
         
-        var snapshot = dataSource.snapshot()
+        let snapshot = dataSource.snapshot()
         guard snapshot.indexOfItem(viewModel.chatId) != nil else { return }
-        snapshot.reloadItems([viewModel.chatId])
-        dataSource.apply(snapshot, animatingDifferences: false)
+        
+        refreshItems([viewModel.chatId], in: snapshot)
     }
     
     func displayError(_ viewModel: Model.ShowError.ViewModel) {
@@ -329,15 +331,8 @@ extension UserChatsController: UITableViewDelegate {
     // Отслеживание скролла для пагинации
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         updateHeaderAndContainerForScroll()
-        view.layoutIfNeeded()
         
-        let offsetY = scrollView.contentOffset.y
-        let contentHeight = scrollView.contentSize.height
-        let height = scrollView.frame.size.height
-        
-        guard contentHeight > 0 else { return }
-        
-        if offsetY > contentHeight - height * Constants.paginationMultiplier {
+        if shouldLoadNextPage(for: scrollView) {
             interactor.loadNextPage()
         }
     }
@@ -391,14 +386,13 @@ extension UserChatsController: UITableViewDelegate {
         
         guard !chatIds.isEmpty else { return }
         
-        var snapshot = dataSource.snapshot()
+        let snapshot = dataSource.snapshot()
         let reloadableChatIds = chatIds.filter {
             snapshot.indexOfItem($0) != nil
         }
         guard !reloadableChatIds.isEmpty else { return }
         
-        snapshot.reloadItems(reloadableChatIds)
-        dataSource.apply(snapshot, animatingDifferences: false)
+        refreshItems(reloadableChatIds, in: snapshot)
     }
 
     // Назначение нового состояния ячейкам
@@ -416,14 +410,50 @@ extension UserChatsController: UITableViewDelegate {
         
         guard updatedChatIds.isEmpty == false else { return }
         
-        var snapshot = dataSource.snapshot()
+        let snapshot = dataSource.snapshot()
         let reloadableChatIds = updatedChatIds.filter {
             snapshot.indexOfItem($0) != nil
         }
         guard reloadableChatIds.isEmpty == false else { return }
         
-        snapshot.reloadItems(reloadableChatIds)
-        dataSource.apply(snapshot, animatingDifferences: false)
+        refreshItems(reloadableChatIds, in: snapshot)
+    }
+    
+    private func shouldLoadNextPage(for scrollView: UIScrollView) -> Bool {
+        guard scrollView.isDragging || scrollView.isDecelerating else {
+            return false
+        }
+        
+        let visibleHeight = scrollView.bounds.height
+            - scrollView.adjustedContentInset.top
+            - scrollView.adjustedContentInset.bottom
+        
+        guard visibleHeight > 0,
+              scrollView.contentSize.height > visibleHeight else {
+            return false
+        }
+        
+        let distanceToBottom = scrollView.contentSize.height
+            - normalizedContentOffset(for: scrollView)
+            - visibleHeight
+        
+        return distanceToBottom < visibleHeight
+            * (Constants.paginationMultiplier - 1)
+    }
+    
+    private func refreshItems(
+        _ chatIds: [String],
+        in snapshot: Snapshot
+    ) {
+        var nextSnapshot = snapshot
+        
+        if #available(iOS 15.0, *) {
+            nextSnapshot.reconfigureItems(chatIds)
+        } else {
+            nextSnapshot.reloadItems(chatIds)
+        }
+        
+        dataSource.apply(nextSnapshot, animatingDifferences: false)
     }
     
     // Конфигурация ячейки

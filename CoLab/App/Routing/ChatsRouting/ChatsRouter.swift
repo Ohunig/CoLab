@@ -69,6 +69,19 @@ final class ChatsRouter: ChatsRoutingLogic {
         )
     }
     
+    func routeToChatTasks(
+        chatId: String,
+        memberIds: [String]
+    ) {
+        navigationController?.pushViewController(
+            ChatTasksAssembly.build(
+                chatId: chatId,
+                memberIds: memberIds
+            ),
+            animated: true
+        )
+    }
+    
     func routeToUserChats() {
         navigationController?.popToRootViewController(animated: true)
     }

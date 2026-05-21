@@ -102,6 +102,13 @@ final class ChatInfoInteractor: ChatInfoBusinessLogic {
         )
     }
     
+    func loadTasksScreen() {
+        router.routeToChatTasks(
+            chatId: chatId,
+            memberIds: memberIds
+        )
+    }
+    
     func loadUserInfoScreen(userId: String) {
         router.routeToUserInfo(userId: userId)
     }

@@ -30,5 +30,10 @@ protocol ChatsRoutingLogic: UserInfoRoutingLogic {
         memberIds: [String]
     )
     
+    func routeToChatTasks(
+        chatId: String,
+        memberIds: [String]
+    )
+    
     func routeToUserChats()
 }

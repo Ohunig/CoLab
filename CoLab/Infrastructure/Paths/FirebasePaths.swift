@@ -76,6 +76,11 @@ enum FirebasePaths {
         case memberId
         case text
         case createdAt
+        case taskId
+        case taskText
+        case votesFor
+        case votesAgainst
+        case isResolved
         
         var path: String {
             switch self {
@@ -89,6 +94,45 @@ enum FirebasePaths {
                 "text"
             case .createdAt:
                 "createdAt"
+            case .taskId:
+                "taskId"
+            case .taskText:
+                "taskText"
+            case .votesFor:
+                "votesFor"
+            case .votesAgainst:
+                "votesAgainst"
+            case .isResolved:
+                "isResolved"
+            }
+        }
+    }
+    
+    // Обозначения для таблицы задач конкретного чата
+    enum Tasks {
+        static let root = "tasks"
+        
+        case text
+        case createdBy
+        case isCompleted
+        case createdAt
+        case completedAt
+        case activeVoteMessageId
+        
+        var path: String {
+            switch self {
+            case .text:
+                "text"
+            case .createdBy:
+                "createdBy"
+            case .isCompleted:
+                "isCompleted"
+            case .createdAt:
+                "createdAt"
+            case .completedAt:
+                "completedAt"
+            case .activeVoteMessageId:
+                "activeVoteMessageId"
             }
         }
     }

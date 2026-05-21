@@ -45,6 +45,7 @@ final class ChatMessagesListView: UIView {
     
     // Область сообщений сама знает когда нужно попросить следующую страницу.
     var onNeedsPreviousMessages: (() -> Void)?
+    var onTaskVote: ((String, String, Bool) -> Void)?
     
     private var isPreviousPagePaginationArmed = true
     private var isAdjustingForKeyboard = false
@@ -106,6 +107,7 @@ final class ChatMessagesListView: UIView {
         collectionView.transform = Constants.invertedTransform
         collectionView.delegate = self
         collectionView.alwaysBounceVertical = true
+        collectionView.delaysContentTouches = false
         collectionView.contentInsetAdjustmentBehavior = .never
         collectionView.showsVerticalScrollIndicator = false
         collectionView.keyboardDismissMode = .interactive
@@ -335,6 +337,20 @@ final class ChatMessagesListView: UIView {
             isLoading: item.isAvatarLoading
         )
         
+        if let taskVote = item.taskVote {
+            cell.setTaskVote(
+                votesForCount: taskVote.votesForCount,
+                votesAgainstCount: taskVote.votesAgainstCount,
+                currentVote: taskVote.currentUserVote,
+                isResolved: taskVote.isResolved
+            )
+            cell.onTaskVote = taskVote.isResolved ? nil : { [weak self] isApproved in
+                self?.onTaskVote?(item.id, taskVote.taskId, isApproved)
+            }
+        } else {
+            cell.onTaskVote = nil
+        }
+        
         let bubbleBaseColor = UIColor(
             hex: item.baseColor.hex,
             alpha: item.baseColor.a
@@ -543,6 +559,8 @@ private func cellDirection(
         .outgoing
     case .description:
         .description
+    case .taskVote:
+        .taskVote
     }
 }
 
