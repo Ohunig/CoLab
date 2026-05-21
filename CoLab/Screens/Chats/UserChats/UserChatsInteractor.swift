@@ -187,6 +187,8 @@ final class UserChatsInteractor: UserChatsBusinessLogic {
         // Избегаем бесконечной подгрузки страниц
         guard canLoadMore else { return }
         
+        canLoadMore = false
+        
         // Расширяем окно live-обновлений
         desiredLiveLimit += Constants.pageLimit
         chatListService.setLiveUpdatesLimit(desiredLiveLimit)
