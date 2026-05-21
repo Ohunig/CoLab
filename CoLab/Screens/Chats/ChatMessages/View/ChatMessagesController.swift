@@ -212,6 +212,13 @@ final class ChatMessagesController: UIViewController {
         messagesListView.onNeedsPreviousMessages = { [weak self] in
             self?.interactor.loadPreviousMessages()
         }
+        messagesListView.onTaskVote = { [weak self] messageId, taskId, isApproved in
+            self?.interactor.voteForTaskCompletion(
+                messageId: messageId,
+                taskId: taskId,
+                isApproved: isApproved
+            )
+        }
         
         view.insertSubview(messagesListView, aboveSubview: backgroundView)
         

@@ -85,6 +85,7 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
             makeMessageItem(
                 from: message,
                 currentUserId: response.currentUserId,
+                memberCount: response.memberCount,
                 senderDataById: response.senderDataById
             )
         }
@@ -144,6 +145,7 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
         && lhs.senderName == rhs.senderName
         && lhs.avatarData == rhs.avatarData
         && lhs.isAvatarLoading == rhs.isAvatarLoading
+        && lhs.taskVote == rhs.taskVote
         && lhs.baseColor.hex == rhs.baseColor.hex
         && lhs.baseColor.a == rhs.baseColor.a
         && lhs.borderColor?.hex == rhs.borderColor?.hex
@@ -161,6 +163,7 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
     private func makeMessageItem(
         from message: ChatMessageModel,
         currentUserId: String?,
+        memberCount: Int,
         senderDataById: [String: Model.MessagesList.SenderData]
     ) -> Model.MessagesList.ViewModel.MessageItem {
         switch message.kind {
@@ -179,6 +182,7 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
                 ),
                 avatarData: isOutgoing ? nil : senderData?.avatarData,
                 isAvatarLoading: isOutgoing ? false : senderData?.isAvatarLoading ?? true,
+                taskVote: nil,
                 baseColor: isOutgoing ? outgoingGradientEndColor : incomingBaseColor,
                 borderColor: isOutgoing ? nil : incomingBorderColor,
                 gradientStartColor: isOutgoing ? outgoingGradientStartColor : nil,
@@ -191,6 +195,12 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
                 from: message,
                 currentUserId: currentUserId,
                 senderDataById: senderDataById
+            )
+        case .taskVote:
+            return makeTaskVoteItem(
+                from: message,
+                currentUserId: currentUserId,
+                memberCount: memberCount
             )
         }
     }
@@ -232,6 +242,7 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
             senderName: nil,
             avatarData: nil,
             isAvatarLoading: false,
+            taskVote: nil,
             baseColor: incomingBaseColor,
             borderColor: incomingBorderColor,
             gradientStartColor: nil,
@@ -264,9 +275,66 @@ final class ChatMessagesPresenter: ChatMessagesPresentationLogic, ChatMessagesCo
         case .memberLeft:
             if isCurrentUserEvent { return "Вы вышли из чата" }
             return "\(trimmedMemberEventName(memberName)) вышел из чата"
-        case .text:
+        case .text, .taskVote:
             return fallbackText
         }
+    }
+    
+    private func makeTaskVoteItem(
+        from message: ChatMessageModel,
+        currentUserId: String?,
+        memberCount: Int
+    ) -> Model.MessagesList.ViewModel.MessageItem {
+        let currentUserVote = currentUserVote(
+            message: message,
+            currentUserId: currentUserId
+        )
+        let isResolved = isResolvedTaskVote(
+            message,
+            memberCount: memberCount
+        )
+        
+        return Model.MessagesList.ViewModel.MessageItem(
+            id: message.id,
+            text: message.taskText ?? message.text,
+            direction: .taskVote,
+            senderName: nil,
+            avatarData: nil,
+            isAvatarLoading: false,
+            taskVote: Model.MessagesList.ViewModel.TaskVote(
+                taskId: message.taskId ?? "",
+                votesForCount: message.votesFor.count,
+                votesAgainstCount: message.votesAgainst.count,
+                currentUserVote: currentUserVote,
+                isResolved: isResolved
+            ),
+            baseColor: incomingBaseColor,
+            borderColor: incomingBorderColor,
+            gradientStartColor: nil,
+            gradientEndColor: nil,
+            textColor: incomingTextColor,
+            senderTextColor: nil
+        )
+    }
+    
+    private func currentUserVote(
+        message: ChatMessageModel,
+        currentUserId: String?
+    ) -> Bool? {
+        guard let currentUserId else { return nil }
+        if message.votesFor.contains(currentUserId) { return true }
+        if message.votesAgainst.contains(currentUserId) { return false }
+        return nil
+    }
+    
+    private func isResolvedTaskVote(
+        _ message: ChatMessageModel,
+        memberCount: Int
+    ) -> Bool {
+        let requiredVotes = max(1, Int(ceil(Double(max(memberCount, 1)) / 2.0)))
+        return message.isResolved
+            || message.votesFor.count >= requiredVotes
+            || message.votesAgainst.count >= requiredVotes
     }
     
     private func trimmedMemberEventName(_ name: String) -> String {

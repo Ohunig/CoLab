@@ -47,6 +47,7 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
     private var isInitialLoading = false
     private var isLoadingPreviousMessages = false
     private var isLoadingNewMessages = false
+    private var votingMessageIds = Set<String>()
     
     private var requestsCancellables = Set<AnyCancellable>()
     private var chatUpdatesCancellable: AnyCancellable?
@@ -160,6 +161,7 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
                     Model.MessagesList.Response(
                         messages: messages,
                         currentUserId: self.currentUserId,
+                        memberCount: self.memberIds.count,
                         senderDataById: self.senderDataById()
                     )
                 )
@@ -278,6 +280,7 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
                     Model.MessagesList.Response(
                         messages: self.orderedMessages,
                         currentUserId: self.currentUserId,
+                        memberCount: self.memberIds.count,
                         senderDataById: self.senderDataById()
                     )
                 )
@@ -321,9 +324,49 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
                     Model.MessagesList.Response(
                         messages: self.orderedMessages,
                         currentUserId: self.currentUserId,
+                        memberCount: self.memberIds.count,
                         senderDataById: self.senderDataById()
                     )
                 )
+            }
+        )
+        .store(in: &requestsCancellables)
+    }
+    
+    func voteForTaskCompletion(
+        messageId: String,
+        taskId: String,
+        isApproved: Bool
+    ) {
+        guard !votingMessageIds.contains(messageId) else { return }
+        guard let message = orderedMessages.first(where: { $0.id == messageId }) else {
+            return
+        }
+        guard !isResolvedTaskVote(message) else { return }
+        
+        votingMessageIds.insert(messageId)
+        
+        messagesService.voteForTaskCompletion(
+            messageId: messageId,
+            taskId: taskId,
+            isApproved: isApproved,
+            chatId: chatId,
+            memberCount: memberIds.count
+        )
+        .receive(on: DispatchQueue.main)
+        .sink(
+            receiveCompletion: { [weak self] completion in
+                guard let self else { return }
+                self.votingMessageIds.remove(messageId)
+                
+                guard case let .failure(error) = completion else { return }
+                self.presenter.presentError(
+                    Model.ShowError.Response(error: error)
+                )
+            },
+            receiveValue: { [weak self] message in
+                guard let self else { return }
+                self.replaceMessage(message)
             }
         )
         .store(in: &requestsCancellables)
@@ -371,7 +414,10 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
                     from: messages,
                     excluding: self.orderedMessages
                 )
-                guard !newMessages.isEmpty else { return }
+                let updatedMessageIds = self.replaceExistingMessages(messages)
+                guard !newMessages.isEmpty || !updatedMessageIds.isEmpty else {
+                    return
+                }
                 
                 // Новые сообщения всегда дописываются в конец так как массив хранится old -> new
                 self.orderedMessages.append(contentsOf: newMessages)
@@ -382,6 +428,7 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
                     Model.MessagesList.Response(
                         messages: self.orderedMessages,
                         currentUserId: self.currentUserId,
+                        memberCount: self.memberIds.count,
                         senderDataById: self.senderDataById()
                     )
                 )
@@ -398,6 +445,41 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
     ) -> [ChatMessageModel] {
         let existingIds = Set(existingMessages.map(\.id))
         return messages.filter { !existingIds.contains($0.id) }
+    }
+    
+    private func replaceMessage(_ message: ChatMessageModel) {
+        guard let index = orderedMessages.firstIndex(where: { $0.id == message.id }) else {
+            return
+        }
+        
+        orderedMessages[index] = message
+        presenter.presentMessages(
+            Model.MessagesList.Response(
+                messages: orderedMessages,
+                currentUserId: currentUserId,
+                memberCount: memberIds.count,
+                senderDataById: senderDataById()
+            )
+        )
+    }
+    
+    @discardableResult
+    private func replaceExistingMessages(
+        _ messages: [ChatMessageModel]
+    ) -> [String] {
+        var updatedIds: [String] = []
+        
+        messages.forEach { message in
+            guard let index = orderedMessages.firstIndex(where: { $0.id == message.id }) else {
+                return
+            }
+            guard orderedMessages[index] != message else { return }
+            
+            orderedMessages[index] = message
+            updatedIds.append(message.id)
+        }
+        
+        return updatedIds
     }
     
     // MARK: Sender data
@@ -531,9 +613,17 @@ final class ChatMessagesInteractor: ChatMessagesBusinessLogic {
             Model.MessagesList.Response(
                 messages: orderedMessages,
                 currentUserId: currentUserId,
+                memberCount: memberIds.count,
                 senderDataById: senderDataById()
             )
         )
+    }
+    
+    private func isResolvedTaskVote(_ message: ChatMessageModel) -> Bool {
+        let requiredVotes = max(1, Int(ceil(Double(max(memberIds.count, 1)) / 2.0)))
+        return message.isResolved
+            || message.votesFor.count >= requiredVotes
+            || message.votesAgainst.count >= requiredVotes
     }
     
     // Presenter получает sender data сразу словарём чтобы потом быстро собирать item'ы по senderId

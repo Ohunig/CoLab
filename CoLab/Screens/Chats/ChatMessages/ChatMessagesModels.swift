@@ -59,6 +59,7 @@ struct ChatMessagesModels {
         struct Response {
             let messages: [ChatMessageModel]
             let currentUserId: String?
+            let memberCount: Int
             let senderDataById: [String: SenderData]
         }
         
@@ -67,6 +68,15 @@ struct ChatMessagesModels {
                 case incoming
                 case outgoing
                 case description
+                case taskVote
+            }
+            
+            struct TaskVote: Equatable {
+                let taskId: String
+                let votesForCount: Int
+                let votesAgainstCount: Int
+                let currentUserVote: Bool?
+                let isResolved: Bool
             }
             
             struct MessageItem {
@@ -76,6 +86,7 @@ struct ChatMessagesModels {
                 let senderName: String?
                 let avatarData: Data?
                 let isAvatarLoading: Bool
+                let taskVote: TaskVote?
                 let baseColor: (hex: String, a: CGFloat)
                 let borderColor: (hex: String, a: CGFloat)?
                 let gradientStartColor: (hex: String, a: CGFloat)?

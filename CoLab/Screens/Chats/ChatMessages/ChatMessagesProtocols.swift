@@ -35,6 +35,13 @@ protocol ChatMessagesBusinessLogic: AnyObject {
     
     // Отправка нового текстового сообщения
     func sendMessage(text: String)
+    
+    // Голосование за выполненность задачи
+    func voteForTaskCompletion(
+        messageId: String,
+        taskId: String,
+        isApproved: Bool
+    )
 }
 
 // Даёт контроллеру уже подготовленные данные для конкретной ячейки
