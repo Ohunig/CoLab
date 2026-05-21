@@ -16,6 +16,8 @@ protocol ChatInfoBusinessLogic: AnyObject {
     
     func loadAddMemberScreen()
     
+    func loadTasksScreen()
+    
     func loadUserInfoScreen(userId: String)
     
     func leaveChat()

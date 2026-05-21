@@ -71,6 +71,8 @@ final class CompositionRoot {
         }.inObjectScope(.transient)
         container.register(ChatMessagesLogic.self) { _ in ChatMessagesService() }
             .inObjectScope(.transient)
+        container.register(ChatTasksLogic.self) { _ in ChatTasksService() }
+            .inObjectScope(.transient)
         
         // Роутеры
         container.register(AuthRoutingLogic.self) { _ in AuthRouter() }

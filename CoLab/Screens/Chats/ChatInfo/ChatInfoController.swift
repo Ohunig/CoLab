@@ -26,6 +26,13 @@ final class ChatInfoController: UIViewController {
         static let bottomInset: CGFloat = 24
         static let updateDuration = 0.25
         
+        static let tasksCellHeight: CGFloat = 80
+        static let tasksCellText = "Задачи"
+        static let membersTitleText = "Участники"
+        static let membersTitleTop: CGFloat = 40
+        static let membersTitleBottom: CGFloat = 10
+        static let membersTitleFontSize: CGFloat = 22
+        
         static let exitCellHeight: CGFloat = 80
         static let exitCellTop: CGFloat = 20
         static let exitCellText = "Выйти из чата"
@@ -60,6 +67,8 @@ final class ChatInfoController: UIViewController {
     private let chatDescription = ChatDescriptionView()
     private let headerTextStackView = UIStackView()
     
+    private let tasksCell = ItemCell()
+    private let membersTitleLabel = UILabel()
     private let emptyStateLabel = UILabel()
     private let tableView = ContentSizedTableView(frame: .zero, style: .plain)
     private lazy var dataSource = makeDataSource()
@@ -112,6 +121,8 @@ final class ChatInfoController: UIViewController {
         configureScrollView()
         configureBackButton()
         configureHeader()
+        configureTasksButton()
+        configureMembersTitle()
         configureMembers()
         configureAddMemberButton()
         configureExitButton()
@@ -206,6 +217,56 @@ final class ChatInfoController: UIViewController {
         ])
     }
     
+    private func configureTasksButton() {
+        tasksCell.addAction(
+            UIAction { [weak self] _ in
+                self?.interactor.loadTasksScreen()
+            },
+            for: .touchUpInside
+        )
+        tasksCell.text = Constants.tasksCellText
+        tasksCell.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(tasksCell)
+        
+        NSLayoutConstraint.activate([
+            tasksCell.topAnchor.constraint(
+                equalTo: headerTextStackView.bottomAnchor,
+                constant: Constants.headerBottomInset
+            ),
+            tasksCell.leadingAnchor.constraint(
+                equalTo: scrollView.frameLayoutGuide.leadingAnchor,
+                constant: Constants.horisontalInset
+            ),
+            tasksCell.trailingAnchor.constraint(
+                equalTo: scrollView.frameLayoutGuide.trailingAnchor,
+                constant: -Constants.horisontalInset
+            ),
+            tasksCell.heightAnchor.constraint(
+                equalToConstant: Constants.tasksCellHeight
+            )
+        ])
+    }
+    
+    private func configureMembersTitle() {
+        membersTitleLabel.text = Constants.membersTitleText
+        membersTitleLabel.font = .systemFont(
+            ofSize: Constants.membersTitleFontSize,
+            weight: .medium
+        )
+        membersTitleLabel.numberOfLines = 1
+        membersTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(membersTitleLabel)
+        
+        NSLayoutConstraint.activate([
+            membersTitleLabel.topAnchor.constraint(
+                equalTo: tasksCell.bottomAnchor,
+                constant: Constants.membersTitleTop
+            ),
+            membersTitleLabel.leadingAnchor.constraint(equalTo: tasksCell.leadingAnchor),
+            membersTitleLabel.trailingAnchor.constraint(equalTo: tasksCell.trailingAnchor)
+        ])
+    }
+    
     private func configureMembers() {
         emptyStateLabel.text = Constants.emptyStateText
         emptyStateLabel.textAlignment = .center
@@ -240,8 +301,8 @@ final class ChatInfoController: UIViewController {
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(
-                equalTo: headerTextStackView.bottomAnchor,
-                constant: Constants.headerBottomInset
+                equalTo: membersTitleLabel.bottomAnchor,
+                constant: Constants.membersTitleBottom
             ),
             tableView.leadingAnchor.constraint(
                 equalTo: scrollView.frameLayoutGuide.leadingAnchor,
@@ -442,6 +503,10 @@ extension ChatInfoController: ChatInfoDisplayLogic {
         addMemberCell.textColor = textColor
         addMemberCell.tintColor = tintColor
         
+        tasksCell.baseColor = elementsBaseColor
+        tasksCell.textColor = textColor
+        tasksCell.tintColor = tintColor
+        
         exitCell.baseColor = elementsBaseColor
         
         // Аватар + название чата
@@ -449,6 +514,7 @@ extension ChatInfoController: ChatInfoDisplayLogic {
         chatTitle.textColor = textColor
         chatDescription.baseColor = elementsBaseColor
         chatDescription.textColor = textColor
+        membersTitleLabel.textColor = tintColor
         
         // Empty state
         emptyStateLabel.textColor = textColor
